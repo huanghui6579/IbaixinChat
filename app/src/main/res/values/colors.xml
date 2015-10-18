@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_color">#03A9F4</color>
+    <color name="primary_dark_color">#0288D1</color>
+    <color name="primary_light_color">#B3E5FC</color>
+    <color name="accent_color">#448AFF</color>
+    <color name="primary_text_color">#212121</color>
+    <color name="secondary_text_color">#727272</color>
+    <color name="icons_color">#FFFFFF</color>
+    
+    <color name="ripple_color">#20000000</color>
+    
+    <!-- 30%的透明的 -->
+    <color name="selectable_text_color_disabled_light">#39ffffff</color>
+    
+    <!-- 一般标题字体的颜色 -->
+    <color name="font_color">#353535</color>
+    
+    <!-- 通用列表分割线颜色 -->
+    <color name="divider_color">#E0E0E0</color>
+    
+    <!-- 淡灰色 -->
+    <color name="login_main_bg">#FDFDFD</color>
+    <color name="login_text_regist">#1212EF</color>
+    
+    <color name="tab_text_normal">#696969</color>
+    <color name="tab_text_selected">#73bf40</color>
+    
+    <color name="album_text_normal">#ffffff</color>
+    <color name="album_text_selected">#aaaaaa</color>
+    <color name="album_top_layout_bg">#AA000000</color>
+    <color name="album_item_selected_alpha">#AA999999</color>
+    
+    <color name="session_list_item_content">#999999</color>
+    <color name="session_list_item_time">#99888888</color>
+    
+    <color name="chat_location_desc_bg">#99000000</color>
+    
+    <color name="list_selector">@color/ripple_color</color>
+    
+    <color name="index_text_color">#454545</color>
+    <color name="index_text_bg_color">@color/default_bgcolor</color>
+    
+    <color name="contact_chat_list_bg">@color/default_bgcolor</color>
+    
+    <color name="contact_chat_make_voioce_btn_pressed">#45999999</color>
+    <color name="contact_chat_emoji_indicator_fill">#999999</color>
+    <color name="contact_chat_emoji_indicator_pager">#99999999</color>
+    <color name="contact_chat_bottom_layout">#68FDFDFD</color>
+    <color name="contact_chat_msg_time">#89737373</color>
+    
+    <!-- pager Tab 选中的颜色 -->
+    <color name="pager_tab_pressed">#6633B5E5</color>
+    <color name="pager_tab_indicator_color">#FF33B5E5</color>
+    <color name="pager_tab_text_selected_color">#FF33B5E5</color>
+    
+    <!-- 网络异常的提示信息背景，淡红色 -->
+    <color name="net_error_tip_bg">#FFEEEE</color>
+    
+    <!-- material-dialogs对话框颜色值 -->
+    <color name="md_divider_black">#10000000</color>
+    <color name="md_divider_white">#10FFFFFF</color>
+
+    <color name="md_material_blue_600">#1E88E5</color>
+    <color name="md_material_blue_800">#1565C0</color>
+    
+    <color name="default_bgcolor">#EBEBEB</color>
+    
+    <!-- A light Holo shade of blue -->  
+    <color name="holo_blue_light">#ff33b5e5</color>  
+    <!-- A light Holo shade of green -->  
+    <color name="holo_green_light">#ff99cc00</color>  
+    <!-- A light Holo shade of red -->  
+    <color name="holo_red_light">#ffff4444</color>  
+    <!-- A dark Holo shade of blue -->  
+    <color name="holo_blue_dark">#ff0099cc</color>  
+    <!-- A dark Holo shade of green -->  
+    <color name="holo_green_dark">#ff669900</color>  
+    <!-- A dark Holo shade of red -->  
+    <color name="holo_red_dark">#ffcc0000</color>  
+    <!-- A Holo shade of purple -->  
+    <color name="holo_purple">#ffaa66cc</color>  
+    <!-- A light Holo shade of orange -->  
+    <color name="holo_orange_light">#ffffbb33</color>  
+    <!-- A dark Holo shade of orange -->  
+    <color name="holo_orange_dark">#ffff8800</color>  
+    <!-- A really bright Holo shade of blue -->  
+    <color name="holo_blue_bright">#ff00ddff</color> 
+    
+    <!-- 颜色较深的半透明 -->
+    <color name="translucence_color">#b0000000</color>
+</resources>

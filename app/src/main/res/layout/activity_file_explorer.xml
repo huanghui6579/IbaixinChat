@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+    <include layout="@layout/com_toolbar"/>
+    <TextView 
+        android:id="@+id/back_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/file_explorer_back_horizontal_spacing"
+        android:paddingRight="@dimen/file_explorer_back_horizontal_spacing"
+        android:paddingTop="@dimen/file_explorer_back_vertical_spacing"
+        android:paddingBottom="@dimen/file_explorer_back_vertical_spacing"
+        android:drawablePadding="@dimen/file_explorer_back_vertical_spacing"
+        android:drawableLeft="@drawable/ic_back"
+        android:drawableStart="@drawable/ic_back"
+        android:background="@drawable/common_list_selector"
+        android:singleLine="true"
+        android:gravity="center_vertical"/>
+    <View 
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/list_selector"/>
+    <FrameLayout 
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ListView
+		    android:id="@id/lv_data"
+		    style="@style/CommonListViewStyle" />
+		
+		<include 
+		    layout="@layout/layout_empty"/>
+		
+		<include layout="@layout/layout_loading"/>
+    </FrameLayout>
+
+</LinearLayout>

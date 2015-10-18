@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/activity_vertical_margin" >
+    
+    <TextView 
+        android:id="@id/tv_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingStart="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingEnd="@dimen/activity_horizontal_margin"
+        android:background="@android:color/transparent"
+        android:text="@string/geo_current_location"/>
+    
+    <TextView 
+        android:id="@id/tv_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/CommonListItemTitleStyle"
+        android:drawableLeft="@drawable/ic_markers"
+        android:drawableStart="@drawable/ic_markers"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingStart="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingEnd="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/list_item_padding"
+        android:minHeight="@dimen/list_item_min_height"
+        android:background="@drawable/item_setting_bg_selector"
+        android:clickable="true"
+        android:singleLine="true"
+        android:gravity="center_vertical"
+        android:drawablePadding="@dimen/chat_msg_item_drawable_spacing"/>
+    
+
+</LinearLayout>

@@ -1,0 +1,554 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Base application theme, dependent on API level. This theme is replaced
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+    -->
+    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        
+        <item name="android:windowIsTranslucent">true</item>
+        
+        <item name="colorPrimaryDark">@color/primary_dark_color</item>
+        <item name="colorPrimary">@color/primary_color</item>
+        <item name="colorAccent">@color/accent_color</item>
+        
+        <item name="actionMenuTextAppearance">@style/MenuDoneTextStyle</item>
+        
+        <!-- <item name="android:textColorSecondary">@color/secondary_text_color</item>
+        <item name="android:textColorPrimary">@color/primary_text_color</item> -->
+        
+        <item name="windowActionModeOverlay">true</item>
+        
+        <item name="toolbarStyle">@style/MyToolBarStyle</item>
+        
+        <!-- action bar 上的颜色控制器，主要是控制文字、图标的颜色 -->
+        <!-- <item name="colorControlNormal">@android:color/white</item> -->
+        
+        <item name="actionModeStyle">@style/AppTheme.ActionMode</item>
+        
+        <!-- 自定义对话框样式 -->
+        <!--
+	        All dialogs will default to Theme.DARK with this set to true.
+	    -->
+	    <item name="md_dark_theme">false</item>
+	
+	    <!--
+	        By default, the title text color is derived from the
+	        ?android:textColorPrimary system attribute.
+	    -->
+	    <item name="md_title_color">?attr/colorPrimary</item>
+	
+	
+	    <!--
+	        By default, the content text color is derived from the
+	        ?android:textColorSecondary system attribute.
+	    -->
+	    <item name="md_content_color">?android:textColorPrimary</item>
+	
+	
+	    <!--
+	        By default, the positive action text color is derived
+	        from the colorAccent attribute of AppCompat or android:colorAccent
+	        attribute of the Material theme.
+	    -->
+	    <item name="md_positive_color">?attr/colorPrimary</item>
+	
+	    <!--
+	        By default, the positive action text color is derived
+	        from the colorAccent attribute of AppCompat or android:colorAccent
+	        attribute of the Material theme.
+	    -->
+	    <item name="md_neutral_color">?android:textColorPrimary</item>
+	
+	    <!--
+	        By default, the positive action text color is derived
+	        from the colorAccent attribute of AppCompat or android:colorAccent
+	        attribute of the Material theme.
+	    -->
+	    <item name="md_negative_color">?android:textColorPrimary</item>
+	
+	    <!--
+	        By default, the list item text color is black for the light
+	        theme and white for the dark theme.
+	    -->
+	    <!-- <item name="md_item_color">#9C27B0</item> -->
+	
+	    <!--
+	        This overrides the color used for the top and bottom dividers used when
+	        content is scrollable
+	    -->
+	    <item name="md_divider_color">@color/divider_color</item>
+	
+	    <!--
+	        This overrides the selector used on list items.
+	    -->
+	    <item name="md_list_selector">@drawable/common_list_selector</item>
+	
+	    <!--
+	        This overrides the selector used on stacked action buttons.
+	    -->
+	    <!-- <item name="md_btn_stacked_selector">@drawable/common_list_selector</item> -->
+	
+	    <!--
+	        This overrides the background selector used on the positive action button.
+	    -->
+	    <!-- <item name="md_btn_positive_selector">@drawable/common_list_selector</item> -->
+	
+	    <!--
+	        This overrides the background selector used on the neutral action button.
+	    -->
+	    <!-- <item name="md_btn_neutral_selector">@drawable/common_list_selector</item> -->
+	
+	    <!--
+	        This overrides the background selector used on the negative action button.
+	    -->
+	    <!-- <item name="md_btn_negative_selector">@drawable/common_list_selector</item> -->
+        
+        <!--
+            Theme customizations available in newer API levels can go in
+            res/values-vXX/styles.xml, while customizations related to
+            backward-compatibility can go here.
+        -->
+        <!-- <item name="windowActionBar">true</item>
+        <item name="android:windowNoTitle">false</item> -->
+    </style>
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="AppBaseTheme">
+        <!-- <item name="actionBarStyle">@style/CustomActionBarStyle</item> -->
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <!-- <item name="vpiCirclePageIndicatorStyle">@style/CustomCirclePageIndicator</item> -->
+        <!-- <item name="vpiTabPageIndicatorStyle">@style/FuncTabView</item> -->
+        <!-- <item name="android:actionOverflowButtonStyle">@style/MyActionButtonOverflow</item>
+    	<item name="android:actionMenuTextColor">@android:color/white</item> -->
+    </style>
+    
+    <!-- 相册菜单字体样式 -->
+    <style name="AlbumMenuTextStyle" parent="@android:style/TextAppearance.Holo.Widget.ActionBar.Menu">
+        <item name="android:textSize">16sp</item>
+    </style>
+    
+    <!-- 图片查看的ActionBar样式 -->
+    <style name="CustomActionBarStyle" parent="@style/Widget.AppCompat.Light.ActionBar.Solid">
+        <item name="background">@drawable/action_bar_bg</item>
+        <item name="backgroundStacked">@drawable/action_bar_bg</item>
+        <item name="backgroundSplit">@drawable/action_bar_bg</item>
+    </style>
+    
+    <!-- 系统默认的action overflow样式 -->
+    <style name="MyActionButtonOverflow" parent="android:style/Widget.Holo.ActionButton.Overflow">
+        <item name="android:src">@drawable/abc_ic_menu_moreoverflow_normal_holo_dark</item>
+    </style>
+    
+    <!-- 主界面的action overflow样式 -->
+    <style name="MyActionButtonOverflow.MainActivty">
+        <item name="android:src">@drawable/abc_ic_plus_normal</item>
+    </style>
+    
+    <!-- 注册、登录界面父布局的样式 -->
+    <style name="LoginRootLayoutStyle">
+    	<item name="android:layout_width">match_parent</item>
+    	<item name="android:layout_height">match_parent</item>
+    	<item name="android:paddingLeft">@dimen/login_horizontal_margin</item>
+    	<item name="android:paddingRight">@dimen/login_horizontal_margin</item>
+    	<item name="android:background">@color/login_main_bg</item>
+    </style>
+    
+    <!-- 账号输入框的样式 -->
+    <style name="AccountTextStyle">
+		<item name="android:layout_width">match_parent</item>            
+		<item name="android:layout_height">wrap_content</item>            
+		<item name="android:textStyle">bold</item>            
+		<item name="android:singleLine">true</item>            
+		<item name="android:imeOptions">actionNext</item>            
+		<item name="android:textSize">@dimen/login_font_account</item>            
+    </style>
+    
+    <!-- 密码输入框的样式 -->
+    <style name="PasswordTextStyle">
+		<item name="android:layout_width">match_parent</item>            
+		<item name="android:layout_height">wrap_content</item>            
+		<item name="android:textStyle">bold</item>            
+		<item name="android:singleLine">true</item>            
+		<item name="android:inputType">textPassword</item>            
+		<item name="android:textSize">@dimen/login_font_password</item>            
+    </style>
+    
+    <!-- 密码输入框的样式 -->
+    <style name="LoginTextStyle">
+		<item name="android:layout_width">match_parent</item>            
+		<item name="android:layout_height">wrap_content</item>            
+		<item name="android:gravity">center</item>            
+		<item name="android:textSize">@dimen/login_font_button</item>            
+    </style>
+    
+    <!-- 登录、注册界面底部提示信息样式 -->
+    <style name="LoginBottomTextStyle">
+        <item name="android:layout_width">match_parent</item>            
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:gravity">center</item>
+		<item name="android:layout_marginBottom">@dimen/login_vertical_margin</item>
+		<item name="android:textSize">@dimen/login_font_text_regist</item>
+		<item name="android:textColor">@color/login_text_regist</item>
+		<item name="android:layout_alignParentBottom">true</item>
+    </style>
+    
+    <!-- 主界面功能标签的样式 -->
+    <style name="FuncTabView">
+        <item name="android:addStatesFromChildren">true</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">bottom|center_horizontal</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:background">@android:color/white</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+    
+    <!-- 聊天界面标签的样式 -->
+    <style name="EmojiTabView">
+        <item name="android:gravity">center</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:textAppearance">@style/CustomTabPageIndicator.Text</item>
+        <item name="android:textSize">16sp</item>
+		<item name="android:showDividers">middle</item>
+		<item name="android:divider">@drawable/custom_tab_indicator_divider</item>
+        <item name="android:maxLines">1</item>
+    </style>
+    
+    <style name="CustomTabPageIndicator.Text" parent="android:TextAppearance.Medium">
+        <item name="android:typeface">monospace</item>
+    </style>
+    
+    <!-- 公用小按钮的样式 -->
+    <style name="CommonSmallButtonstyle">
+		<item name="android:layout_width">@dimen/common_button_width</item>
+		<item name="android:layout_height">@dimen/common_button_height</item>
+		<item name="android:gravity">center</item>
+		<item name="android:textColor">@android:color/white</item>
+    </style>
+    
+    <!-- 公用小绿色背景按钮的样式 -->
+    <style name="CommonSmallButtonstyle.Green">
+		<item name="android:background">@drawable/common_button_green_selector</item>
+    </style>
+    
+    <!-- 公用小灰白色背景按钮的样式 -->
+    <style name="CommonSmallButtonstyle.Grey">
+		<item name="android:background">@drawable/common_button_grey_selector</item>
+    </style>
+    
+    <!-- 公用正常按钮的样式 -->
+    <style name="CommonNormalButtonstyle" parent="CommonSmallButtonstyle">
+		<item name="android:layout_width">wrap_content</item>
+		<item name="android:layout_height">wrap_content</item>
+    </style>
+    
+    <!-- 公用正常绿色按钮的样式 -->
+    <style name="CommonNormalButtonstyle.Green">
+        <item name="android:background">@drawable/common_button_green_selector</item>
+    </style>
+    
+    <!-- 公用正常灰白色按钮的样式 -->
+    <style name="CommonNormalButtonstyle.Grey">
+        <item name="android:background">@drawable/common_button_grey_selector</item>
+    </style>
+    
+    <!-- 公用正常按钮的样式 -->
+    <style name="CommonWidthButtonstyle" parent="CommonSmallButtonstyle">
+		<item name="android:layout_width">match_parent</item>
+		<item name="android:layout_height">wrap_content</item>
+    </style>
+    
+    <!-- 公用正常绿色按钮的样式 -->
+    <style name="CommonWidthButtonstyle.Green">
+		<item name="android:background">@drawable/common_button_green_selector</item>
+    </style>
+    
+    <!-- 公用正常灰白色按钮的样式 -->
+    <style name="CommonWidthButtonstyle.Grey">
+		<item name="android:background">@drawable/common_button_grey_selector</item>
+    </style>
+    
+    <!-- 公共的listview样式 -->
+    <style name="CommonListViewStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:cacheColorHint">@android:color/transparent</item>
+        <item name="android:listSelector">@drawable/common_list_selector</item>
+        <item name="android:animateLayoutChanges">false</item>
+        <item name="android:fastScrollEnabled">true</item>
+    </style>
+    
+    <!-- 公共的分割线样式 -->
+    <style name="CommonDividerStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0.5dp</item>
+        <item name="android:background">@color/divider_color</item>
+    </style>
+    
+    <style name="CustomCirclePageIndicator">
+        <item name="fillColor">#FF888888</item>
+        <item name="strokeColor">#FF000000</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="radius">10dp</item>
+        <item name="centered">true</item>
+    </style>
+    
+    <!-- 聊天item的rootLayout的样式 -->
+    <style name="ChatItemRootStyle">
+    	<item name="android:layout_width">match_parent</item>
+    	<item name="android:layout_height">match_parent</item>
+    	<item name="android:orientation">vertical</item>
+    	<item name="android:paddingTop">@dimen/chat_msg_item_padding</item>
+    	<item name="android:paddingBottom">@dimen/chat_msg_item_padding</item>
+    	<item name="android:descendantFocusability">blocksDescendants</item>
+    </style>
+    
+    <!-- 聊天item的时间提示样式 -->
+    <style name="ChatItemSpliteTimeStyle">
+        <item name="android:layout_width">wrap_content</item>
+    	<item name="android:layout_height">wrap_content</item>
+    	<item name="android:background">@drawable/chat_msg_time_background</item>
+    	<item name="android:layout_gravity">center_horizontal</item>
+    	<item name="android:gravity">center</item>
+    	<item name="android:padding">@dimen/chat_msg_item_time_padding</item>
+    	<item name="android:layout_marginTop">@dimen/chat_msg_item_time_margin_top</item>
+    	<item name="android:layout_marginBottom">@dimen/chat_msg_item_time_margin_bottom</item>
+    </style>
+    
+    <!-- 聊天用户头像样式 -->
+    <style name="ChatItemHeadIconStyle">
+        <item name="android:layout_width">@dimen/chat_msg_item_head_icon_width</item>
+    	<item name="android:layout_height">@dimen/chat_msg_item_head_icon_height</item>
+    	<item name="android:src">@drawable/ic_chat_default_big_head_icon</item>
+    </style>
+    
+    <!-- 用户列表头像样式 -->
+    <style name="ThreadListItemHeadIconStyle" parent="ChatItemHeadIconStyle">
+        <item name="android:layout_width">@dimen/contact_item_head_icon_width</item>
+    	<item name="android:layout_height">@dimen/contact_item_head_icon_height</item>
+    </style>
+    
+    <!-- 聊天消息内容样式 -->
+    <style name="ChatItemContentStyle">
+        <item name="android:layout_width">wrap_content</item>
+    	<item name="android:layout_height">wrap_content</item>
+    	<!-- <item name="android:paddingBottom">@dimen/chat_msg_item_content_padding_top_bottom</item>
+    	<item name="android:paddingTop">@dimen/chat_msg_item_content_padding_top_bottom</item> -->
+    	<item name="android:textColor">@android:color/black</item>
+    	<item name="android:textSize">@dimen/contact_chat_msg</item>
+    </style>
+    
+    <!-- 聊天消息图片描述性文字的样式 -->
+    <style name="ChatItemContentDescStyle">
+        <item name="android:layout_width">wrap_content</item>
+    	<item name="android:layout_height">wrap_content</item>
+    	<item name="android:background">@drawable/chat_img_desc_text_bg</item>
+    	<item name="android:textColor">@android:color/white</item>
+    	<item name="android:singleLine">true</item>
+    	<item name="android:gravity">center</item>
+    </style>
+    
+    <!-- 聊天的文字样式 -->
+    <style name="ChatItemContentTitleStyle">
+    	<item name="android:textColor">@android:color/black</item>
+    	<item name="android:textSize">@dimen/contact_chat_msg</item>
+    </style>
+    
+    <!-- 聊天的文字副标题样式 -->
+    <style name="ChatItemContentSubTitleStyle">
+        <item name="android:textColor">@color/session_list_item_content</item>
+    	<item name="android:textSize">@dimen/session_list_item_content</item>
+    </style>
+    
+    <!-- 聊天消息发送状态样式 -->
+    <style name="ChatItemSendStateStyle">
+        <item name="android:layout_width">wrap_content</item>
+    	<item name="android:layout_height">wrap_content</item>
+    	<item name="android:src">@drawable/chat_msg_state_sending</item>
+    </style>
+    
+    <!-- 相册标题样式 -->
+    <style name="AlbumItemTitleStyle">
+        <item name="android:textSize">@dimen/session_list_item_title</item>
+    </style>
+    <!-- 相册子标题样式 -->
+    <style name="AlbumItemSubTitleStyle">
+        <item name="android:textSize">@dimen/session_list_item_content</item>
+        <item name="android:textColor">@color/session_list_item_content</item>
+    </style>
+    
+    <!-- 相册底部标题样式 -->
+    <style name="AlbumBottomTitleStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/album_list_bottom_title</item>
+        <item name="android:textColor">@color/selectable_item_text_color</item>
+<!--         <item name="android:textColor">@color/album_text_selector</item> -->
+        <item name="android:padding">@dimen/album_list_bottom_padding</item>
+    </style>
+    
+    <!-- 公共的列表标题样式 -->
+    <style name="CommonListItemTitleStyle">
+        <item name="android:textSize">@dimen/session_list_item_title</item>
+        <item name="android:textColor">@color/font_color</item>
+    </style>
+    
+    <!-- 公共的列表内容样式 -->
+    <style name="CommonListItemContentStyle">
+        <item name="android:textSize">@dimen/session_list_item_content</item>
+        <item name="android:textColor">@color/session_list_item_content</item>
+    </style>
+    
+    <!-- 公共的复选框样式 -->
+    <style name="CommonCheckboxStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:button">@drawable/album_checkbox_selector</item>
+    </style>
+    
+    <style name="CommonCheckedTextViewStyle">
+	    <item name="android:layout_width">match_parent</item>
+	    <item name="android:layout_height">wrap_content</item>
+	    <item name="android:layout_gravity">center_vertical</item>
+	    <item name="android:padding">@dimen/list_item_padding</item>
+	    <item name="android:maxLines">2</item>
+	    <item name="android:gravity">center_vertical</item>
+	    <item name="android:checkMark">@drawable/album_choice_selector</item>
+    </style>
+    
+    <!-- 我的位置按钮的样式 -->
+    <style name="MyLocationBtnStyle">
+        <item name="android:layout_width">@dimen/md_button_height</item>
+	    <item name="android:layout_height">@dimen/md_button_height</item>
+	    <item name="android:src">@drawable/main_icon_location</item>
+	    <item name="android:background">@drawable/my_location_btn_selector</item>
+	    <item name="android:padding">@dimen/location_my_btn_padding</item>
+	    <item name="android:layout_margin">@dimen/location_my_btn_margin</item>
+    </style>
+    
+    <!-- material-dialogs样式 -->
+    <style name="MD_Light" parent="android:Theme.Holo.Light.Dialog">
+        <item name="md_divider">@color/md_divider_black</item>
+        <item name="md_list_selector">@drawable/md_selector</item>
+        <item name="md_btn_stacked_selector">@drawable/md_selector</item>
+        <item name="md_btn_positive_selector">@drawable/md_btn_selector</item>
+        <item name="md_btn_neutral_selector">@drawable/md_btn_selector</item>
+        <item name="md_btn_negative_selector">@drawable/md_btn_selector</item>
+
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="MD_Dark" parent="android:Theme.Holo.Dialog">
+        <item name="md_divider">@color/md_divider_white</item>
+        <item name="md_list_selector">@drawable/md_selector</item>
+        <item name="md_btn_stacked_selector">@drawable/md_selector</item>
+        <item name="md_btn_positive_selector">@drawable/md_btn_selector_dark</item>
+        <item name="md_btn_neutral_selector">@drawable/md_btn_selector_dark</item>
+        <item name="md_btn_negative_selector">@drawable/md_btn_selector_dark</item>
+
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="MD_ActionButtonStacked" parent="@style/MD_ActionButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:paddingLeft">@dimen/md_button_padding_horizontal_internalexternal</item>
+        <item name="android:paddingRight">@dimen/md_button_padding_horizontal_internalexternal</item>
+    </style>
+
+    <style name="MD_ActionButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/md_button_height</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="MD_ActionButton.Text">
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textSize">@dimen/md_button_textsize</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@null</item>
+        <item name="android:minWidth">@dimen/md_button_min_width</item>
+        <item name="android:paddingLeft">@dimen/md_button_textpadding_horizontal</item>
+        <item name="android:paddingRight">@dimen/md_button_textpadding_horizontal</item>
+        <item name="android:duplicateParentState">true</item>
+    </style>
+
+    <!-- Light dialog theme for devices prior Honeycomb -->
+    <style name="Theme_Light_Dialog" parent="android:Theme.Light">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+    </style>
+    
+    <!-- 个人信息设置tab的样式 -->
+    <style name="SettingTableStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:background">@android:color/white</item>
+        <item name="android:showDividers">middle</item>
+        <item name="android:divider">@drawable/list_divider_drawable</item>
+        <item name="android:layout_marginTop">@dimen/activity_vertical_margin</item>
+        <item name="android:dividerPadding">@dimen/list_item_padding</item>
+    </style>
+    
+    <!-- 个人信息设置row提示文字的样式 -->
+    <style name="SettingRowTitleStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">@dimen/settting_item_title_size</item>
+        <item name="android:layout_marginRight">@dimen/settting_item_horizonal_padding</item>
+    </style>
+    
+    <!-- 个人信息设置row内容文字的样式 -->
+    <style name="SettingRowContentStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/settting_item_content_size</item>
+        <item name="android:layout_gravity">end|center_vertical</item>
+        <item name="android:gravity">end|center_vertical</item>
+        <item name="android:singleLine">true</item>
+    </style>
+    
+    <!-- 个人信息设置每一行的样式 -->
+    <style name="SettingRowStyle">
+        <item name="android:background">@drawable/common_list_selector</item>
+        <item name="android:clickable">true</item>
+        <item name="android:paddingTop">@dimen/settting_item_padding</item>
+        <item name="android:paddingBottom">@dimen/settting_item_padding</item>
+        <item name="android:paddingLeft">@dimen/item_veritcal_padding</item>
+        <item name="android:paddingRight">@dimen/item_veritcal_padding</item>
+    </style>
+
+    <!-- 单选，复选按钮 -->
+    <style name="RadioButtonStyles">  
+        <item name="android:button">@drawable/radiobutton_selector</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:paddingTop">@dimen/contact_text_index_padding_top</item>
+        <item name="android:paddingBottom">@dimen/contact_text_index_padding_top</item>
+    </style>
+    
+    <!-- 登录、注册界面文本输入框的样式 -->
+    <style name="FloatEdittextStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fletPaddingTop">@dimen/login_password_margin_top</item>
+    </style>
+    
+    <!-- 滑动返回activity的样式 -->
+    <style name="SwipeBackLayout">
+        <item name="edge_size">50dip</item>
+        <item name="shadow_left">@drawable/shadow_left</item>
+        <item name="shadow_right">@drawable/shadow_right</item>
+        <item name="shadow_bottom">@drawable/shadow_bottom</item>
+    </style>
+</resources>

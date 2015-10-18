@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <include layout="@layout/com_toolbar"/>
+	<RelativeLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:background="@android:color/black" >
+	    
+	    <GridView 
+	        android:id="@+id/gv_photo"
+	        style="@style/CommonListViewStyle"
+	        android:verticalSpacing="1dp"
+	        android:horizontalSpacing="1dp"
+	        android:gravity="center"
+	        android:stretchMode="columnWidth"
+	        android:scrollbarStyle="outsideOverlay"
+	        android:fadingEdge="none"
+	        android:numColumns="3"/>
+	    
+	    <TextView 
+	        android:id="@+id/tv_time"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:textColor="@android:color/white"
+	        android:layout_alignParentTop="true"
+	        android:textSize="@dimen/session_list_item_title"
+	        android:padding="@dimen/album_list_time_vertical_spcaing"
+	        android:background="@color/album_top_layout_bg"
+	        android:visibility="gone"/>
+	    
+	    <include 
+	        android:layout_width="@dimen/progress_max_size"
+	        android:layout_height="@dimen/progress_max_size"
+	        android:layout_centerInParent="true"
+	        layout="@layout/layout_loading"/>
+	    
+	    <RelativeLayout
+	        android:id="@+id/layout_bottom" 
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentBottom="true"
+	        android:background="?attr/colorPrimary">
+	        
+	        <TextView 
+	            android:id="@+id/tv_all_photo"
+	            style="@style/AlbumBottomTitleStyle"
+	            android:text="@string/album_all_photo"
+	            android:layout_alignParentLeft="true"
+	            android:layout_alignParentStart="true"
+	            android:clickable="true"
+	            android:background="@drawable/selectable_item_background_borderless"/>
+	        
+	        <ImageView 
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:src="@drawable/album_all_pic_bg_selector"
+	            android:contentDescription="@null"
+	            android:layout_alignBottom="@id/tv_all_photo"
+	            android:layout_alignRight="@id/tv_all_photo"
+	            android:layout_alignEnd="@id/tv_all_photo"/>
+	        
+	        <TextView 
+	            android:id="@+id/tv_preview"
+	            style="@style/AlbumBottomTitleStyle"
+	            android:layout_alignParentRight="true"
+	            android:layout_alignParentEnd="true"
+	            android:text="@string/album_preview_photo"
+	            android:enabled="false"
+	            android:clickable="true"
+	            android:background="@drawable/selectable_item_background_borderless"/>
+	    </RelativeLayout>
+	
+	</RelativeLayout>
+</LinearLayout>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/default_bgcolor" >
+    
+    <include layout="@layout/com_toolbar"/>
+    
+    <android.support.v7.widget.RecyclerView 
+        android:id="@id/lv_data"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    
+    <!-- <TableLayout 
+        style="@style/SettingTableStyle">
+        <TableRow
+            android:id="@+id/icon_row"
+            style="@style/SettingRowStyle"
+            android:padding="@dimen/item_veritcal_padding">
+            <TextView 
+            	style="@style/SettingRowTitleStyle"
+            	android:layout_gravity="start|center_vertical"
+            	android:layout_weight="1"
+            	android:text="@string/personal_info_head_icon"/>
+            <ImageView 
+            	android:id="@+id/iv_head_icon"
+            	android:layout_width="@dimen/head_icon_max_size"
+            	android:layout_height="@dimen/head_icon_max_size"
+            	android:src="@drawable/ic_launcher"
+            	android:layout_weight="1"
+            	android:scaleType="fitEnd"
+            	android:contentDescription="@null"
+            	android:layout_gravity="end|center_vertical"/>
+        </TableRow>
+        <TableRow
+            android:id="@+id/nick_row"
+            style="@style/SettingRowStyle">
+            <TextView 
+            	style="@style/SettingRowTitleStyle"
+            	android:layout_gravity="start|center_vertical"
+            	android:layout_weight="1"
+            	android:text="@string/personal_info_nick"/>
+	        <TextView 
+	            android:id="@+id/tv_nick"
+	            style="@style/SettingRowContentStyle"
+	            android:layout_weight="1"/>
+        </TableRow>
+        <TableRow
+            android:id="@+id/account_row"
+            style="@style/SettingRowStyle">
+            <TextView 
+            	style="@style/SettingRowTitleStyle"
+            	android:layout_gravity="start|center_vertical"
+            	android:layout_weight="1"
+            	android:text="@string/personal_info_account"/>
+	        <TextView 
+	            android:id="@+id/tv_account"
+	            style="@style/SettingRowContentStyle"
+	            android:layout_weight="1"/>
+        </TableRow>
+        
+    </TableLayout>
+    
+    <TableLayout 
+        style="@style/SettingTableStyle">
+        <TableRow
+            android:id="@+id/sex_row"
+            style="@style/SettingRowStyle">
+            <TextView 
+            	style="@style/SettingRowTitleStyle"
+            	android:layout_gravity="start|center_vertical"
+            	android:layout_weight="1"
+            	android:text="@string/personal_info_sex"/>
+	        <TextView 
+	            android:id="@+id/tv_sex"
+	            style="@style/SettingRowContentStyle"
+	            android:layout_weight="1"/>
+        </TableRow>
+        <TableRow
+            android:id="@+id/address_row"
+            style="@style/SettingRowStyle">
+            <TextView 
+            	style="@style/SettingRowTitleStyle"
+            	android:layout_gravity="start|center_vertical"
+            	android:layout_weight="1"
+            	android:text="@string/personal_info_address"/>
+	        <TextView 
+	            android:id="@+id/tv_address"
+	            style="@style/SettingRowContentStyle"
+	            android:layout_weight="1"/>
+        </TableRow>
+        <TableRow
+            android:id="@+id/signature_row"
+            style="@style/SettingRowStyle">
+            <TextView 
+            	style="@style/SettingRowTitleStyle"
+            	android:layout_gravity="start|center_vertical"
+            	android:layout_weight="1"
+            	android:text="@string/personal_info_signature"/>
+	        <TextView 
+	            android:id="@+id/tv_signature"
+	            style="@style/SettingRowContentStyle"
+	            android:layout_weight="1"/>
+        </TableRow>
+        
+    </TableLayout> -->
+    
+</LinearLayout>

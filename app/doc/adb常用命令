@@ -1,0 +1,11 @@
+查询内存	adb shell dumpsys meminfo com.android.mms
+查cpu占用	adb shell top -m 100 | grep com.android.mms
+查启动速度的：	Adb logcat –v time > 路径
+查询关键字displayed
+跑马灯效果	（控件聚焦或者setSelected(true)）
+android:ellipsize="marquee"
+android:marqueeRepeatLimit="marquee_forever"
+<requestfocus/>
+打jar包	jar –cvf XXX.jar
+查询内存	adb shell procrank
+发送广播	adb shell am broadcast -a com.yulong.android.watchdog.killprocess

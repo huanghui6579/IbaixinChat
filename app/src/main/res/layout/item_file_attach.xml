@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/list_item_padding"
+    android:gravity="center_vertical"
+    android:descendantFocusability="blocksDescendants" >
+    
+    <ImageView 
+        android:id="@+id/iv_head_icon"
+        style="@style/ChatItemHeadIconStyle"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/ic_launcher"
+        android:layout_centerVertical="true"
+        android:scaleType="fitXY"
+        android:contentDescription="@null"/>
+    
+    <CheckBox 
+        android:id="@+id/cb_chose"
+        style="@style/CommonCheckboxStyle"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="@dimen/list_item_padding"
+        android:layout_centerVertical="true"/>
+    
+    <RelativeLayout 
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/contact_item_head_icon_height"
+        android:layout_marginLeft="@dimen/list_item_padding"
+        android:layout_marginStart="@dimen/list_item_padding"
+        android:layout_toRightOf="@id/iv_head_icon"
+        android:layout_toEndOf="@id/iv_head_icon"
+        android:layout_alignBottom="@id/iv_head_icon"
+        android:layout_alignTop="@id/iv_head_icon"
+        android:layout_toLeftOf="@id/cb_chose"
+        android:layout_toStartOf="@id/cb_chose"
+        android:layout_centerVertical="true">
+        <TextView 
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:gravity="top"
+            style="@style/AlbumItemTitleStyle"
+            android:layout_alignParentTop="true"
+            android:singleLine="true"/>
+        
+        <TextView 
+            android:id="@id/tv_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:gravity="bottom"
+            style="@style/AlbumItemSubTitleStyle"
+            android:singleLine="true"
+            android:layout_alignParentBottom="true"/>
+        
+        <TextView 
+            android:id="@+id/tv_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:gravity="bottom"
+            style="@style/AlbumItemSubTitleStyle"
+            android:singleLine="true"
+            android:layout_alignParentBottom="true"
+            android:layout_toRightOf="@id/tv_content"
+            android:layout_marginLeft="@dimen/file_explorer_desc_text_margin_left"/>
+    </RelativeLayout>
+
+</RelativeLayout>

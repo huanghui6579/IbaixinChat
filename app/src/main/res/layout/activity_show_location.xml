@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    <include layout="@layout/com_toolbar"/>
+    
+    <com.baidu.mapapi.map.MapView
+        android:id="@+id/mapview"
+        android:layout_below="@id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    
+    <FrameLayout 
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar">
+	    <ImageButton 
+	        android:id="@+id/btn_my_location"
+	        style="@style/MyLocationBtnStyle"
+	        android:layout_gravity="top|end"
+	        android:contentDescription="@null"/>
+    </FrameLayout>
+</RelativeLayout>

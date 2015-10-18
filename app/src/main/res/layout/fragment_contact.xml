@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white" >
+    <ListView
+        android:id="@+id/lv_contact"
+        style="@style/CommonListViewStyle"
+        android:divider="@drawable/contact_list_divider"
+        android:dividerHeight="0.5dp" />
+
+    <TextView
+        android:id="@+id/tv_text_dialog"
+        android:layout_width="@dimen/contact_text_index_width"
+        android:layout_height="@dimen/contact_text_index_height"
+        android:layout_gravity="center"
+        android:background="@drawable/text_index_background"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/contact_text_dialog"
+        android:visibility="gone" />
+
+    <net.ibaixin.chat.view.SideBar
+        android:id="@+id/sidrbar"
+        android:layout_width="@dimen/contact_sidebar_width"
+        android:layout_height="match_parent"
+        android:layout_gravity="end|center" />
+    
+    <include 
+        layout="@layout/layout_loading"/>
+    <!-- <ProgressBar 
+        android:id="@id/pb_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?android:attr/progressBarStyleLargeInverse"
+        android:layout_gravity="center"/> -->
+
+</FrameLayout>

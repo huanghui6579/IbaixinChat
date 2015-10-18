@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="lv_data" />
+    <item type="id" name="pb_loading" />
+    <item type="id" name="tv_content" />
+    <item type="id" name="toolbar" />
+    <item type="id" name="view_pager" />
+    <item type="id" name="empty_view" />
+    <item type="id" name="main_container" />
+    <item type="id" name="iv_icon" />
+    <item type="id" name="container" />
+</resources>

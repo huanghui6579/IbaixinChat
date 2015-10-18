@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <drawable name="chat_emoji_tab_pressed">#56888888</drawable>
+    
+    <drawable name="list_divider_drawable">@color/divider_color</drawable>
+    
+    <drawable name="album_take_pic_bg_normal">#353535</drawable>
+    <drawable name="album_take_pic_bg_pressed">#000000</drawable>
+
+    <drawable name="transparent">#00000000</drawable>
+    
+    <drawable name="action_bar_bg">?attr/colorPrimary</drawable>
+    <drawable name="colorPrimary">?attr/colorPrimary</drawable>
+    
+    <drawable name="emojiType_bg">#535353</drawable>
+    
+    <drawable name="black">#000000</drawable>
+    <drawable name="white">#ffffff</drawable>
+    
+</resources>

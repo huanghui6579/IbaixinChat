@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/default_bgcolor"
+    android:orientation="vertical" >
+	<include layout="@layout/com_toolbar"/>
+    <TableLayout style="@style/SettingTableStyle" >
+
+        <TableRow
+            android:id="@+id/setting_item_clear"
+            style="@style/SettingRowStyle" >
+
+            <ImageView
+                style="@style/SettingRowTitleStyle"
+                android:src="@drawable/ico_clear" />
+
+            <TextView
+                style="@style/SettingRowTitleStyle"
+                android:layout_gravity="start|center_vertical"
+                android:layout_weight="1"
+                android:text="@string/setting_clear" />
+        </TableRow>
+
+    </TableLayout>
+    <TableLayout style="@style/SettingTableStyle" >
+
+        <TableRow
+            android:id="@+id/setting_item_about"
+            style="@style/SettingRowStyle" >
+
+            <ImageView
+                style="@style/SettingRowTitleStyle"
+                android:src="@drawable/ico_about" />
+
+            <TextView
+                style="@style/SettingRowTitleStyle"
+                android:layout_gravity="start|center_vertical"
+                android:layout_weight="1"
+                android:text="@string/about" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/setting_item_exit"
+            style="@style/SettingRowStyle" >
+
+            <ImageView
+                style="@style/SettingRowTitleStyle"
+                android:src="@drawable/ico_exit" />
+
+            <TextView
+                style="@style/SettingRowTitleStyle"
+                android:layout_gravity="start|center_vertical"
+                android:layout_weight="1"
+                android:text="@string/action_exit" />
+        </TableRow>
+    </TableLayout>
+
+</LinearLayout>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/list_item_padding"
+    android:orientation="horizontal" >
+    
+    <ImageView
+     	android:id="@+id/iv_head_icon"
+	    style="@style/ChatItemHeadIconStyle"
+	    android:layout_gravity="center_vertical"
+	    android:contentDescription="@null"/>
+	
+	<TextView 
+	    android:id="@+id/tv_name"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    style="@style/CommonListItemTitleStyle"
+	    android:gravity="center_vertical"
+	    android:layout_gravity="center_vertical"
+	    android:singleLine="true"
+	    android:layout_marginLeft="@dimen/list_item_padding"
+	    android:layout_marginStart="@dimen/list_item_padding"/>
+    
+    <!-- 新的朋友 -->
+    <!-- <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/common_list_selector">
+        <ImageView 
+	        android:layout_width="@dimen/chat_msg_item_head_icon_width"
+	        android:layout_height="@dimen/chat_msg_item_head_icon_height"
+	        android:layout_gravity="center_vertical"
+	        android:src="@drawable/contact_new_friend"
+	        android:layout_margin="@dimen/list_item_padding"
+	        android:contentDescription="@null"/>
+	    
+	    <TextView 
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:textSize="@dimen/session_list_item_title"
+	        android:gravity="center_vertical"
+	        android:layout_gravity="center_vertical"
+	        android:singleLine="true"
+	        android:layout_marginLeft="@dimen/list_item_padding"
+	        android:layout_marginStart="@dimen/list_item_padding"
+	        android:text="@string/contact_list_new_friend"/>
+    </LinearLayout>
+    <View 
+        style="@style/CommonDividerStyle"
+        android:layout_marginLeft="@dimen/list_item_padding"
+        android:layout_marginRight="@dimen/list_item_padding"/>
+    
+    群聊
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/common_list_selector">
+        <ImageView 
+	        android:layout_width="@dimen/chat_msg_item_head_icon_width"
+	        android:layout_height="@dimen/chat_msg_item_head_icon_width"
+	        android:layout_gravity="center_vertical"
+	        android:layout_margin="@dimen/list_item_padding"
+	        android:src="@drawable/contact_group_chat"
+	        android:contentDescription="@null"/>
+	    
+	    <TextView 
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:textSize="@dimen/session_list_item_title"
+	        android:gravity="center_vertical"
+	        android:layout_gravity="center_vertical"
+	        android:singleLine="true"
+	        android:layout_marginLeft="@dimen/list_item_padding"
+	        android:layout_marginStart="@dimen/list_item_padding"
+	        android:text="@string/contact_list_group_chat"/>
+    </LinearLayout> -->
+
+</LinearLayout>

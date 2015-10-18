@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/list_item_padding"
+    android:descendantFocusability="blocksDescendants" >
+    
+    <ImageView 
+        android:id="@+id/iv_head_icon"
+        style="@style/ChatItemHeadIconStyle"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/ic_audio"
+        android:contentDescription="@null"/>
+    
+    <TextView 
+        android:id="@+id/tv_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="@dimen/list_item_padding"
+        android:layout_marginStart="@dimen/list_item_padding"
+        android:gravity="top|end"
+        android:textSize="@dimen/session_list_item_time"
+        android:textColor="@color/session_list_item_time"/>
+    
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/contact_item_head_icon_height"
+        android:orientation="vertical"
+        android:layout_marginLeft="@dimen/list_item_padding"
+        android:layout_marginStart="@dimen/list_item_padding"
+        android:layout_toRightOf="@id/iv_head_icon"
+        android:layout_toEndOf="@id/iv_head_icon"
+        android:layout_toLeftOf="@id/tv_size"
+        android:layout_toStartOf="@id/tv_size">
+        
+        <TextView 
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:gravity="top"
+            style="@style/AlbumItemTitleStyle"
+            android:layout_weight="1"
+            android:singleLine="true"/>
+        <TextView 
+            android:id="@id/tv_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="center"
+            style="@style/AlbumItemSubTitleStyle"
+            android:layout_weight="1"
+            android:singleLine="true"/>
+    </LinearLayout>
+
+</RelativeLayout>

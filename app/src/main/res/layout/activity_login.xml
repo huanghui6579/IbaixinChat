@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" xmlns:app="http://schemas.android.com/apk/res/net.ibaixin.chat">
+    <include layout="@layout/com_toolbar"/>
+	<RelativeLayout
+	    style="@style/LoginRootLayoutStyle" >
+	    
+	    <LinearLayout 
+	        android:id="@+id/ll_main"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_centerHorizontal="true"
+	        android:orientation="vertical"
+	        android:layout_marginTop="@dimen/activity_vertical_margin">
+	        <net.ibaixin.chat.view.FloatLabeledEditText
+	            style="@style/FloatEdittextStyle">
+	            <EditText 
+		            android:id="@+id/et_account"
+		            style="@style/AccountTextStyle"
+		            android:hint="@string/login_hint_account"/>
+	        </net.ibaixin.chat.view.FloatLabeledEditText>
+	        
+	        <net.ibaixin.chat.view.FloatLabeledEditText
+	            style="@style/FloatEdittextStyle">
+	            <EditText 
+		            android:id="@+id/et_password"
+		            style="@style/PasswordTextStyle"
+		            android:hint="@string/login_hint_password"
+		            android:imeOptions="actionDone"
+		            android:layout_marginTop="@dimen/login_password_margin_top"/>
+            </net.ibaixin.chat.view.FloatLabeledEditText>
+	        
+<!-- 		        style="@style/LoginTextStyle" -->
+	        <Button 
+		        android:id="@+id/btn_login"
+		        style="@style/CommonWidthButtonstyle.Green"
+		        android:layout_marginTop="@dimen/login_signin_button_margin_top"
+		        android:enabled="false"
+		        android:text="@string/login_text_button_signin"/>
+	    </LinearLayout>
+	
+	    <LinearLayout
+	        android:id="@+id/thirdAccountLogin"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_centerVertical="true"
+	        android:orientation="horizontal"
+	        android:layout_below="@id/ll_main"
+	        android:layout_marginTop="@dimen/abc_text_size_subtitle_material_toolbar"
+	        >
+	        <Button
+	            android:id="@+id/baidulogin"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:drawableTop="@drawable/baidu"
+	            android:background="@drawable/common_list_selector"
+	            android:layout_weight="1"
+	            android:text="@string/baidulogin"/>
+	        <Button
+	            android:id="@+id/qqlogin"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:drawableTop="@drawable/qq"
+	            android:background="@drawable/common_list_selector"
+	            android:layout_weight="1"
+	            android:text="@string/qqlogin"/>
+<!-- 	        <Button
+	            android:id="@+id/sinalogin"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:drawableTop="@drawable/sina"
+	            android:background="@drawable/common_list_selector"
+	            android:layout_weight="1"
+	            android:text="@string/sinalogin"/> -->
+	    </LinearLayout>
+	    
+	    <RelativeLayout
+		    android:id="@+id/bannerParent"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:gravity="center_horizontal"
+		    android:layout_below="@id/thirdAccountLogin"
+		    android:layout_marginBottom="8dp">
+	    </RelativeLayout>
+	    
+	    <TextView 
+	        android:id="@+id/tv_regist"
+	        style="@style/LoginBottomTextStyle"
+	        android:text="@string/login_text_regist"/>
+	</RelativeLayout>
+</LinearLayout>

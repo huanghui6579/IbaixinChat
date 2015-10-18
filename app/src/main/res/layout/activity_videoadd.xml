@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <include
+    	android:id="@+id/toolbar" 
+    	layout="@layout/com_toolbar"/>
+
+   <net.ibaixin.chat.view.EmojiconEditText
+        android:id="@+id/addjoke_content"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:padding="5dp"
+        android:inputType="textMultiLine"
+		android:gravity="start"
+		android:minLines="6"
+        android:background="@android:color/white"
+        android:hint="@string/chat_msg_edit_hint"/>
+   
+   <View 
+       style="@style/CommonDividerStyle"/>
+   
+   <net.ibaixin.chat.view.EmojiconEditText
+        android:id="@+id/addjoke_url"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:padding="5dp"
+        android:inputType="textMultiLine"
+		android:gravity="start"
+		android:minLines="6"
+        android:background="@android:color/white"
+        android:hint="@string/chat_msg_edit_hint"/>
+		
+   <View 
+       style="@style/CommonDividerStyle"/>
+	   <!-- <ImageView
+	       android:id="@+id/addjoke_pic"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:padding="5dp"
+			android:gravity="start"
+	        android:background="@android:color/white"
+	        android:contentDescription="@string/addjoke_jokepic"
+	        android:src="@drawable/addjokepic"
+	       /> -->
+	       
+	    <TextView 
+	       android:layout_width="match_parent"
+	       android:layout_height="wrap_content"
+	       android:padding="5dp"
+	       android:background="@android:color/white"
+	       android:textSize="@dimen/settting_item_title_size"
+	       android:text="@string/choose_from"/>
+	   <RadioGroup
+		    android:id="@+id/addjoke_from"  
+		    android:layout_width="match_parent"  
+		    android:layout_height="wrap_content"
+		    android:background="@android:color/white"
+		    android:orientation="horizontal">  
+ 
+		    <RadioButton
+		        android:id="@+id/addjoke_from1"  
+		        style="@style/RadioButtonStyles"  
+		        android:layout_width="wrap_content"  
+		        android:layout_height="wrap_content"
+		        android:text="@string/choose_from1" />  
+		  
+		    <RadioButton  
+		        android:id="@+id/addjoke_from2"  
+		        style="@style/RadioButtonStyles"  
+		        android:layout_width="wrap_content"  
+		        android:layout_height="wrap_content"
+		        android:text="@string/choose_from2" />
+		</RadioGroup>
+		<View 
+       style="@style/CommonDividerStyle"/>
+	   <TextView 
+	       android:layout_width="match_parent"
+	       android:layout_height="wrap_content"
+	       android:padding="5dp"
+	       android:background="@android:color/white"
+	       android:textSize="@dimen/settting_item_title_size"
+	       android:text="@string/choose_type"/>
+	   <RadioGroup
+		    android:id="@+id/addjoke_type"  
+		    android:layout_width="match_parent"  
+		    android:layout_height="wrap_content"
+		    android:background="@android:color/white"
+		    android:orientation="horizontal">  
+ 
+		    <RadioButton
+		        android:id="@+id/addjoke_type1"  
+		        style="@style/RadioButtonStyles"  
+		        android:layout_width="wrap_content"  
+		        android:layout_height="wrap_content"
+		        android:text="@string/addjoke_text" />  
+		  
+		    <RadioButton  
+		        android:id="@+id/addjoke_type2"  
+		        style="@style/RadioButtonStyles"  
+		        android:layout_width="wrap_content"  
+		        android:layout_height="wrap_content"
+		        android:text="@string/addjoke_news" />
+		    <RadioButton  
+		        android:id="@+id/addjoke_type3"  
+		        style="@style/RadioButtonStyles"  
+		        android:layout_width="wrap_content"  
+		        android:layout_height="wrap_content"
+		        android:text="@string/addjoke_life" />  
+		    <RadioButton  
+		        android:id="@+id/addjoke_type4"  
+		        style="@style/RadioButtonStyles"  
+		        android:layout_width="wrap_content"  
+		        android:layout_height="wrap_content"
+		        android:text="@string/addjoke_other" />  
+		</RadioGroup>
+	   
+	<ImageView
+	       android:id="@+id/addjoke_pic_preview"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:padding="5dp"
+			android:gravity="start"
+	        android:background="@android:color/white"
+	        android:contentDescription="@null"
+	        android:visibility="gone"
+	       />
+	
+</LinearLayout>

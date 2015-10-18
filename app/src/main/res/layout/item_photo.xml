@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_item"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="0dp"
+    android:descendantFocusability="blocksDescendants"
+    android:layout_gravity="center"
+    android:foreground="@drawable/common_list_selector"
+    android:padding="0dp" >
+    
+    <ImageView 
+        android:id="@+id/iv_photo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_launcher"/>
+    
+    <ImageView 
+        android:id="@+id/iv_flag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_video_default"
+        android:contentDescription="@null"
+        android:visibility="gone"
+        android:layout_gravity="center"/>
+    
+    <View 
+        android:id="@+id/view_alpha"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/album_item_selected_alpha"
+        android:visibility="gone"/>
+    
+    <CheckBox 
+        android:id="@+id/cb_chose"
+        style="@style/CommonCheckboxStyle"
+        android:layout_margin="@dimen/album_item_check_spacing"
+        android:layout_gravity="top|end"/>
+
+</FrameLayout>

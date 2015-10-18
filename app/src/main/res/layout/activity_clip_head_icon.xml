@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/net.ibaixin.chat"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    
+    <include layout="@layout/com_toolbar"/>
+    
+    <com.theartofdev.edmodo.cropper.CropImageView
+        android:id="@id/iv_icon"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        app:guidelines="onTouch"
+        app:fixAspectRatio="true"
+        app:cropShape="rectangle"
+        app:scaleType="centerInside"/>
+
+    <!-- <FrameLayout 
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center">
+	    <net.ibaixin.chat.view.ClipImageLayout 
+	        android:id="@id/iv_icon"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent" />
+	    <include layout="@layout/layout_loading"/>
+    </FrameLayout> -->
+    
+</LinearLayout>

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ViewPagerIndicator">
+        <!-- Style of the circle indicator. -->
+        <attr name="vpiCirclePageIndicatorStyle" format="reference"/>
+        <!-- Style of the icon indicator's views. -->
+        <attr name="vpiIconPageIndicatorStyle" format="reference"/>
+        <!-- Style of the line indicator. -->
+        <attr name="vpiLinePageIndicatorStyle" format="reference"/>
+        <!-- Style of the title indicator. -->
+        <attr name="vpiTitlePageIndicatorStyle" format="reference"/>
+        <!-- Style of the tab indicator's tabs. -->
+        <attr name="vpiTabPageIndicatorStyle" format="reference"/>
+        <!-- Style of the underline indicator. -->
+        <attr name="vpiUnderlinePageIndicatorStyle" format="reference"/>
+    </declare-styleable>
+    
+    <attr name="centered" format="boolean" />
+    <attr name="selectedColor" format="color" />
+    <attr name="strokeWidth" format="dimension" />
+    <attr name="unselectedColor" format="color" />
+    
+    <declare-styleable name="CirclePageIndicator">
+        <!-- Whether or not the indicators should be centered. -->
+        <attr name="centered" />
+        <!-- Color of the filled circle that represents the current page. -->
+        <attr name="fillColor" format="color" />
+        <!-- Color of the filled circles that represents pages. -->
+        <attr name="pageColor" format="color" />
+        <!-- Orientation of the indicator. -->
+        <attr name="android:orientation"/>
+        <!-- Radius of the circles. This is also the spacing between circles. -->
+        <attr name="radius" format="dimension" />
+        <!-- Whether or not the selected indicator snaps to the circles. -->
+        <attr name="snap" format="boolean" />
+        <!-- Color of the open circles. -->
+        <attr name="strokeColor" format="color" />
+        <!-- Width of the stroke used to draw the circles. -->
+        <attr name="strokeWidth" />
+        <!-- View background -->
+        <attr name="android:background"/>
+    </declare-styleable>
+    
+    <!-- 圆形进度条 -->
+    <declare-styleable name="ProgressWheel">
+        <attr name="matProg_progressIndeterminate" format="boolean" />
+        <attr name="matProg_barColor" format="color" />
+        <attr name="matProg_rimColor" format="color" />
+        <attr name="matProg_rimWidth" format="dimension" />
+        <attr name="matProg_spinSpeed" format="float" />
+        <attr name="matProg_barSpinCycleTime" format="integer" />
+        <attr name="matProg_circleRadius" format="dimension" />
+        <attr name="matProg_fillRadius" format="boolean" />
+        <attr name="matProg_barWidth" format="dimension" />
+        <attr name="matProg_linearProgress" format="boolean" />
+    </declare-styleable>
+    
+    <!-- 表情属性 -->
+    <declare-styleable name="Emojicon">
+        <attr name="emojiconSize" format="dimension"/>
+        <attr name="emojiconTextStart" format="integer"/>
+        <attr name="emojiconTextLength" format="integer"/>
+        <attr name="emojiconUseSystemDefault" format="boolean"/>
+    </declare-styleable>
+    
+    <!-- PagerSlidingTabStrip attr -->
+    <declare-styleable name="PagerSlidingTabStrip">
+        <!-- 指示器的颜色 -->
+        <attr name="pstsIndicatorColor" format="color" />
+        <!-- Tab下划线的颜色 -->
+        <attr name="pstsUnderlineColor" format="color" />
+        <!-- tab之间分割线的颜色 -->
+        <attr name="pstsDividerColor" format="color" />
+        <!-- 实施期的高度 -->
+        <attr name="pstsIndicatorHeight" format="dimension" />
+        <!-- tab下划线的高度 -->
+        <attr name="pstsUnderlineHeight" format="dimension" />
+        <!-- tab分割线的间距 -->
+        <attr name="pstsDividerPadding" format="dimension" />
+        <attr name="pstsTabPaddingLeftRight" format="dimension" />
+        <attr name="pstsScrollOffset" format="dimension" />
+        <attr name="pstsTabBackground" format="reference" />
+        <attr name="pstsShouldExpand" format="boolean" />
+        <attr name="pstsTextAllCaps" format="boolean" />
+        <attr name="pstsSelectedTabTextColor" format="color" />
+        <!-- Color of regular titles. -->
+        <attr name="android:textColor" />
+        <!-- Size of title text. -->
+        <attr name="android:textSize" />
+    </declare-styleable>
+    
+    <!-- These top three attributes are not accessible to library users -->
+    <attr name="md_divider" format="color" />
+
+    <!-- Accessible global theming attributes -->
+    <attr name="md_dark_theme" format="boolean" />
+    <attr name="md_background_color" format="color" />
+
+    <attr name="md_icon" format="reference" />
+    <attr name="md_icon_max_size" format="dimension" />
+    <attr name="md_icon_limit_icon_to_default_size" format="boolean" />
+
+    <attr name="md_title_color" format="color" />
+    <attr name="md_content_color" format="color" />
+
+    <attr name="md_positive_color" format="color" />
+    <attr name="md_neutral_color" format="color" />
+    <attr name="md_negative_color" format="color" />
+
+    <attr name="md_item_color" format="color" />
+    <attr name="md_divider_color" format="color" />
+    <attr name="md_list_selector" format="reference" />
+
+    <attr name="md_btn_stacked_selector" format="reference" />
+    <attr name="md_btn_positive_selector" format="reference" />
+    <attr name="md_btn_neutral_selector" format="reference" />
+    <attr name="md_btn_negative_selector" format="reference" />
+    
+    <!-- 气泡图片的样式 -->
+    <declare-styleable name="BubbleImageView">
+        
+        <!-- 箭头距离顶部的距离 -->
+        <attr name="bubble_arrowTop" format="dimension|reference" />
+        <!--  箭头的宽度 -->
+        <attr name="bubble_arrowWidth" format="dimension|reference" />
+        <!-- 气泡边上箭头的高度 -->
+        <attr name="bubble_arrowHeight" format="dimension|reference" />
+        <!-- 箭头上下的偏移量，正数 向上 ，负数 向下 -->
+        <attr name="bubble_arrowOffset" format="dimension|reference" />
+        <!-- 箭头上下的偏移是否居中,如果为true，则bubble_arrowOffset属性无效 -->
+        <attr name="bubble_arrowCenterOffset" format="boolean" />
+        <!-- 箭头是否在整个图片高度的中间 -->
+        <attr name="bubble_arrowCenter" format="boolean" />
+        <!-- 图片圆角的角度 -->
+        <attr name="bubble_angle" format="dimension|reference" />
+        <!-- 气泡边上箭头的位置，目前支持 left 和 right -->
+        <attr name="bubble_arrowLocation" format="enum">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+        </attr>
+    </declare-styleable>
+    
+    <declare-styleable name="PowerImageView"> 
+        <attr name="auto_play" format="boolean"></attr> 
+    </declare-styleable> 
+    
+    <declare-styleable name="FloatLabeledEditText">
+        <attr name="fletTextAppearance" format="reference" />
+        <attr name="fletPadding" format="reference|dimension" />
+        <attr name="fletPaddingLeft" format="reference|dimension" />
+        <attr name="fletPaddingTop" format="reference|dimension" />
+        <attr name="fletPaddingRight" format="reference|dimension" />
+        <attr name="fletPaddingBottom" format="reference|dimension" />
+        <attr name="fletBackground" format="reference|color" />
+    </declare-styleable>
+    
+    <!-- 滑动返回activity的属性 -->
+    <declare-styleable name="SwipeBackLayout">
+        <attr name="edge_size" format="dimension"/>
+        <attr name="edge_flag">
+            <enum name="left" value="0" />
+            <enum name="right" value="1" />
+            <enum name="bottom" value="2" />
+            <enum name="all" value="3" />
+        </attr>
+        <attr name="shadow_left" format="reference"/>
+        <attr name="shadow_right" format="reference"/>
+        <attr name="shadow_bottom" format="reference"/>
+    </declare-styleable>
+
+    <attr name="SwipeBackLayoutStyle" format="reference"/>
+    
+    <!-- 图片裁剪的属性 -->
+    <declare-styleable name="CropImageView">
+        <attr name="guidelines">
+            <enum name="on" value="2"/>
+            <enum name="onTouch" value="1"/>
+            <enum name="off" value="0"/>
+        </attr>
+        <attr name="fixAspectRatio" format="boolean"/>
+        <attr name="aspectRatioX" format="integer"/>
+        <attr name="aspectRatioY" format="integer"/>
+        <attr name="imageResource" format="reference"/>
+        <attr name="scaleType">
+            <enum name="centerInside" value="0"/>
+            <enum name="fitCenter" value="1"/>
+        </attr>
+        <attr name="cropShape">
+            <enum name="rectangle" value="0"/>
+            <enum name="oval" value="1"/>
+        </attr>
+    </declare-styleable>
+    
+</resources>

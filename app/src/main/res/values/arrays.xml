@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="main_function_lable">
+        <item>聊天</item>
+        <item>通讯录</item>
+        <item>我</item>
+    </string-array>
+    
+    <string-array name="att_item_name">
+        <item>图片</item>
+        <item>音频</item>
+        <item>视频</item>
+        <item>位置</item>
+        <item>名片</item>
+        <item>文件</item>
+    </string-array>
+    
+    <string-array name="emoji_type_desc">
+        <item>最近</item>
+		<item>头像</item>
+		<item>自然</item>
+		<item>事物</item>
+		<item>地点</item>
+		<item>标识</item>
+    </string-array>
+    
+    <!-- 好友列表的长按菜单项 -->
+    <string-array name="contact_list_context_menu">
+        <item>@string/contact_list_content_menu_set_nickname</item>
+        <item>@string/delete</item>
+    </string-array>
+    
+    <!-- 聊天消息的长按菜单项 -->
+    <string-array name="chat_msg_context_menu">
+        <item>复制</item>
+        <item>转发</item>
+        <item>删除</item>
+        <item>分享</item>
+        <item>更多</item>
+    </string-array>
+    
+    <!-- 会话列表的长按菜单项 -->
+    <string-array name="thread_list_context_menu">
+        <item>@string/thread_list_context_menu_top</item>
+        <item>删除该聊天</item>
+    </string-array>
+    
+    <!-- 趣味阅读tab标签 -->
+    <string-array name="jokeread_function_lable">
+        <item>全部</item>
+        <item>笑话</item>
+        <item>趣图</item>
+        <item>感悟</item>
+    </string-array>
+    
+    <!-- 性别选择的选项组 -->
+    <string-array name="sex_choice_menu">
+        <item>@string/sex_man</item>
+        <item>@string/sex_woman</item>
+    </string-array>
+</resources>

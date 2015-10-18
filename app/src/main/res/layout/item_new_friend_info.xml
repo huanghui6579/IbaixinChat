@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/list_item_padding"
+    android:descendantFocusability="blocksDescendants" >
+    
+    <ImageView 
+        android:id="@+id/iv_head_icon"
+        style="@style/ThreadListItemHeadIconStyle"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/ic_chat_default_big_head_icon"
+        android:contentDescription="@null"/>
+    
+    <TextView 
+        android:id="@+id/tv_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:padding="8dp"
+        android:textSize="@dimen/session_list_item_content"
+        android:textColor="@color/session_list_item_content"/>
+    
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/list_item_padding"
+        android:layout_marginStart="@dimen/list_item_padding"
+        android:layout_toRightOf="@id/iv_head_icon"
+        android:layout_toEndOf="@id/iv_head_icon"
+        android:layout_toStartOf="@id/tv_state"
+        android:layout_toLeftOf="@id/tv_state"
+        android:layout_alignBottom="@id/iv_head_icon"
+        android:layout_alignTop="@id/iv_head_icon">
+        <TextView 
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:gravity="top"
+            android:textSize="@dimen/session_list_item_title"
+            android:singleLine="true"
+            android:layout_weight="1"/>
+        <TextView 
+            android:id="@id/tv_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:gravity="bottom"
+            android:textSize="@dimen/session_list_item_content"
+            android:textColor="@color/session_list_item_content"
+            android:singleLine="true"
+            android:layout_weight="1"/>
+    </LinearLayout>
+
+</RelativeLayout>

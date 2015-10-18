@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <include layout="@layout/com_toolbar"/>
+	<FrameLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:fitsSystemWindows="true"
+	    android:layout_gravity="center" >
+	    <LinearLayout
+		    android:layout_width="match_parent"
+		    android:layout_height="match_parent"
+		    android:orientation="vertical"
+		    android:background="@color/contact_chat_list_bg">
+		    
+		    <!-- 聊天消息列表 -->
+		    <!-- 
+		            android:stackFromBottom="true"
+				android:transcriptMode="alwaysScroll"
+				 -->
+		    <ListView 
+		        android:id="@+id/lv_msgs"
+		        android:layout_width="match_parent"
+		        android:layout_height="0dp"
+		        android:cacheColorHint="@android:color/transparent"
+		        android:listSelector="@android:color/transparent"
+		        android:divider="@android:color/transparent"
+		        android:layout_weight="1"
+		        android:stackFromBottom="true"
+		        android:layout_marginLeft="@dimen/chat_msg_list_spacing_left_right"
+		        android:layout_marginStart="@dimen/chat_msg_list_spacing_left_right"
+		        android:layout_marginRight="@dimen/chat_msg_list_spacing_left_right"
+		        android:layout_marginEnd="@dimen/chat_msg_list_spacing_left_right"/>
+		    
+		    <!-- 信息编辑框 -->
+		    <RelativeLayout 
+		        android:id="@+id/layout_content"
+		        android:layout_width="match_parent"
+		        android:layout_height="wrap_content"
+		        android:padding="@dimen/chat_edit_panel_padding"
+		        android:background="@drawable/chat_bottom_panel_background">
+		        <TextView 
+		            android:id="@+id/btn_voice"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:clickable="true"
+		            android:layout_alignParentLeft="true"
+		            android:layout_alignParentStart="true"
+		            android:layout_centerVertical="true"
+		            android:background="@drawable/chat_voice_mode_selector"/>
+		        
+		        <TextView 
+		            android:id="@+id/btn_send"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:clickable="true"
+		            android:layout_alignParentRight="true"
+		            android:layout_alignParentEnd="true"
+		            android:layout_centerVertical="true"
+		            android:textColor="@android:color/white"
+		            android:padding="@dimen/chat_send_btn_padding"
+		            android:background="@drawable/chat_attach_selector"/>
+		        
+		        <FrameLayout 
+		            android:id="@+id/layout_content_center"
+		            android:layout_width="match_parent"
+		            android:layout_height="wrap_content"
+		            android:layout_toLeftOf="@id/btn_send"
+		            android:layout_toStartOf="@id/btn_send"
+		            android:layout_toRightOf="@id/btn_voice"
+		            android:layout_toEndOf="@id/btn_voice"
+		            android:layout_marginLeft="@dimen/chat_edit_panel_padding"
+		            android:layout_marginRight="@dimen/chat_edit_panel_padding"
+		            android:layout_centerVertical="true">
+		            <!-- 文本输入框 --><!-- android:background="@drawable/abc_textfield_searchview_holo_light" -->
+		            <RelativeLayout 
+			            android:id="@+id/layout_edit"
+			            android:layout_width="match_parent"
+			            android:layout_height="wrap_content"
+			            android:layout_gravity="center_vertical"
+			            android:addStatesFromChildren="true">
+			            
+			            <TextView 
+				            android:id="@+id/btn_emoji"
+				            android:layout_width="wrap_content"
+				            android:layout_height="wrap_content"
+				            android:layout_alignParentRight="true"
+				            android:layout_alignParentEnd="true"
+				            android:layout_centerVertical="true"
+				            android:clickable="true"
+				            android:layout_marginTop="@dimen/chat_edit_panel_padding"
+				            android:layout_marginBottom="@dimen/chat_edit_panel_padding"
+				            android:background="@drawable/chat_facial_selector"/>
+			            
+				        <EditText 
+				            android:id="@+id/et_content"
+				            android:layout_width="match_parent"
+				            android:layout_height="wrap_content"
+				            android:maxLines="3"
+				            android:layout_centerVertical="true"
+				            android:gravity="center_vertical"
+				            android:layout_alignParentLeft="true"
+				            android:layout_alignParentStart="true"
+				            android:layout_marginTop="@dimen/chat_edit_panel_padding"
+				            android:layout_marginBottom="@dimen/chat_edit_panel_padding"
+				            android:layout_toLeftOf="@id/btn_emoji"
+				            android:layout_toStartOf="@id/btn_emoji"
+				            android:background="@null"
+				            android:hint="@string/chat_msg_edit_hint"/>
+			        </RelativeLayout>
+			        
+		            <!-- 语音输入框 -->
+		            <TextView 
+		                android:id="@+id/btn_make_voice"
+		                android:layout_width="match_parent"
+		                android:layout_height="wrap_content"
+		                android:text="@string/chat_btn_make_voice_start"
+		                android:layout_gravity="center_vertical"
+		                android:background="@drawable/chat_btn_make_voice_selector"
+		                android:paddingTop="@dimen/chat_voice_btn_padding"
+		                android:paddingBottom="@dimen/chat_voice_btn_padding"
+		                android:gravity="center"
+		                android:visibility="gone"/>
+		        </FrameLayout>
+		        
+		    </RelativeLayout>
+		    
+		    <FrameLayout 
+		        android:id="@+id/layout_bottom"
+		        android:layout_width="match_parent"
+		        android:layout_height="0dp"
+		        android:layout_weight="1"
+		        android:background="@android:color/white"
+		        android:visibility="gone">
+		        <!-- 表情 -->
+		        <LinearLayout
+		            android:id="@+id/layout_emoji"
+				    android:orientation="vertical"
+				    android:layout_width="match_parent"
+				    android:layout_height="match_parent"
+				    android:layout_gravity="center"
+				    android:visibility="gone">
+				
+				    <!-- 这个布局决定了标签在上面还是在下面显示 -->
+				    <FrameLayout
+				        android:id="@+id/realtabcontent"
+				        android:layout_width="fill_parent"
+				        android:layout_height="0dip"
+				        android:layout_weight="1" />
+			
+				    <!-- 设置选项卡的权重为默认 -->
+				    <android.support.v4.app.FragmentTabHost
+				        android:id="@android:id/tabhost"
+				        android:layout_width="match_parent"
+				        android:layout_height="wrap_content"
+				        android:background="@drawable/chat_tab_background">
+				        
+				        <FrameLayout
+				            android:id="@android:id/tabcontent"
+				            android:layout_width="0dp"
+				            android:layout_height="0dp"
+				            android:layout_weight="0" />            
+				    </android.support.v4.app.FragmentTabHost>
+				</LinearLayout>
+				<!-- 附件 -->
+				<GridView 
+				    android:id="@+id/gv_attach"
+				    android:layout_width="match_parent"
+				    android:layout_height="match_parent"
+				    android:layout_gravity="center"
+				    android:listSelector="@android:color/transparent"
+				    android:cacheColorHint="@android:color/transparent"
+				    android:horizontalSpacing="10dp"
+		    		android:verticalSpacing="10dp"
+		    		android:paddingTop="20dp"
+		    		android:paddingRight="10dp"
+		    		android:paddingLeft="10dp"
+				    android:numColumns="4"
+				    android:visibility="gone"/>
+		    </FrameLayout>
+		</LinearLayout>
+		
+	    <include 
+	        layout="@layout/layout_record_voice"/>
+	    
+	</FrameLayout>
+</LinearLayout>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tv_tip"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="@string/net_error_tip"
+    android:textSize="@dimen/settting_item_content_size"
+    android:drawablePadding="@dimen/item_veritcal_padding"
+    android:paddingLeft="@dimen/item_horizonal_padding"
+    android:paddingRight="@dimen/item_horizonal_padding"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:gravity="center_vertical"
+    android:drawableLeft="@drawable/ic_net_error"
+    android:drawableStart="@drawable/ic_net_error"
+    android:background="@color/net_error_tip_bg"/>
+

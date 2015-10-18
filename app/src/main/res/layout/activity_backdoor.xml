@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <include layout="@layout/com_toolbar"/>
+    <TextView
+        android:id="@+id/outputstr"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@color/album_text_normal"
+        />
+    <View 
+        style="@style/CommonDividerStyle"/>
+     <EditText
+        android:id="@+id/inputstr"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="@string/backdoor_input_hint"
+        android:background="@drawable/item_background"
+        />
+     <Button 
+        android:id="@+id/backdoor_do_btn"
+        style="@style/LoginTextStyle"
+        android:layout_marginTop="@dimen/login_signin_button_margin_top"
+        android:enabled="false"
+        android:text="@string/backdoor_do"/>
+</LinearLayout>

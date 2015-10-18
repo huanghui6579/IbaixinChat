@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <include layout="@layout/com_toolbar" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center" >
+
+        <fragment
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            class="com.baidu.mapapi.map.SupportMapFragment" />
+
+        <ImageButton
+            android:id="@+id/btn_my_location"
+            style="@style/MyLocationBtnStyle"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:contentDescription="@null"
+            android:elevation="8dp"
+            tools:ignore="UnusedAttribute" />
+    </RelativeLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" >
+
+        <ListView
+            android:id="@id/lv_data"
+            style="@style/CommonListViewStyle"
+            android:choiceMode="singleChoice" />
+
+        <include layout="@layout/layout_loading" />
+    </FrameLayout>
+
+</LinearLayout>

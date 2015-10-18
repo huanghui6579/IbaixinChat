@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 主界面的菜单样式 -->
+    <style name="AppTheme.MainActivity">
+        <item name="android:actionOverflowButtonStyle">@style/MyActionButtonOverflow.MainActivty</item>
+        <item name="vpiTabPageIndicatorStyle">@style/FuncTabView</item>
+        <!-- 主界面不头像，否则没在某些机器上滑动返回会显示桌面 -->
+	    <item name="android:windowIsTranslucent">false</item>
+    </style>
+    
+    <!-- 聊天界面样式 -->
+    <style name="AppTheme.ChatActivity">
+        <item name="vpiTabPageIndicatorStyle">@style/EmojiTabView</item>
+    </style>
+    
+    <!-- 相册的菜单样式 -->
+    <style name="AppTheme.AlbumActivity">
+        <item name="android:actionMenuTextAppearance">@style/AlbumMenuTextStyle</item>
+        <!-- <item name="android:actionBarItemBackground">@drawable/common_button_green_selector</item> -->
+    </style>
+    
+    <!-- 图片预览的样式 -->
+    <style name="AppTheme.ImagePreviewActivity">
+        <item name="android:windowActionBarOverlay">true</item>
+    </style>
+    
+    <!-- Toolbar的样式 -->
+    <style name="AppTheme.Toolbar" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+	    <!-- <item name="android:textColorPrimary">@android:color/white</item> -->
+	    <item name="colorControlNormal">@android:color/white</item>
+	</style>
+	
+    <style name="MyToolBarStyle" parent="Widget.AppCompat.Toolbar">
+        <item name="titleTextAppearance">@style/AppTheme.Toolbar.TitleTextStyle</item>
+        <item name="subtitleTextAppearance">@style/AppTheme.Toolbar.SubtitleTextStyle</item>
+    </style>
+    
+    <!-- Toolbar菜单的样式 -->
+	<style name="AppTheme.Toolbar.Menu" parent="ThemeOverlay.AppCompat.Light">
+	    <item name="android:background">?attr/colorPrimary</item>
+	    <item name="actionBarItemBackground">?attr/colorPrimary</item>
+	    <item name="colorControlHighlight">?attr/colorPrimary</item>
+	    <item name="android:textColorPrimary">@android:color/white</item>
+	    <!-- <item name="android:selectedWeekBackgroundColor">@color/primary_dark_color</item> -->
+	</style>
+	
+	<!-- 菜单文字的样式 -->
+	<style name="MenuDoneTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Menu">
+	    <item name="android:textSize">18sp</item>
+	</style>
+	
+	<style name="AppTheme.ActionMode" parent="Widget.AppCompat.ActionMode">
+	    <item name="background">?attr/colorPrimary</item>
+        <item name="backgroundSplit">@android:color/white</item>
+        <item name="titleTextStyle">@style/AppTheme.ActionMode.TitleTextStyle</item>
+        <item name="subtitleTextStyle">@style/AppTheme.ActionMode.SubtitleTextStyle</item>
+	</style>
+	
+	<style name="AppTheme.ActionMode.TitleTextStyle" parent="TextAppearance.AppCompat.Widget.ActionMode.Title">
+	    <item name="android:textColor">@android:color/white</item>
+	</style>
+	
+	<style name="AppTheme.ActionMode.SubtitleTextStyle" parent="TextAppearance.AppCompat.Widget.ActionMode.Subtitle">
+	    <item name="android:textColor">@android:color/white</item>
+	</style>
+	
+	<style name="AppTheme.Toolbar.TitleTextStyle" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+	    <item name="android:textColor">@android:color/white</item>
+	</style>
+	
+	<style name="AppTheme.Toolbar.SubtitleTextStyle" parent="TextAppearance.Widget.AppCompat.Toolbar.Subtitle">
+	    <item name="android:textColor">@android:color/white</item>
+	</style>
+	
+	<!-- 全屏的样式 -->
+    <style name="AppTheme.FullScreen">
+	    <item name="android:windowFullscreen">true</item>
+	    <item name="android:windowContentOverlay">@null</item>
+	    
+    </style>
+	
+	<!-- 全屏的样式 -->
+    <style name="AppTheme.FullScreen.Splash">
+        <!-- 主界面不头像，否则没在某些机器上滑动返回会显示桌面 -->
+	    <item name="android:windowIsTranslucent">false</item>
+	    
+    </style>
+    
+    <!-- 录音对话框的样式 -->
+    <style name="AppTheme.RecordStyle" parent="@style/Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <!-- 显示对话框时当前的屏幕是否变暗 -->
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+</resources>

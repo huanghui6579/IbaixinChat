@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <include
+    	android:id="@+id/toolbar" 
+    	layout="@layout/com_toolbar"/>
+
+    <net.ibaixin.chat.view.PagerSlidingTabStrip2
+        android:id="@+id/joke_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="40dp" />
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/joke_pager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

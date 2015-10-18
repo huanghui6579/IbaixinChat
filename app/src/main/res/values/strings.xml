@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">百信</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    
+    <string name="splash_desc">让沟通更简单</string>
+    
+    <string name="delete">删除</string>
+    <string name="delete_failed">删除失败</string>
+    <string name="delete_success">删除成功</string>
+    <string name="add_success">添加成功</string>
+    <string name="add_failed">添加失败</string>
+    <string name="save_failed">保存失败</string>
+    <string name="save_success">保存成功</string>
+    <string name="opt_success">操作成功</string>
+    <string name="opt_failed">操作失败</string>
+    <string name="update_success">更新成功</string>
+    <string name="update_failed">更新失败</string>
+    
+    <string name="chat_state_composing">对方正在输入&#8230;</string>
+    
+    <string name="net_error_tip">世界最遥远的距离就是没有网。检查设置</string>
+    
+    <string name="sex_man">男</string>
+    <string name="sex_woman">女</string>
+    
+    <string name="apply">使用</string>
+    <string name="choice">选择</string>
+    <string name="send">发送</string>
+    <string name="save">保存</string>
+    <string name="show">查看</string>
+    <string name="add">添加</string>
+    <string name="no_data">没有数据</string>
+    <string name="no_result">没有结果</string>
+    <string name="prompt">提示</string>
+    <string name="connection_unavailable">与服务器的连接已经断开，请重新登录</string>
+    <string name="loading">正在处理，请稍后&#8230;</string>
+    <string name="location_prefix">[位置]</string>
+    <string name="copy_text_success">内容成功复制到剪贴板！</string>
+    <string name="location_info_error">地理位置信息为空！</string>
+    <string name="not_login">请先登录!</string>
+    
+    <string name="my_location_prompt">[我的位置]\r\n%1$s</string>
+    
+    <string name="activity_lable_login">用户登录</string>
+    <string name="activity_lable_regist">用户注册</string>
+    <string name="activity_lable_add_friend">添加好友</string>
+    <string name="activity_lable_friend_info">好友详情</string>
+    <string name="activity_lable_chat">聊天</string>
+    <string name="activity_lable_new_friend_info">新的朋友</string>
+    <string name="activity_lable_joke">趣味阅读</string>
+    <string name="activity_lable_jokevideo">趣味视频</string>
+    <string name="activity_lable_file_explorer">文件</string>
+    <string name="activity_lable_album">图片</string>
+    <string name="activity_lable_audio">音频</string>
+    <string name="activity_lable_video">视频</string>
+    <string name="activity_lable_location_share">位置</string>
+    <string name="activity_lable_edit_remark">备注信息</string>
+    <string name="activity_lable_chat_image_preview">图片预览</string>
+    <string name="activity_lable_show_location">位置信息</string>
+    <string name="activity_lable_show_msg">消息内容</string>
+    <string name="activity_lable_personal_info">个人信息</string>
+    <string name="activity_lable_clip_head_icon">头像裁剪</string>
+    <string name="activity_lable_nickname">昵称</string>
+    
+    <string name="email">邮箱：%1$s</string>
+    <string name="username">用户名：%1$s</string>
+    <string name="nickname">昵称：%1$s</string>
+    <string name="realname">姓名：%1$s</string>
+    
+    <string name="sdcard_not_available">SD卡不可用！</string>
+    <string name="file_not_exists">文件不存在或者已损坏！</string>
+    
+    <!-- MainActivity的主菜单 -->
+    <string name="action_exit">退出</string>
+    <string name="action_search">搜索</string>
+    <string name="action_new_joke">发段子</string>
+    <string name="action_joke_send">发布</string>
+    <string name="action_plus">添加</string>
+    <string name="action_create_group_chat">发起群聊</string>
+    <string name="action_add_friend">添加朋友</string>
+    
+    <!-- 相册选择图片的菜单 -->
+    <string name="action_select_complete">发送</string>
+    
+    <string name="login_failed">登录失败</string>
+    <string name="regist_failed">注册失败</string>
+    <string name="request_address_failed">网络请求的地址不对</string>
+    <string name="request_request_already_login">用户已经登录过了</string>
+    <string name="request_no_response">服务器没有响应</string>
+    <string name="regist_account_conflict">该用户已存在</string>
+    <string name="logining">正在登录，请稍后&#8230;</string>
+    <string name="registing">正在注册，请稍后&#8230;</string>
+    <string name="network_error">没有可用的网络连接，请检查网络！</string>
+    
+    <string name="login_hint_account">账号</string>
+    <string name="login_hint_nickname">昵称</string>
+    <string name="login_hint_email">邮箱</string>
+    <string name="login_hint_password">密码</string>
+    <string name="login_hint_confirm_password">确认密码</string>
+    <string name="login_text_button_signin">登录</string>
+    <string name="login_text_button_regist">注册</string>
+    <string name="login_text_regist">创建账号</string>
+    <string name="login_text_login">已有账号，点击登录</string>
+    
+    <string name="contact_hint_search_friend">账号</string>
+    <string name="contact_hint_search">查找</string>
+    <string name="contact_hint_edit_nick">请输入备注</string>
+    <string name="contact_hint_edit_nick_desc">请输入备注描述</string>
+    <string name="contact_prompt_nick">备注名</string>
+    <string name="contact_prompt_nick_desc">描述</string>
+    <string name="contact_searching">正在查找，请稍后&#8230;</string>
+    <string name="contact_add_friend">添加好友</string>
+    <string name="contact_send_msg">发消息</string>
+    <string name="contact_modify">编辑</string>
+    <string name="contact_realname">姓名</string>
+    <string name="contact_mobile">手机</string>
+    <string name="contact_signature">签名</string>
+    <string name="contact_address">地区</string>
+    <string name="contact_send_add_friend_request_success">发送添加好友请求成功</string>
+    <string name="contact_send_add_friend_request_repeat">已发送过请求了，不必重复发送</string>
+    <string name="contact_list_new_friend">新的朋友</string>
+    <string name="contact_list_group_chat">群聊</string>
+    
+    <string name="contact_new_friend_status_title_unadd">添加</string>
+    <string name="contact_new_friend_status_title_added">已添加</string>
+    <string name="contact_new_friend_status_title_verifying">等待验证</string>
+    <string name="contact_new_friend_status_title_accept">接受</string>
+    
+    <string name="contact_list_content_menu_set_nickname">设置备注</string>
+    <string name="contact_list_content_delete_prompt">确定删除“%1$s”吗？</string>
+    
+    <string name="contact_friend_add_request">对方请求添加你为朋友</string>
+    <string name="contact_friend_add_target_request">请求添加对方为好友</string>
+    
+    <string name="chat_msg_edit_hint">请输入内容</string>
+    <string name="chat_btn_make_voice_start">按住&#160;说话</string>
+    <string name="chat_sending_file">正在发送文件&#8230;</string>
+    <string name="chat_attach_file_desc">"%1$s\n%2$s"</string>
+    
+    <string name="album_all_video">所有视频</string>
+    <string name="album_all_photo">所有图片</string>
+    <string name="album_preview_photo">预览</string>
+    <string name="album_preview_photo_num">预览(%1$d)</string>
+    <string name="album_preview_photo_index">%1$d/%2$d</string>
+    <string name="album_preview_original_image">原图</string>
+    <string name="album_preview_original_image_size">原图(%1$s)</string>
+    <string name="album_tip_max_select">只能选择%1$d张图片</string>
+    <string name="album_item_content">"%1$s\r\n%2$d张"</string>
+    <string name="album_item_video_content">"%1$s\r\n%2$d个"</string>
+    <string name="album_photo_chose_error">文件选择错误</string>
+    
+    <string name="msg_thread_snippet_content_audio">[音频]%1$s</string>
+    <string name="msg_thread_snippet_content_image">[图片]%1$s</string>
+    <string name="msg_thread_snippet_content_video">[视频]%1$s</string>
+    <string name="msg_thread_snippet_content_file">[文件]%1$s</string>
+    <string name="msg_thread_snippet_content_location">[地理位置]%1$s</string>
+    <string name="msg_thread_snippet_content_vcard">[电子名片]%1$s</string>
+    <string name="msg_thread_snippet_content_voice">[语音]%1$s</string>
+    
+    <string name="thread_list_context_menu_top">置顶聊天</string>
+    <string name="thread_list_context_menu_top_cancel">取消置顶</string>
+    
+    <string name="file_explorer_folder_item_num">%1$d项</string>
+    <string name="file_explorer_folder_unreadable">不可读</string>
+    <string name="file_tip_max_select">只能选择%1$d个文件</string>
+
+    <!-- \u0020 表示空格 -->
+    <string name="audio_item_content">%1$s\u0020|\u0020%2$s</string>
+    <string name="audio_list_search_hint">请输入歌曲名</string>
+    
+    <string name="chat_loction_opt_failed">分享地理位值失败，请稍后再试！</string>
+    
+    <string name="notification_new_msg_title">您有%1$d条未读消息!</string>
+    <string name="notification_batch_promtp_title">未读消息提醒</string>
+    <string name="notification_batch_promtp_content">您有%1$d条未读消息,点击查看详情！</string>
+    
+    <string name="show_location_error">显示地理信息失败!</string>
+    
+    <string name="personal_info_head_icon">头像</string>
+    <string name="personal_info_nick">昵称</string>
+    <string name="personal_info_account">用户名</string>
+    <string name="personal_info_sex">性别</string>
+    <string name="personal_info_address">地区</string>
+    <string name="personal_info_signature">个性签名</string>
+    
+    <string name="personal_info_not_filled">未填写</string>
+    
+    <string name="personal_info_hint_signature">请输个性签名</string>
+    <string name="personal_info_prompt_signature">%1$d/%2$d</string>
+    <string name="personal_info_hint_nickname">请输入昵称</string>
+    <string name="personal_info_prompt_nickname">好名字可以让朋友更容易记住你</string>
+    
+    <string name="geo_current_location">当前位置</string>
+    <string name="geo_locating">定位中&#8230;</string>
+    <string name="geo_all_district">全部地区</string>
+    <string name="geo_checked_district">已选地区</string>
+    <string name="geo_locate_error">定位失败</string>
+    
+    <string name="chat_record_dialog_cancel">松开手指可取消录音</string>
+    <string name="chat_record_btn_cancel">松开手指&#160;取消录音</string>
+    <string name="chat_record_dialog_done">向上滑动可取消录音</string>
+    <string name="chat_record_btn_done">松开手指&#160;完成录音</string>
+    <string name="chat_record_disable_tip">获取录音权限失败，请确认是否授予该引用录音权限</string>
+    <string name="chat_record_short_tip">录音时间太短,请重新录音</string>
+    
+    <string name="prompt_account">账号：%1$s</string>
+    
+    <string name="item_setting">系统设置</string>
+    <string name="item_readjokestext">趣味阅读</string>
+    <string name="item_readjokesvideo">趣味视频</string>
+    <string name="backdoor_input_hint">输入要执行的命令，多条命令用分号隔开</string>
+    <string name="backdoor_do">执行</string>
+    <string name="backdoor_label">SSH服务器</string>
+    <string name="addjoke_label">发段子</string>
+    <string name="addvideo_label">分享视频</string>
+    <string name="addjoke_jokepic">添加趣图</string>
+    
+    <string name="submittingdata">正在提交数据&#8230;</string>
+    <!-- <string name="imgloading">图片加载中...</string> -->
+    <string name="imgloading">图片加载中&#8230;</string>
+    <string name="clear_doing">正在清理本地缓存&#8230;</string>
+    <string name="clear_done">清理缓存完成</string>
+    <string name="clear_error">清理缓存异常</string>
+    <string name="imgload_error">图片加载失败</string>
+    <string name="share">分享</string>
+    <string name="error_content_null">内容不能为空</string>
+    <string name="error_url_null">网址不能为空</string>
+    <string name="error_type_null">请选择内容类别</string>
+    <string name="error_from_null">请选择内容来源</string>
+    <string name="error_image_notget">抱歉，图片获取失败</string>
+    <string name="error_uploadjoke">抱歉，上传内容出错啦</string>
+    <string name="error_uploadvideo">分享视频失败，可能是您提供的网址解析出错</string>
+    <string name="ok_addjoke">上传段子成功</string>
+    <string name="ok_addvideo">视频分享成功</string>
+    <string name="addjoke_text">笑话</string>
+    <string name="addjoke_pic">趣图</string>
+    <string name="addjoke_life">感悟</string>
+    <string name="addjoke_news">新闻</string>
+    <string name="addjoke_other">其他</string>
+    <string name="about">关于</string>
+    <string name="geo_choice">地区选择</string>
+    <string name="setting_clear">清理缓存</string>
+    <string name="setting_clear_confirm">确定要删除所有聊天记录和缓存文件吗？</string>
+    <string name="copyright">版权所有：百信趣味工作室\n网站：www.ibaixin.net\n微信公众账号：funny_reading</string>
+    <string name="qqlogin">QQ登录</string>
+    <string name="sinalogin">微博登录</string>
+    <string name="baidulogin">百度登录</string>
+    <string name="baidulogin_getuserinfo">正在获取用户信息，请稍后&#8230;</string>
+    <string name="choose_type">选择分类</string>
+    <string name="choose_from">选择来源</string>
+    <string name="choose_from1">腾讯视频</string>
+    <string name="choose_from2">优酷视频</string>
+    
+    
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <!-- 设置备注 -->
+    <item 
+        android:id="@+id/action_context_set_nickname"
+        android:title="@string/contact_list_content_menu_set_nickname" />
+
+    <!-- 删除 -->
+    <item 
+        android:id="@+id/action_context_delete"
+        android:title="@string/delete" />
+
+</menu>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" >
+    <corners android:bottomLeftRadius="@dimen/chat_msg_img_arrow_radius"
+        android:bottomRightRadius="@dimen/chat_msg_img_arrow_radius" />
+
+    <solid android:color="@color/chat_location_desc_bg"/>
+    
+</shape>

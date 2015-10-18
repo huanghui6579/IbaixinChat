@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    
+    <TextView
+        android:id="@+id/tv_catalog"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/index_text_bg_color"
+        android:textColor="@color/index_text_color"
+        android:paddingLeft="@dimen/list_item_padding"
+        android:paddingStart="@dimen/list_item_padding"
+        android:paddingRight="@dimen/list_item_padding"
+        android:paddingEnd="@dimen/list_item_padding"
+        android:paddingTop="@dimen/contact_text_index_padding_top"
+        android:paddingBottom="@dimen/contact_text_index_padding_bottom"
+        android:visibility="gone"/>
+    
+    <RelativeLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_catalog"
+        android:padding="@dimen/list_item_padding">
+        <ImageView 
+	        android:id="@+id/iv_head_icon"
+	        style="@style/ChatItemHeadIconStyle"
+	        android:layout_centerVertical="true"
+	        android:contentDescription="@null"/>
+	    
+	    <TextView 
+	        android:id="@+id/tv_name"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        style="@style/CommonListItemTitleStyle"
+	        android:layout_toEndOf="@id/iv_head_icon"
+	        android:layout_toRightOf="@id/iv_head_icon"
+	        android:gravity="center_vertical"
+	        android:layout_centerVertical="true"
+	        android:singleLine="true"
+	        android:layout_marginLeft="@dimen/list_item_padding"
+	        android:layout_marginStart="@dimen/list_item_padding"/>
+    </RelativeLayout>
+
+</RelativeLayout>

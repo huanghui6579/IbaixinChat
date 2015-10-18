@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/ChatItemRootStyle" xmlns:app="http://schemas.android.com/apk/res/net.ibaixin.chat">
+    
+    <TextView 
+        android:id="@+id/tv_msg_time"
+        style="@style/ChatItemSpliteTimeStyle"
+        android:visibility="visible"/>
+    
+    <RelativeLayout
+        android:id="@+id/layout_body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        
+        <ImageView
+	        android:id="@+id/iv_head_icon"
+	        style="@style/ChatItemHeadIconStyle"
+	        android:layout_alignParentRight="true"
+	        android:layout_alignParentEnd="true"
+	        android:contentDescription="@null" />
+        
+        <RelativeLayout
+            android:id="@+id/content_layout" 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@id/iv_head_icon"
+	        android:layout_toLeftOf="@id/iv_head_icon"
+	        android:gravity="center_horizontal"
+	        android:layout_marginRight="@dimen/chat_msg_item_content_margin_left_right"
+	        android:layout_marginEnd="@dimen/chat_msg_item_content_margin_left_right"
+	        android:layout_alignTop="@id/iv_head_icon">
+	        <!-- android:paddingRight="@dimen/chat_msg_item_out_content_padding_right"
+	            android:paddingEnd="@dimen/chat_msg_item_out_content_padding_right"
+	            android:paddingLeft="@dimen/chat_msg_item_out_content_padding_left"
+	            android:paddingStart="@dimen/chat_msg_item_out_content_padding_left" -->
+            <TextView
+	            android:id="@id/tv_content"
+	            style="@style/ChatItemContentStyle"
+		        android:lineSpacingExtra="2dp"
+		        android:autoLink="all"
+		        android:textColorLink="?attr/colorPrimary"
+		        android:background="@drawable/chat_msg_out_selector"
+		        android:linksClickable="false"/>
+            <!-- android:background="@drawable/chat_msg_out_img_selector" -->
+            <FrameLayout
+                android:id="@+id/content_img_layout" 
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:foreground="@drawable/chat_msg_out_img_selector"
+                android:addStatesFromChildren="true">
+                <!-- android:background="@drawable/chat_msg_out_img_selector" -->
+                <net.ibaixin.chat.view.BubbleImageView
+	                android:id="@+id/iv_content_img"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:contentDescription="@null"
+	                app:bubble_arrowLocation="right"/>
+            </FrameLayout>
+            
+            <TextView 
+                android:id="@+id/tv_content_desc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/ChatItemContentDescStyle"
+                android:layout_marginRight="@dimen/chat_msg_img_arrow_radius"
+                android:layout_marginEnd="@dimen/chat_msg_img_arrow_radius"
+                android:layout_alignBottom="@id/content_img_layout"
+                android:layout_alignLeft="@id/content_img_layout"
+                android:layout_alignStart="@id/content_img_layout"
+                android:layout_alignRight="@id/content_img_layout"
+                android:layout_alignEnd="@id/content_img_layout"
+                android:visibility="gone"/>
+        </RelativeLayout>
+        
+        <ImageView 
+            android:id="@+id/iv_msg_state"
+            style="@style/ChatItemSendStateStyle"
+            android:layout_toStartOf="@id/content_layout"
+            android:layout_toLeftOf="@id/content_layout"
+            android:layout_alignBottom="@id/content_layout"
+            android:layout_marginRight="@dimen/chat_msg_item_send_state_margin_left_right"
+            android:layout_marginEnd="@dimen/chat_msg_item_send_state_margin_left_right"
+            android:contentDescription="@null"/>
+        
+    </RelativeLayout>
+
+</LinearLayout>

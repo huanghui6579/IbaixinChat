@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:padding="@dimen/list_item_padding"
+    android:descendantFocusability="blocksDescendants" >
+    
+    <FrameLayout 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        
+		<ImageView 
+		    android:id="@id/iv_icon"
+		    android:layout_width="@dimen/album_item_size"
+		    android:layout_height="@dimen/album_item_size"
+		    android:scaleType="centerCrop"
+		    android:layout_gravity="center_vertical"
+		    android:background="@drawable/album_item_icon"
+		    android:contentDescription="@null"/>
+		
+		<ImageView 
+	        android:id="@+id/iv_flag"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:src="@drawable/ic_video_default"
+	        android:contentDescription="@null"
+	        android:visibility="gone"
+	        android:layout_gravity="center"/>
+		
+    </FrameLayout>
+	<!-- ?android:attr/listChoiceIndicatorSingle -->
+	<CheckedTextView 
+	    android:id="@id/tv_content"
+	    style="@style/CommonCheckedTextViewStyle"
+	    android:lineSpacingMultiplier="1.5"
+	    android:focusable="false"/>
+	
+</LinearLayout>
