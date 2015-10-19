@@ -1,7 +1,25 @@
 package net.ibaixin.chat.activity;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPropertyAnimatorCompat;
+import android.support.v7.internal.view.ViewPropertyAnimatorCompatSet;
+import android.util.SparseBooleanArray;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.fragment.PhotoFragment;
@@ -10,23 +28,9 @@ import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.SystemUtil;
-import android.app.ProgressDialog;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v4.view.ViewPager;
-import android.util.SparseBooleanArray;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 相片预览容器
@@ -34,7 +38,7 @@ import android.widget.TextView;
  * @version 1.0.0
  * @update 2014年11月15日 上午9:37:58
  */
-public class PhotoPreviewActivity extends BaseActivity {
+public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.OnViewTapListener {
 	public static final String ARG_PHOTO_LIST = "arg_photo_list";
 	public static final String ARG_POSITION = "arg_position";
 	public static final String ARG_SHOW_MODE = "arg_show_mode";
@@ -55,6 +59,7 @@ public class PhotoPreviewActivity extends BaseActivity {
 	private ViewPager mViewPager;
 	private CheckBox cbOrigianlImage;
 	private CheckBox cbChose;
+	private View layoutBottom;
 	private MenuItem mMenuDone;
 //	private TextView btnOpt;
 	
@@ -87,6 +92,8 @@ public class PhotoPreviewActivity extends BaseActivity {
 	private long selectOriginalSize = 0;
 	
 	PhotoFragmentViewPager photoAdapter;
+	
+	private boolean mShow = true;
 	
 	private Handler mHandler = new Handler() {
 
@@ -124,8 +131,10 @@ public class PhotoPreviewActivity extends BaseActivity {
 		mViewPager = (ViewPager) findViewById(R.id.view_pager);
 		cbOrigianlImage = (CheckBox) findViewById(R.id.cb_original_image);
 		cbChose = (CheckBox) findViewById(R.id.cb_chose);
+		layoutBottom = findViewById(R.id.layout_bottom);
+		layoutBottom.setAlpha(0.8f);
 	}
-
+	
 	@Override
 	public boolean isSwipeBackEnabled() {
 		return false;
@@ -257,6 +266,7 @@ public class PhotoPreviewActivity extends BaseActivity {
 				
 			}
 		});
+		
 	}
 	
 	@Override
@@ -330,4 +340,28 @@ public class PhotoPreviewActivity extends BaseActivity {
 		
 	}
 
+	@Override
+	public void onTap(View view) {
+		if (toolbar != null) {
+			int bottomHeight = layoutBottom.getHeight();
+			if (mShow) {	//hide
+				mShow = false;
+				ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
+				int height = toolbar.getHeight();
+				ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(toolbar).translationY(-height).setInterpolator(new AccelerateInterpolator(2));
+				ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(bottomHeight).setInterpolator(new AccelerateInterpolator(2));
+				anim.play(toolBarAnim)
+					.play(bottomAnim);
+				anim.start();
+			} else {
+				mShow = true;
+				ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
+				ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(-bottomHeight).setInterpolator(new AccelerateInterpolator(2));
+				ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(toolbar).translationY(0).setInterpolator(new DecelerateInterpolator(2));
+				anim.play(toolBarAnim)
+						.play(bottomAnim);
+				anim.start();
+			}
+		}
+	}
 }

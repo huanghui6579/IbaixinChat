@@ -89,4 +89,5 @@
     
     <!-- 颜色较深的半透明 -->
     <color name="translucence_color">#b0000000</color>
+    
 </resources>

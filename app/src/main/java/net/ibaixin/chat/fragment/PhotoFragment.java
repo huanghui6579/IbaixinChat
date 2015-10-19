@@ -1,11 +1,5 @@
 package net.ibaixin.chat.fragment;
 
-import net.ibaixin.chat.R;
-import net.ibaixin.chat.model.PhotoItem;
-import net.ibaixin.chat.util.SystemUtil;
-import net.ibaixin.chat.view.PowerImageView;
-import net.ibaixin.chat.view.ProgressWheel;
-import uk.co.senab.photoview.PhotoViewAttacher;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -18,6 +12,15 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
+
+import net.ibaixin.chat.R;
+import net.ibaixin.chat.activity.PhotoPreviewActivity;
+import net.ibaixin.chat.model.PhotoItem;
+import net.ibaixin.chat.util.SystemUtil;
+import net.ibaixin.chat.view.PowerImageView;
+import net.ibaixin.chat.view.ProgressWheel;
+
+import uk.co.senab.photoview.PhotoViewAttacher;
 
 /**
  * 照片预览的界面
@@ -35,6 +38,8 @@ public class PhotoFragment extends BaseFragment {
 	private PhotoItem mPhoto;
 	
 	private FinishCallBackListener mFinishCallBackListener;
+	
+	private OnViewTapListener mOnViewTapListener;
 	
 	/**
 	 * 是否点击屏幕就退出该界面
@@ -59,6 +64,9 @@ public class PhotoFragment extends BaseFragment {
 		if (activity instanceof FinishCallBackListener) {
 			mFinishCallBackListener = (FinishCallBackListener) activity;
 		}
+		if (activity instanceof PhotoPreviewActivity) {
+			mOnViewTapListener = (PhotoPreviewActivity) activity;
+		}
 		super.onAttach(activity);
 	}
 	
@@ -67,6 +75,9 @@ public class PhotoFragment extends BaseFragment {
 		if (mFinishCallBackListener != null) {
 			mFinishCallBackListener = null;
 		}
+        if (mOnViewTapListener != null) {
+            mOnViewTapListener = null;
+        }
 		super.onDetach();
 	}
 	
@@ -85,6 +96,9 @@ public class PhotoFragment extends BaseFragment {
 				if (mOnTouchFinish && mFinishCallBackListener != null) {
 					mFinishCallBackListener.onFinish();
 				}
+                if (mOnViewTapListener != null) {
+                    mOnViewTapListener.onTap(view);
+                }
 			}
 		});
 		
@@ -139,5 +153,17 @@ public class PhotoFragment extends BaseFragment {
 		 * @update 2015年3月4日 下午3:16:22
 		 */
 		public void onFinish();
+	}
+
+	/**
+	 * 图片单击的回调
+	 * @author huanghui1 
+	 */
+	public interface OnViewTapListener {
+		/**
+		 * 单击的响应事件
+		 * @param view
+		 */
+		public void onTap(View view);
 	}
 }

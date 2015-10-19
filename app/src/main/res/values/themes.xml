@@ -29,6 +29,11 @@
 	    <!-- <item name="android:textColorPrimary">@android:color/white</item> -->
 	    <item name="colorControlNormal">@android:color/white</item>
 	</style>
+
+    <!--半透明的toolbar样式-->
+    <style name="AppTheme.Toolbar.Translucent">
+        <item name="windowActionBarOverlay">true</item>
+    </style>
 	
     <style name="MyToolBarStyle" parent="Widget.AppCompat.Toolbar">
         <item name="titleTextAppearance">@style/AppTheme.Toolbar.TitleTextStyle</item>
@@ -78,7 +83,7 @@
 	    <item name="android:windowContentOverlay">@null</item>
 	    
     </style>
-	
+    
 	<!-- 全屏的样式 -->
     <style name="AppTheme.FullScreen.Splash">
         <!-- 主界面不头像，否则没在某些机器上滑动返回会显示桌面 -->

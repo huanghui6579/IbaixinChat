@@ -114,11 +114,11 @@ import net.ibaixin.chat.view.TextViewAware;
  */
 public class ChatActivity extends BaseActivity implements OnClickListener/*, OnItemClickListener*/, EmojiFragment.OnEmojiconClickedListener, EmojiTypeFragment.OnEmojiconBackspaceClickedListener {
 	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-	
+
 	public static final String ARG_MSG_INFO = "arg_msg_info";
 	public static final String ARG_MSG_INFO_LIST = "arg_msg_info_list";
 	public static final String ARG_THREAD_ID = "arg_thread_id";
-	
+
 	/**
 	 * 调用相册的请请求码
 	 */
@@ -1742,11 +1742,11 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				mMsgInfos.add(msg);
 				addMsgTotalCount();
 			}
-			
+
 			msgAdapter.notifyDataSetChanged();
-			
+
 			scrollMyListViewToBottom(lvMsgs);
-			
+
 			etContent.setText("");
 			//隐藏底部面板
 			hideBottomLayout(false);
