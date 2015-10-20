@@ -19,52 +19,57 @@
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:orientation="vertical">
-	        <net.ibaixin.chat.view.FloatLabeledEditText
-	            style="@style/FloatEdittextStyle">
+	        <android.support.design.widget.TextInputLayout
+	            android:layout_width="match_parent"
+				android:layout_height="wrap_content">
 	            <EditText 
 		            android:id="@+id/et_account"
 		            style="@style/AccountTextStyle"
 		            android:hint="@string/login_hint_account"/>
-	        </net.ibaixin.chat.view.FloatLabeledEditText>
+	        </android.support.design.widget.TextInputLayout>
 	        
-	        <net.ibaixin.chat.view.FloatLabeledEditText
-	            style="@style/FloatEdittextStyle">
+	        <android.support.design.widget.TextInputLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content">
 	            <EditText 
 		            android:id="@+id/et_nickname"
 		            style="@style/AccountTextStyle"
 		            android:layout_marginTop="@dimen/login_password_margin_top"
 		            android:hint="@string/login_hint_nickname"/>
-	        </net.ibaixin.chat.view.FloatLabeledEditText>
+	        </android.support.design.widget.TextInputLayout>
 	        
-	        <net.ibaixin.chat.view.FloatLabeledEditText
-	            style="@style/FloatEdittextStyle">
+	        <android.support.design.widget.TextInputLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content">
 	            <EditText 
 		            android:id="@+id/et_email"
 		            style="@style/AccountTextStyle"
 		            android:inputType="textEmailAddress"
 		            android:layout_marginTop="@dimen/login_password_margin_top"
 		            android:hint="@string/login_hint_email"/>
-	        </net.ibaixin.chat.view.FloatLabeledEditText>
+	        </android.support.design.widget.TextInputLayout>
 	        
-	        <net.ibaixin.chat.view.FloatLabeledEditText
-	            style="@style/FloatEdittextStyle">
+	        <android.support.design.widget.TextInputLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content">
 	            <EditText 
 		            android:id="@+id/et_password"
 		            style="@style/PasswordTextStyle"
 		            android:hint="@string/login_hint_password"
 		            android:imeOptions="actionNext"
 		            android:layout_marginTop="@dimen/login_password_margin_top"/>
-	        </net.ibaixin.chat.view.FloatLabeledEditText>
+	        </android.support.design.widget.TextInputLayout>
 	        
-	        <net.ibaixin.chat.view.FloatLabeledEditText
-	            style="@style/FloatEdittextStyle">
+	        <android.support.design.widget.TextInputLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content">
 	            <EditText 
 		            android:id="@+id/et_confirm_password"
 		            style="@style/PasswordTextStyle"
 		            android:hint="@string/login_hint_confirm_password"
 		            android:imeOptions="actionDone"
 		            android:layout_marginTop="@dimen/login_password_margin_top"/>
-	        </net.ibaixin.chat.view.FloatLabeledEditText>
+	        </android.support.design.widget.TextInputLayout>
 <!-- 		        style="@style/LoginTextStyle" -->
 	        <Button 
 		        android:id="@+id/btn_regist"

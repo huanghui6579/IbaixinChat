@@ -1,5 +1,15 @@
 package net.ibaixin.chat.util;
 
+import net.ibaixin.chat.model.FormFile;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -14,14 +24,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import net.ibaixin.chat.model.FormFile;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 /**
  * http请求工具类
  * @author dudejin
@@ -66,7 +68,7 @@ public class HttpRequest {
 		 </FORM>
 	 * @param path 上传路径(注：避免使用localhost或127.0.0.1这样的路径测试，因为它会指向手机模拟器，你可以使用http://www.itcast.cn或http://192.168.1.10:8080这样的路径测试)
 	 * @param params 请求参数 key为参数名,value为参数值
-	 * @param file 上传文件
+	 * @param files 上传文件
 	 */
 	public static boolean post(String path, Map<String, String> params, FormFile[] files,StringBuilder resultdata) throws Exception{
 		boolean flag = true ;

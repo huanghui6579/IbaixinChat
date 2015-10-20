@@ -25,6 +25,8 @@ import android.widget.TextView;
  */
 public class RegistActivity extends BaseActivity implements OnClickListener {
 	
+	public static final String ARG_SHOW_LOGIN = "arg_show_login";
+	
 	private EditText etAccount;
 	private EditText etNickname;
 	private EditText etEmail;
@@ -38,6 +40,11 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 	private TextView tvLogin;
 	
 	private SystemConfig systemConfig;
+
+	/**
+	 * 是否显示进入到登录界面的按钮
+	 */
+	private boolean mShowLogin = true;
 
 	@Override
 	protected int getContentView() {
@@ -59,6 +66,16 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 	@Override
 	protected void initData() {
 		systemConfig = application.getSystemConfig();
+		Intent intent = getIntent();
+		mShowLogin = intent.getBooleanExtra(ARG_SHOW_LOGIN, true);
+		if (mShowLogin) {	//显示登录入口
+			if (tvLogin.getVisibility() != View.VISIBLE) {
+				tvLogin.setVisibility(View.VISIBLE);
+			}
+		} else {
+			tvLogin.setVisibility(View.GONE);
+		}
+		
 	}
 
 	@Override
@@ -193,8 +210,9 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 			break;
 		case R.id.tv_login:	//返回登录界面
 			Intent intent = new Intent(mContext, LoginActivity.class);
-			startActivity(intent);
-			finish();
+			intent.putExtra(ARG_DISPLAY_UP, true);
+			startActivity(intent, true);
+			finish(false);
 			break;
 		default:
 			break;

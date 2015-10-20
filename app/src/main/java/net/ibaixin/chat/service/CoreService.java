@@ -246,7 +246,8 @@ public class CoreService extends Service {
 						.setAutoCancel(true)
 						.setTicker(getString(R.string.notification_new_msg_title, msgCount))
 						.setContentTitle(contentTitle)
-						.setContentText(contentText);
+						.setContentText(contentText)
+						.setPriority(NotificationCompat.PRIORITY_HIGH);
 
 //				TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
 //				stackBuilder.addParentStack(MainActivity.class);

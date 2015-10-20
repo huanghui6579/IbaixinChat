@@ -2026,11 +2026,14 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			holder.tvContent.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
 			Type msgType = msgInfo.getMsgType();
 			MsgPart msgPart = msgInfo.getMsgPart();
-			holder.tvContent.setGravity(Gravity.START | Gravity.TOP);
+			holder.tvContent.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
 			holder.tvContent.setCompoundDrawablePadding(0);
 			switch (msgType) {
 			case TEXT:	//文本消息
 				SpannableString spannableString = SystemUtil.getExpressionString(mContext, msgInfo.getContent());
+				if (spannableString.length() <= context.getResources().getInteger(R.integer.msg_content_min_center_length)) {	//字符太短，居中显示
+					holder.tvContent.setGravity(Gravity.CENTER);
+				}
 				holder.tvContent.setText(spannableString);
 				break;
 			case IMAGE:	//图片消息
@@ -2084,7 +2087,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			case AUDIO:
 			case VIDEO:
 			case FILE:	//普通文件类型
-				holder.tvContent.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+//				holder.tvContent.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
 				holder.tvContent.setCompoundDrawablePadding((int) getResources().getDimension(R.dimen.chat_msg_item_drawable_spacing));
 				if (msgPart != null) {
 					String partPath = msgPart.getFilePath();

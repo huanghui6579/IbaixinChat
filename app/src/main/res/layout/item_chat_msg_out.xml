@@ -34,12 +34,13 @@
 	            android:paddingLeft="@dimen/chat_msg_item_out_content_padding_left"
 	            android:paddingStart="@dimen/chat_msg_item_out_content_padding_left" -->
             <TextView
-	            android:id="@id/tv_content"
+	            android:id="@+id/tv_content"
 	            style="@style/ChatItemContentStyle"
 		        android:lineSpacingExtra="2dp"
 		        android:autoLink="all"
 		        android:textColorLink="?attr/colorPrimary"
 		        android:background="@drawable/chat_msg_out_selector"
+                android:gravity="start|center_vertical"
 		        android:linksClickable="false"/>
             <!-- android:background="@drawable/chat_msg_out_img_selector" -->
             <FrameLayout

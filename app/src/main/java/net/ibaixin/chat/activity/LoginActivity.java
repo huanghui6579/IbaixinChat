@@ -385,13 +385,14 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 		case R.id.tv_regist:	//进入注册界面
 //			Intent intent = new Intent(mContext, MainActivity.class);
 			Intent intent = new Intent(mContext, RegistActivity.class);
-			startActivity(intent);
+			intent.putExtra(RegistActivity.ARG_SHOW_LOGIN, false);
+			startActivity(intent, true);
 			break;
 		default:
 			break;
 		}
 	}
-	
+
 	/**
 	 * 登录的异步任务
 	 * @author Administrator

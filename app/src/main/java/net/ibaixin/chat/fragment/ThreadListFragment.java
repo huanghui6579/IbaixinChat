@@ -733,14 +733,16 @@ public class ThreadListFragment extends BaseFragment implements LoaderCallbacks<
         	if (relativePosition >= 0) {
         		//得到要更新的item的view  
         		View view = mListView.getChildAt(relativePosition);
-        		//从view中取得holder  
-        		Object tag = view.getTag();
-        		if (tag != null && tag instanceof MsgThreadViewHolder) {
-        			MsgThreadViewHolder holder = (MsgThreadViewHolder) tag;
-        			holder.tvTitle.setText(thread.getMsgThreadName());
-        			UserVcard userVcard = thread.getMembers().get(0).getUserVcard();
-        			mThreadAdapter.showIcon(userVcard, holder.ivHeadIcon);
-        		}
+				if (view != null) {
+					//从view中取得holder  
+					Object tag = view.getTag();
+					if (tag != null && tag instanceof MsgThreadViewHolder) {
+						MsgThreadViewHolder holder = (MsgThreadViewHolder) tag;
+						holder.tvTitle.setText(thread.getMsgThreadName());
+						UserVcard userVcard = thread.getMembers().get(0).getUserVcard();
+						mThreadAdapter.showIcon(userVcard, holder.ivHeadIcon);
+					}
+				}
         	}
         }
 	}

@@ -31,7 +31,7 @@
 	</style>
 
     <!--半透明的toolbar样式-->
-    <style name="AppTheme.Toolbar.Translucent">
+    <style name="AppTheme.Overlay.Translucent" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
         <item name="windowActionBarOverlay">true</item>
     </style>
 	
@@ -41,13 +41,15 @@
     </style>
     
     <!-- Toolbar菜单的样式 -->
-	<style name="AppTheme.Toolbar.Menu" parent="ThemeOverlay.AppCompat.Light">
-	    <item name="android:background">?attr/colorPrimary</item>
+	<style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light">
+	    <!--<item name="android:background">?attr/colorPrimary</item>
 	    <item name="actionBarItemBackground">?attr/colorPrimary</item>
 	    <item name="colorControlHighlight">?attr/colorPrimary</item>
-	    <item name="android:textColorPrimary">@android:color/white</item>
+	    <item name="android:textColorPrimary">@android:color/white</item>-->
 	    <!-- <item name="android:selectedWeekBackgroundColor">@color/primary_dark_color</item> -->
 	</style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 	
 	<!-- 菜单文字的样式 -->
 	<style name="MenuDoneTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Menu">

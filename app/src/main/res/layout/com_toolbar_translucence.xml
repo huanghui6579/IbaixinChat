@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.AppBarLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_alignParentTop="true"
-    android:background="?attr/colorPrimary"
-    android:elevation="8dp"
-    app:navigationIcon="?attr/homeAsUpIndicator"
-    android:minHeight="?attr/actionBarSize"
-    android:paddingTop="@dimen/tool_bar_top_padding"
-    android:transitionName="actionBar"
-    android:alpha="0.8"
-    app:popupTheme="@style/AppTheme.Toolbar.Menu"
-    app:theme="@style/AppTheme.Toolbar.Translucent"
-    tools:ignore="UnusedAttribute"/>
+    android:theme="@style/AppTheme.AppBarOverlay">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:paddingTop="@dimen/tool_bar_top_padding"
+        android:transitionName="actionBar"
+        android:alpha="0.8"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:theme="@style/AppTheme.Overlay.Translucent"
+        tools:ignore="UnusedAttribute"/>
+
+</android.support.design.widget.AppBarLayout>

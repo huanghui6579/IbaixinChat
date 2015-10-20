@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
     <include
-    	android:id="@+id/toolbar" 
     	layout="@layout/com_toolbar"/>
 
     <net.ibaixin.chat.view.PagerSlidingTabStrip2

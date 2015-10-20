@@ -55,7 +55,7 @@ public class SplashActivity extends BaseActivity implements OnClickListener {
 					} else {
 						intent.setClass(mContext, LoginActivity.class);
 					}
-					startActivity(intent);
+					startActivity(intent, true);
 					finish();
 				}
 			}, delayTime);
@@ -111,7 +111,7 @@ public class SplashActivity extends BaseActivity implements OnClickListener {
 		default:
 			break;
 		}
-		startActivity(intent);
+		startActivity(intent, true);
 	}
 
 }

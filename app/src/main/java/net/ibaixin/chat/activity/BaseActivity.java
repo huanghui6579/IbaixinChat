@@ -249,6 +249,18 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 			overridePendingTransition(0, mExitAnimRes);
 		}
 	}
+
+	/**
+	 * 结束界面，是否有退出动画
+	 * @param exitAnim
+	 */
+	protected void finish(boolean exitAnim) {
+		super.finish();
+		if (exitAnim) {
+//			scrollToFinishActivity();
+			overridePendingTransition(0, mExitAnimRes);
+		}
+	}
 	
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {

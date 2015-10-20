@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
     <include
-    	android:id="@+id/toolbar" 
+    	android:id="@+id/appBar" 
     	layout="@layout/com_toolbar"/>
 	<!-- <RelativeLayout
 	    android:layout_width="match_parent"

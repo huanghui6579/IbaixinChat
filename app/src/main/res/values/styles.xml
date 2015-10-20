@@ -22,7 +22,7 @@
         
         <item name="windowActionModeOverlay">true</item>
         
-        <item name="toolbarStyle">@style/MyToolBarStyle</item>
+        <!--<item name="toolbarStyle">@style/MyToolBarStyle</item>-->
         
         <!-- action bar 上的颜色控制器，主要是控制文字、图标的颜色 -->
         <!-- <item name="colorControlNormal">@android:color/white</item> -->

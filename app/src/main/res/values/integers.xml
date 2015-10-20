@@ -2,4 +2,6 @@
 <resources>
     <!-- 个性签名的最大字数 -->
     <integer name="signature_max_length">50</integer>
+    <!-- 聊天消息居中的最小字数 -->
+    <integer name="msg_content_min_center_length">10</integer>
 </resources>
