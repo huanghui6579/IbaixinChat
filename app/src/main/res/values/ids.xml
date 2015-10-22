@@ -9,4 +9,5 @@
     <item type="id" name="main_container" />
     <item type="id" name="iv_icon" />
     <item type="id" name="container" />
+    <item type="id" name="app_bar_layout" />
 </resources>

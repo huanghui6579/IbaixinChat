@@ -342,13 +342,13 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 
 	@Override
 	public void onTap(View view) {
-		if (toolbar != null) {
+		if (mAppBar != null) {
 			int bottomHeight = layoutBottom.getHeight();
 			if (mShow) {	//hide
 				mShow = false;
 				ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
-				int height = toolbar.getHeight();
-				ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(toolbar).translationY(-height).setInterpolator(new AccelerateInterpolator(2));
+				int height = mAppBar.getHeight();
+				ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(mAppBar).translationY(-height).setInterpolator(new AccelerateInterpolator(2));
 				ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(bottomHeight).setInterpolator(new AccelerateInterpolator(2));
 				anim.play(toolBarAnim)
 					.play(bottomAnim);
@@ -357,7 +357,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				mShow = true;
 				ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
 				ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(-bottomHeight).setInterpolator(new AccelerateInterpolator(2));
-				ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(toolbar).translationY(0).setInterpolator(new DecelerateInterpolator(2));
+				ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(mAppBar).translationY(0).setInterpolator(new DecelerateInterpolator(2));
 				anim.play(toolBarAnim)
 						.play(bottomAnim);
 				anim.start();

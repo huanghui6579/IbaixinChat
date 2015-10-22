@@ -739,7 +739,7 @@ public class CoreService extends Service {
 			senderInfo.msgThread.setSnippetContent(snippetContent);
 			senderInfo.msgThread.setLastMsgInfo(msgInfo);
 			senderInfo.msgThread.setModifyDate(System.currentTimeMillis());
-			senderInfo.msgThread = msgManager.updateSnippet(senderInfo.msgThread);
+			senderInfo.msgThread = msgManager.updateSnippet(senderInfo.msgThread ,true);
 		}
 	}
 	

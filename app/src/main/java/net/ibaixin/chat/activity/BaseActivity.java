@@ -70,6 +70,8 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 	
 	protected Toolbar toolbar;
 	
+	protected View mAppBar;
+	
 	/**
 	 * 是否有退出动画
 	 */
@@ -501,6 +503,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 	 */
 	protected void initToolBar() {
 		toolbar = (Toolbar) findViewById(R.id.toolbar);
+		mAppBar = findViewById(R.id.app_bar_layout);
 		if (toolbar != null) {
 			setSupportActionBar(toolbar);
 		}

@@ -74,4 +74,5 @@ dependencies {
     compile 'com.github.chrisbanes.photoview:library:1.2.4'
     compile 'com.mcxiaoke.volley:library:1.0.19'
     compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.4'
+    compile 'com.lsjwzh:materialloadingprogressbar:0.5.6-RELEASE'
 }

@@ -1,52 +1,5 @@
 package net.ibaixin.chat.util;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.android.volley.Request;
-import com.android.volley.Response.ErrorListener;
-import com.android.volley.Response.Listener;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.assist.ImageSize;
-import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
-import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ClipData;
@@ -85,6 +38,17 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response.ErrorListener;
+import com.android.volley.Response.Listener;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
+import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
+
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.model.Emoji;
@@ -96,6 +60,42 @@ import net.ibaixin.chat.model.MsgThread;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.model.emoji.Emojicon;
 import net.ibaixin.chat.volley.toolbox.MultiPartStringRequest;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 系统常用的工具方法
@@ -1192,7 +1192,7 @@ public class SystemUtil {
 			.cacheOnDisk(false)
 			.imageScaleType(ImageScaleType.NONE)
 			.bitmapConfig(Bitmap.Config.RGB_565)	//防止内存溢出
-			.displayer(new FadeInBitmapDisplayer(100))
+//			.displayer(new FadeInBitmapDisplayer(100))
 			.build();
 		return options;
 	}
@@ -1207,7 +1207,7 @@ public class SystemUtil {
 			.showImageForEmptyUri(R.drawable.ic_default_icon_error)
 			.showImageOnFail(R.drawable.ic_default_icon_error)
 			.cacheInMemory(true)
-			.cacheOnDisk(false)
+			.cacheOnDisk(true)
 			.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
 			.bitmapConfig(Bitmap.Config.RGB_565)	//防止内存溢出
 			.build();
@@ -1459,59 +1459,6 @@ public class SystemUtil {
 			byteSize += photoItem.getSize();
 		}
 		return byteSize;
-	}
-	
-	/**
-	 * 异步加载图片的缩略图
-	 * @update 2014年11月17日 下午9:11:12
-	 * @param uri 包装的uri,如file:///mnt/sdcard/ddd.jpg
-	 * @param listener
-	 * @return
-	 */
-	public static void loadImageThumbnailsAsync(String uri, ImageLoadingListener listener) {
-		DisplayImageOptions options = new DisplayImageOptions.Builder()
-			.showImageForEmptyUri(R.drawable.ic_default_icon_error)
-			.showImageOnFail(R.drawable.ic_default_icon_error)
-			.cacheInMemory(true)
-			.cacheOnDisk(false)
-			.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
-			.bitmapConfig(Bitmap.Config.RGB_565)	//防止内存溢出
-			.resetViewBeforeLoading(true)
-			.build();
-		ImageLoader imageLoader = ImageLoader.getInstance();
-		imageLoader.loadImage(uri, options, listener);
-	}
-	
-	/**
-	 * 同步加载图片的缩略图
-	 * @author tiger
-	 * @update 2015年3月7日 下午5:53:46
-	 * @param uri
-	 * @param listener
-	 */
-	public static Bitmap loadImageThumbnailsSync(String uri) {
-		return loadImageThumbnailsSync(uri, null);
-	}
-	
-	/**
-	 * 同步加载图片的缩略图
-	 * @author tiger
-	 * @update 2015年3月7日 下午5:53:46
-	 * @param uri
-	 * @param listener
-	 */
-	public static Bitmap loadImageThumbnailsSync(String uri, ImageSize imageSize) {
-		DisplayImageOptions options = new DisplayImageOptions.Builder()
-			.showImageForEmptyUri(R.drawable.ic_default_icon_error)
-			.showImageOnFail(R.drawable.ic_default_icon_error)
-			.cacheInMemory(true)
-			.cacheOnDisk(false)
-			.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
-			.bitmapConfig(Bitmap.Config.RGB_565)	//防止内存溢出
-			.resetViewBeforeLoading(true)
-			.build();
-		ImageLoader imageLoader = ImageLoader.getInstance();
-		return imageLoader.loadImageSync(uri, imageSize, options);
 	}
 	
 	/**

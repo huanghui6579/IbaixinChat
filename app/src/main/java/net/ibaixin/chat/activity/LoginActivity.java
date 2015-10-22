@@ -439,7 +439,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 			case Constants.MSG_SUCCESS:	//登录成功
 				Intent intent = new Intent(mContext, MainActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				startActivity(intent);
+				startActivity(intent, true);
 				finish();
 				break;
 			case Constants.MSG_REQUEST_ADDRESS_FAILED:	//网络请求的地址不对

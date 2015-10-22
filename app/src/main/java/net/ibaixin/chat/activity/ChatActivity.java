@@ -2051,12 +2051,12 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 					holder.contentImgLayout.setForeground(getResources().getDrawable(R.drawable.chat_msg_in_img_selector));
 				}
 				if (msgPart != null) {
-					String filePath = msgPart.getThumbPath();
+					String filePath = msgPart.getFilePath();
 					if (SystemUtil.isFileExists(filePath)) {
 //						mImageLoader.displayImage(Scheme.FILE.wrap(filePath), new TextViewAware(holder.tvContent), chatImageOptions);
 						mImageLoader.displayImage(Scheme.FILE.wrap(filePath), holder.ivContentImg, chatImageOptions);
 					} else {
-						filePath = msgPart.getFilePath();
+						filePath = msgPart.getThumbPath();
 						if (SystemUtil.isFileExists(filePath)) {
 							mImageLoader.displayImage(Scheme.FILE.wrap(filePath), holder.ivContentImg, chatImageOptions);
 						} else {
@@ -2530,7 +2530,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 						textView.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null);
 					}
 				}
-				tvDesc.setMaxWidth(loadedImage.getWidth());
+//				tvDesc.setMaxWidth(loadedImage.getWidth());
 				tvDesc.setText(msgInfo.getContent());
 			}
 		}
@@ -2604,8 +2604,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			} else {
 				MsgPart msgPart = msgInfo.getMsgPart();
 				if (msgPart != null) {
-					String filePath = msgPart.getFilePath();
-					File file = new File(filePath);
+					String showPath = msgPart.getShowPath();
+					File file = new File(showPath);
 					if (msgType == Type.LOCATION) {	//地理位置的文件，不需要判断文件是否存在
 						String location = msgPart.getDesc();
 						if (TextUtils.isEmpty(location)) {
@@ -2622,15 +2622,23 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 						if (SystemUtil.isFileExists(file)) {
 							switch (msgType) {
 							case IMAGE:	//打开图片
+								String filePath = msgPart.getFilePath();
+								boolean download = false;	//是否需要下载原始图片
+								if (msgInfo.isComming() && (!msgPart.isDownloaded() || !SystemUtil.isFileExists(filePath))) {	//原始图片不存在或者没有下载原始图片
+									filePath = showPath;
+									download = true;
+								}
 								intent = new Intent(mContext, ChatImagePreviewActivity.class);
 								intent.putExtra(ChatImagePreviewActivity.ARG_IMAGE_PATH, filePath);
 								intent.putExtra(PhotoFragment.ARG_TOUCH_FINISH, true);
+								intent.putExtra(PhotoFragment.ARG_DOWNLOAD_IMG, download);
+								intent.putExtra(MsgPart.ARG_MSG_PART, msgPart);
 								ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
 								ActivityCompat.startActivity(ChatActivity.this, intent, options.toBundle());
 								break;
 							case VOICE:	//语音类型的消息
 								TextView view = (TextView) v.findViewById(R.id.tv_content);
-								playVoice(filePath, position, itemType, view);
+								playVoice(showPath, position, itemType, view);
 								break;
 							case AUDIO:	//音频文件，则调用系统或者第三方应用打开
 								intent = MimeUtils.getAudioFileIntent(file);

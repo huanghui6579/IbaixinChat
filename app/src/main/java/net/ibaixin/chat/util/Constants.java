@@ -145,14 +145,14 @@ public class Constants {
 	public static final int IMAGE_THUMB_HEIGHT = 100;
 	
 	/**
-	 * 地理位置截图的默认缩略图的宽度：200
+	 * 地理位置截图的默认缩略图的宽度：400
 	 */
-	public static final int IMAGE_LOCATION_THUMB_WIDTH = 200;
+	public static final int IMAGE_LOCATION_THUMB_WIDTH = 400;
 	
 	/**
-	 * 地理位置截图的默认缩略图的宽度：200
+	 * 地理位置截图的默认缩略图的宽度：400
 	 */
-	public static final int IMAGE_LOCATION_THUMB_HEIGHT = 200;
+	public static final int IMAGE_LOCATION_THUMB_HEIGHT = 400;
 	
 	/**
 	 * 原始头像的尺寸

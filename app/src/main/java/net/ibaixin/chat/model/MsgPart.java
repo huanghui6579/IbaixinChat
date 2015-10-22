@@ -2,6 +2,7 @@ package net.ibaixin.chat.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 /**
  * 消息的附件类
@@ -11,6 +12,9 @@ import android.os.Parcelable;
  * @update 2014年10月29日 上午10:07:09
  */
 public class MsgPart implements Parcelable, Cloneable {
+	
+	public static final String ARG_MSG_PART = "arg_msg_part";
+	
 	/**
 	 * 主键
 	 */
@@ -160,6 +164,18 @@ public class MsgPart implements Parcelable, Cloneable {
 
 	public void setDownloaded(boolean downloaded) {
 		this.downloaded = downloaded;
+	}
+
+	/**
+	 * 获取文件的显示路径，默认以缩略图优先，原始图次之
+	 * @return
+	 */
+	public String getShowPath() {
+		if (!TextUtils.isEmpty(thumbPath)) {
+			return thumbPath;
+		} else {
+			return filePath;
+		}
 	}
 
 	@Override

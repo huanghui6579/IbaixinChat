@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/ChatItemRootStyle" xmlns:app="http://schemas.android.com/apk/res/net.ibaixin.chat">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/ChatItemRootStyle">
     
     <TextView 
         android:id="@+id/tv_msg_time"
@@ -50,12 +51,19 @@
                 android:foreground="@drawable/chat_msg_out_img_selector"
                 android:addStatesFromChildren="true">
                 <!-- android:background="@drawable/chat_msg_out_img_selector" -->
+                <!--
+                
+	                -->
                 <net.ibaixin.chat.view.BubbleImageView
 	                android:id="@+id/iv_content_img"
 	                android:layout_width="wrap_content"
 	                android:layout_height="wrap_content"
+                    android:minWidth="@dimen/chat_msg_img_min_width"
+                    android:minHeight="@dimen/chat_msg_img_min_height"
+                    android:maxWidth="@dimen/chat_msg_img_max_width"
+                    android:maxHeight="@dimen/chat_msg_img_max_height"
 	                android:contentDescription="@null"
-	                app:bubble_arrowLocation="right"/>
+                    app:bubble_arrowLocation="right"/>
             </FrameLayout>
             
             <TextView 

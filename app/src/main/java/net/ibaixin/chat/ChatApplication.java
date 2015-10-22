@@ -344,9 +344,11 @@ public class ChatApplication extends Application {
 	 * @update 2014年10月24日 上午11:08:16
 	 */
 	private void initImageLoaderConfig() {
+		int width = 480;
+		int height = 800;
 		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
-					.memoryCacheExtraOptions(480, 800)
-			        .diskCacheExtraOptions(480, 800, null)
+					.memoryCacheExtraOptions(width, height)
+			        .diskCacheExtraOptions(width, height, null)
 			        .denyCacheImageMultipleSizesInMemory()	//同一个imageUri只允许在内存中有一个缓存的bitmap
 			        .memoryCache(new LruMemoryCache(2 * 1024 * 1024))
 			        .memoryCacheSize(2 * 1024 * 1024)
@@ -368,7 +370,7 @@ public class ChatApplication extends Application {
 				.showImageForEmptyUri(R.drawable.ic_empty)
 				.showImageOnFail(R.drawable.ic_error)
 				.cacheInMemory(true)
-				.cacheOnDisk(true)
+				.cacheOnDisk(false)
 				.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
 				.bitmapConfig(Bitmap.Config.RGB_565)	//防止内存溢出
 				//.displayer(new FadeInBitmapDisplayer(200))

@@ -2,6 +2,7 @@ package net.ibaixin.chat.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 /**
  * 相片实体
@@ -9,52 +10,30 @@ import android.os.Parcelable;
  * @version 1.0.0
  * @update 2014年11月13日 下午5:58:41
  */
-public class PhotoItem implements Parcelable {
-	/**
-	 * 文件的全路径
-	 */
-	private String filePath;
+public class PhotoItem extends DownloadItem implements Parcelable {
 	/**
 	 * 缩略图路径
 	 */
 	private String thumbPath;
-	/**
-	 * 文件的大小
-	 */
-	private long size;
 	
-	private long time;
-
-	public String getFilePath() {
-		return filePath;
-	}
-
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
-	}
-
-	public long getSize() {
-		return size;
-	}
-
-	public void setSize(long size) {
-		this.size = size;
-	}
-
-	public long getTime() {
-		return time;
-	}
-
-	public void setTime(long time) {
-		this.time = time;
-	}
-
 	public String getThumbPath() {
 		return thumbPath;
 	}
 
 	public void setThumbPath(String thumbPath) {
 		this.thumbPath = thumbPath;
+	}
+
+	/**
+	 * 获取文件可显示的路径，优先显示缩略图，如果没有缩略图，则显示原始图片
+	 * @return
+	 */
+	public String getShowPath() {
+		if (!TextUtils.isEmpty(thumbPath)) {
+			return thumbPath;
+		} else {
+			return filePath;
+		}
 	}
 
 	@Override
@@ -68,6 +47,10 @@ public class PhotoItem implements Parcelable {
 		dest.writeString(thumbPath);
 		dest.writeLong(size);
 		dest.writeLong(time);
+		dest.writeInt(needDownload ? 1 : 0);
+		dest.writeString(fileToken);
+		dest.writeInt(downloadType);
+		dest.writeInt(msgId);
 	}
 
 	@Override
@@ -84,6 +67,10 @@ public class PhotoItem implements Parcelable {
 		thumbPath = in.readString();
 		size = in.readLong();
 		time = in.readLong();
+		needDownload = in.readInt() == 1;
+		fileToken = in.readString();
+		downloadType = in.readInt();
+		msgId = in.readInt();
 	}
 	
 	public static final Creator<PhotoItem> CREATOR = new Creator<PhotoItem>() {

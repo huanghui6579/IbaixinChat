@@ -1965,7 +1965,7 @@ public class MsgManager extends Observable<Observer> {
 						if (!SystemUtil.isEmpty(bitmapList)) {	//内存缓存里找到了
 							Bitmap bitmap = bitmapList.get(0);
 							if (bitmap == null) {	//重新加载图片
-								Bitmap loadedImage = SystemUtil.loadImageThumbnailsSync(fileUri);
+								Bitmap loadedImage = ImageUtil.loadImageThumbnailsSync(fileUri);
 								if (loadedImage != null) {
 									if (SystemUtil.saveBitmap(imageLoader, loadedImage, photoItem)) {
 										msgList.add(setMsgInfo(mi, photoItem));
@@ -1977,7 +1977,7 @@ public class MsgManager extends Observable<Observer> {
 								}
 							}
 						} else {	//内存缓存里没有找到，则重新加载
-							Bitmap loadedImage = SystemUtil.loadImageThumbnailsSync(fileUri);
+							Bitmap loadedImage = ImageUtil.loadImageThumbnailsSync(fileUri);
 							if (loadedImage != null) {
 								if (SystemUtil.saveBitmap(imageLoader, loadedImage, photoItem)) {
 									msgList.add(setMsgInfo(mi, photoItem));
@@ -2054,14 +2054,15 @@ public class MsgManager extends Observable<Observer> {
 	 * 更新消息附件的下载状态
 	 * @update 2015年6月9日 下午7:56:30
 	 * @param msgPart 该附件实体
+	 * @param refreshUi 是否需要刷新界面
 	 * @return 是否更新成功
 	 */
-	public boolean updateMsgPartDownload(MsgPart msgPart) {
+	public boolean updateMsgPartDownload(MsgPart msgPart, boolean refreshUi) {
 		SQLiteDatabase db = mChatDBHelper.getWritableDatabase();
 		ContentValues values = new ContentValues(1);
 		values.put(Provider.MsgPartColumns.DOWNLOADED, msgPart.isDownloaded() ? 1 : 0);
 		int count = db.update(Provider.MsgPartColumns.TABLE_NAME, values, Provider.MsgPartColumns.MSG_ID + " = ?", new String[] {String.valueOf(msgPart.getMsgId())});
-		if (count > 0) {
+		if (count > 0 && refreshUi) {
 			notifyObservers(Provider.MsgPartColumns.NOTIFY_FLAG, NotifyType.UPDATE, msgPart);
 			return true;
 		} else {

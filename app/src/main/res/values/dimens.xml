@@ -140,8 +140,11 @@
     <!-- 文本消息详情的字体大小 -->
     <dimen name="chat_msg_info_text_size">48sp</dimen>
     
-    <dimen name="chat_msg_img_max_width">100dp</dimen>
-    <dimen name="chat_msg_img_max_height">100dp</dimen>
+    <dimen name="chat_msg_img_min_width">48dp</dimen>
+    <dimen name="chat_msg_img_min_height">64dp</dimen>
+    
+    <dimen name="chat_msg_img_max_width">64dp</dimen>
+    <dimen name="chat_msg_img_max_height">128dp</dimen>
     
     <dimen name="chat_msg_img_arrow_radius">5dp</dimen>
     <dimen name="chat_msg_img_arrow_top">16dp</dimen>
