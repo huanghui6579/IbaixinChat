@@ -215,7 +215,7 @@ public class ClipHeadIconActivity extends BaseActivity {
 									if (TextUtils.isEmpty(thumbPath) || !new File(thumbPath).getParentFile().exists()) {	//之前没有缩略图路径，或者头像路径被删除，则重新生成路径
 										thumbPath = SystemUtil.generateIconPath(username, Constants.FILE_TYPE_THUMB);
 									}
-									success = ImageUtil.compressImage(filePath, thumbPath);
+									success = ImageUtil.generateThumbImage(filePath, thumbPath);
 									
 									if (success) {	//生成缩略图成功
 										fileArray[1] = new File(thumbPath);

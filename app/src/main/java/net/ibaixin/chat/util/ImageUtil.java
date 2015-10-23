@@ -100,7 +100,7 @@ public class ImageUtil {
 	 * @return 是否压缩成功
 	 * @update 2015年8月21日 上午10:01:23
 	 */
-	public static boolean compressImage(String imagePath, String savePath, int quality) {
+	private static boolean compressImage(String imagePath, String savePath, int quality) {
 		Bitmap bitmap = null;
 		try {
 			bitmap = BitmapFactory.decodeFile(imagePath);
@@ -117,17 +117,51 @@ public class ImageUtil {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * 按质量压缩图片
-	 * @param imagePath 要压缩的图片的全路径，包含文件名
+	 * @param bitmap 要压缩的图片
 	 * @param savePath 要保存压缩后的图片的全路径，包含文件名
-	 * @param quality 要压缩的质量,默认60%
+	 * @param quality 要压缩的质量
 	 * @return 是否压缩成功
 	 * @update 2015年8月21日 上午10:01:23
 	 */
-	public static boolean compressImage(String imagePath, String savePath) {
-		return compressImage(imagePath, savePath, 60);
+	public static boolean compressImage(Bitmap bitmap, String savePath, int quality) {
+		try {
+			if (bitmap != null) {
+				FileOutputStream fos = new FileOutputStream(savePath);
+				return bitmap.compress(CompressFormat.JPEG, quality, fos);
+			}
+		} catch (FileNotFoundException e) {
+			Log.e(e.getMessage());
+		} finally {
+			if (bitmap != null) {
+				bitmap.recycle();
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * 按质量压缩图片,默认10%
+	 * @param bitmap 要压缩的图片
+	 * @param savePath 要保存压缩后的图片的全路径，包含文件名
+	 * @return 是否压缩成功
+	 * @update 2015年8月21日 上午10:01:23
+	 */
+	public static boolean compressImage(Bitmap bitmap, String savePath) {
+		return compressImage(bitmap, savePath, 10);
+	}
+	
+	/**
+	 * 按质量压缩图片,默认10%
+	 * @param imagePath 要压缩的图片的全路径，包含文件名
+	 * @param savePath 要保存压缩后的图片的全路径，包含文件名
+	 * @return 是否压缩成功
+	 * @update 2015年8月21日 上午10:01:23
+	 */
+	private static boolean compressImage(String imagePath, String savePath) {
+		return compressImage(imagePath, savePath, 10);
 	}
 
 	/**
@@ -744,9 +778,9 @@ public class ImageUtil {
     	Bitmap bitmap = imageLoader.loadImageSync(Scheme.FILE.wrap(imagePath), imageSize, SystemUtil.getAlbumImageOptions());
     	if (bitmap != null) {
     		try {
-				return saveBitmap(bitmap, savePath);
-			} catch (IOException e) {
-				e.printStackTrace();
+				return compressImage(bitmap, savePath);
+			} catch (Exception e) {
+				Log.e(e.getMessage());
 			}
     	}
     	return false;
@@ -760,6 +794,7 @@ public class ImageUtil {
      * @param loadingListener 生存缩略图的监听
      * @update 2015年7月27日 下午4:35:46
      */
+	@Deprecated
     public static void generateThumbImageAsync(String imagePath, ImageSize imageSize, String savePath, ImageLoadingListener loadingListener) {
     	ImageLoader imageLoader = ImageLoader.getInstance();
     	String iconUri = Scheme.FILE.wrap(imagePath);
@@ -775,6 +810,7 @@ public class ImageUtil {
      * @param loadingListener 生存缩略图的监听
      * @update 2015年7月27日 下午4:35:46
      */
+	@Deprecated
     public static void generateThumbImageAsync(String imagePath, String savePath, ImageLoadingListener loadingListener) {
     	generateThumbImageAsync(imagePath, new ImageSize(Constants.IMAGE_THUMB_WIDTH, Constants.IMAGE_THUMB_HEIGHT), savePath, loadingListener);
     }
@@ -789,7 +825,7 @@ public class ImageUtil {
      * @update 2015年5月3日 下午1:51:01
      */
     public static boolean generateThumbImage(String imagePath, String savePath) {
-    	return generateThumbImage(imagePath, new ImageSize(Constants.IMAGE_THUMB_WIDTH, Constants.IMAGE_THUMB_HEIGHT), savePath);
+    	return generateThumbImage(imagePath, null/*new ImageSize(Constants.IMAGE_THUMB_WIDTH, Constants.IMAGE_THUMB_HEIGHT)*/, savePath);
     }
     
     /**
@@ -803,34 +839,13 @@ public class ImageUtil {
      */
     public static String generateThumbImage(String imagePath, int threadId, String filename) {
     	String savePath = SystemUtil.generateChatThumbAttachFilePath(threadId, filename);
-    	boolean success = generateThumbImage(imagePath, new ImageSize(Constants.IMAGE_THUMB_WIDTH, Constants.IMAGE_THUMB_HEIGHT), savePath);
+    	boolean success = generateThumbImage(imagePath, null/*new ImageSize(Constants.IMAGE_THUMB_WIDTH, Constants.IMAGE_THUMB_HEIGHT)*/, savePath);
     	if (success) {
     		return savePath;
     	} else {
     		return null;
     	}
     }
-
-	/**
-	 * 异步加载图片的缩略图
-	 * @update 2014年11月17日 下午9:11:12
-	 * @param uri 包装的uri,如file:///mnt/sdcard/ddd.jpg
-	 * @param listener
-	 * @return
-	 */
-	public static void loadImageThumbnailsAsync(String uri, ImageLoadingListener listener) {
-		DisplayImageOptions options = new DisplayImageOptions.Builder()
-				.showImageForEmptyUri(R.drawable.ic_default_icon_error)
-				.showImageOnFail(R.drawable.ic_default_icon_error)
-				.cacheInMemory(true)
-				.cacheOnDisk(false)
-				.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
-				.bitmapConfig(Bitmap.Config.RGB_565)	//防止内存溢出
-				.resetViewBeforeLoading(true)
-				.build();
-		ImageLoader imageLoader = ImageLoader.getInstance();
-		imageLoader.loadImage(uri, options, listener);
-	}
 
 	/**
 	 * 同步加载图片的缩略图

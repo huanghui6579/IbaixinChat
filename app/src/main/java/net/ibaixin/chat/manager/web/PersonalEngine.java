@@ -136,7 +136,7 @@ public class PersonalEngine {
 										if (TextUtils.isEmpty(hash) || !localHash.equals(hash)) {	//服务器上头像为空，或者服务器上头像与本地不一致，则以本地为主，将上传本地头像到服务器
 											Log.d("---服务器头像为空或者与本地不一致--localHash---" + localHash + "-----hash----" + hash);
 											//上传本地头像
-											String iconPath = person.getIconPath();
+											final String iconPath = person.getIconPath();
 											final File[] fileArray = new File[2];
 											//第一个文件为原始图像
 											fileArray[0] = new File(iconPath);
@@ -149,9 +149,21 @@ public class PersonalEngine {
 												person.setThumbPath(thumbIconPath);
 												person.setIconHash(localHash);
 												person.setMimeType(vcardDto.getMimeType());
-												
+
 												//第二个文件为缩略图
-												ImageUtil.generateThumbImageAsync(iconPath, thumbIconPath, new SimpleImageLoadingListener() {
+												SystemUtil.getCachedThreadPool().execute(new Runnable() {
+													@Override
+													public void run() {
+														boolean success = ImageUtil.generateThumbImage(iconPath, person.getThumbPath());
+														if (success) {
+															fileArray[1] = new File(person.getThumbPath());
+														}
+														uploadAvatar(app, person, fileArray);
+													}
+												});
+												
+												
+												/*ImageUtil.generateThumbImageAsync(iconPath, thumbIconPath, new SimpleImageLoadingListener() {
 													
 													@Override
 													public void onLoadingFailed(String imageUri, View view,
@@ -166,7 +178,7 @@ public class PersonalEngine {
 														uploadAvatar(app, person, fileArray);
 													}
 													
-												});
+												});*/
 											} else {	//缩略图存在，则直接设置参数
 												fileArray[1] = new File(thumbIconPath);
 												uploadAvatar(app, person, fileArray);
