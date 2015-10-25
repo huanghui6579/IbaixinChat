@@ -987,7 +987,7 @@ public class CoreService extends Service {
 					int unReadCount = msgThread.getUnReadCount();
 					unReadCount += 1;
 					msgThread.setUnReadCount(unReadCount);
-					msgManager.updateSnippet(msgThread);
+					msgManager.updateSnippet(msgThread, true);
 					
 					//刷新ui
 					notifyUI(msgInfo, ChatActivity.MsgProcessReceiver.ACTION_PROCESS_MSG);

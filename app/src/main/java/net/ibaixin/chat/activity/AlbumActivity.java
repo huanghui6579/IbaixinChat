@@ -258,6 +258,16 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 						ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
 						ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
 					} else {
+						/*intent = new Intent();
+						intent.setAction("android.media.action.VIDEO_CAPTURE");
+						intent.addCategory("android.intent.category.DEFAULT");
+						File file = new File(FILE_PATH);
+						if(file.exists()){
+							file.delete();
+						}
+						Uri uri = Uri.fromFile(file);
+						intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+						startActivityForResult(intent, 0);*/
 						SystemUtil.makeShortToast("录视频");
 					}
 				} else {

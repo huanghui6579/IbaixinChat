@@ -2051,12 +2051,12 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 					holder.contentImgLayout.setForeground(getResources().getDrawable(R.drawable.chat_msg_in_img_selector));
 				}
 				if (msgPart != null) {
-					String filePath = msgPart.getFilePath();
+					String filePath = msgPart.getThumbPath();
 					if (SystemUtil.isFileExists(filePath)) {
 //						mImageLoader.displayImage(Scheme.FILE.wrap(filePath), new TextViewAware(holder.tvContent), chatImageOptions);
 						mImageLoader.displayImage(Scheme.FILE.wrap(filePath), holder.ivContentImg, chatImageOptions);
 					} else {
-						filePath = msgPart.getThumbPath();
+						filePath = msgPart.getFilePath();
 						if (SystemUtil.isFileExists(filePath)) {
 							mImageLoader.displayImage(Scheme.FILE.wrap(filePath), holder.ivContentImg, chatImageOptions);
 						} else {
@@ -2627,6 +2627,9 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 								if (msgInfo.isComming() && (!msgPart.isDownloaded() || !SystemUtil.isFileExists(filePath))) {	//原始图片不存在或者没有下载原始图片
 									filePath = showPath;
 									download = true;
+								}
+								if (!SystemUtil.isFileExists(filePath)) {
+									filePath = msgPart.getThumbPath();
 								}
 								intent = new Intent(mContext, ChatImagePreviewActivity.class);
 								intent.putExtra(ChatImagePreviewActivity.ARG_IMAGE_PATH, filePath);

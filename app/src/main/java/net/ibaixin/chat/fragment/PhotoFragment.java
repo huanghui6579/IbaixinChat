@@ -115,14 +115,76 @@ public class PhotoFragment extends BaseFragment {
 			final String showPath = mPhoto.getShowPath();
 			String filePath = mPhoto.getFilePath();
 			if (download) {	//需要下载文件
-				filePath = mPhoto.getThumbPath();
-			}
-			if (SystemUtil.isFileExists(showPath)) {
-				
-				if (!TextUtils.isEmpty(filePath)) {	//不需要下载文件
-					ImageUtil.clearMemoryCache(filePath);
-					ImageUtil.clearDiskCache(filePath);
-					mImageLoader.displayImage(Scheme.FILE.wrap(filePath), ivPhoto, options, new ImageLoadingListener() {
+				mImageLoader.displayImage(Scheme.FILE.wrap(showPath), ivPhoto, options);
+				//开始下载文件
+				final MsgEngine msgEngine = new MsgEngine(getActivity());
+				msgEngine.downloadFile(mPhoto, new DownloadListener() {
+					@Override
+					public void onStart(int downloadId, long totalBytes) {
+						pbLoading.setVisibility(View.VISIBLE);
+						pbLoading.setCircleBackgroundEnabled(true);
+						pbLoading.setShowProgressText(true);
+						pbLoading.setProgress(0);
+					}
+
+					@Override
+					public void onRetry(int downloadId) {
+
+					}
+
+					@Override
+					public void onProgress(int downloadId, long bytesWritten, long totalBytes) {
+						int progress = (int) (bytesWritten / totalBytes);
+						pbLoading.setProgress(progress);
+					}
+
+					@Override
+					public void onSuccess(int downloadId, String filePath) {
+						pbLoading.setVisibility(View.GONE);
+						if (!TextUtils.isEmpty(filePath)) {
+							ImageUtil.clearMemoryCache(showPath);
+							ImageUtil.clearDiskCache(showPath);
+							//显示下载的原始图片
+							mImageLoader.displayImage(Scheme.FILE.wrap(filePath), ivPhoto, options);
+
+							//更新本地数据库
+							SystemUtil.getCachedThreadPool().execute(new Runnable() {
+								@Override
+								public void run() {
+									int msgId = mPhoto.getMsgId();
+									MsgManager msgManager = MsgManager.getInstance();
+									MsgPart msgPart = new MsgPart();
+									msgPart.setMsgId(msgId);
+									msgPart.setDownloaded(true);
+									msgManager.updateMsgPartDownload(msgPart, false);    //更新本地数据库
+								}
+							});
+
+						}
+					}
+
+					@Override
+					public void onFailure(int downloadId, int statusCode, String errMsg) {
+						pbLoading.setVisibility(View.GONE);
+					}
+				});
+			} else {	//不需要下载图片，则优先显示原始图片，如果原始图片不存在，则显示缩略图
+				if (SystemUtil.isFileExists(showPath)) {
+
+					ImageUtil.clearMemoryCache(showPath);
+					ImageUtil.clearDiskCache(showPath);
+
+					String displayPath = null;
+					if (SystemUtil.isFileExists(filePath)) {
+						displayPath = filePath;
+					} else {
+						displayPath = showPath;
+					}
+					String imgUri = null;
+					if (!TextUtils.isEmpty(displayPath)) {
+						imgUri = Scheme.FILE.wrap(displayPath);
+					}
+					mImageLoader.displayImage(imgUri, ivPhoto, options, new ImageLoadingListener() {
 
 						@Override
 						public void onLoadingStarted(String imageUri, View view) {
@@ -151,63 +213,9 @@ public class PhotoFragment extends BaseFragment {
 
 						}
 					});
-				} else {	//要下载文件，则不显示圆形进度条
-					mImageLoader.displayImage(Scheme.FILE.wrap(showPath), ivPhoto, options);
-					//开始下载文件
-					final MsgEngine msgEngine = new MsgEngine(getActivity());
-					msgEngine.downloadFile(mPhoto, new DownloadListener() {
-						@Override
-						public void onStart(int downloadId, long totalBytes) {
-							pbLoading.setVisibility(View.VISIBLE);
-							pbLoading.setCircleBackgroundEnabled(true);
-							pbLoading.setShowProgressText(true);
-							pbLoading.setProgress(0);
-						}
-
-						@Override
-						public void onRetry(int downloadId) {
-
-						}
-
-						@Override
-						public void onProgress(int downloadId, long bytesWritten, long totalBytes) {
-							int progress = (int) (bytesWritten / totalBytes);
-							pbLoading.setProgress(progress);
-						}
-
-						@Override
-						public void onSuccess(int downloadId, String filePath) {
-							pbLoading.setVisibility(View.GONE);
-							if (!TextUtils.isEmpty(filePath)) {
-								ImageUtil.clearMemoryCache(showPath);
-								ImageUtil.clearDiskCache(showPath);
-								//显示下载的原始图片
-								mImageLoader.displayImage(Scheme.FILE.wrap(filePath), ivPhoto, options);
-
-								//更新本地数据库
-								SystemUtil.getCachedThreadPool().execute(new Runnable() {
-									@Override
-									public void run() {
-										int msgId = mPhoto.getMsgId();
-										MsgManager msgManager = MsgManager.getInstance();
-										MsgPart msgPart = new MsgPart();
-										msgPart.setMsgId(msgId);
-										msgPart.setDownloaded(true);
-										msgManager.updateMsgPartDownload(msgPart, false);    //更新本地数据库
-									}
-								});
-								
-							}
-						}
-
-						@Override
-						public void onFailure(int downloadId, int statusCode, String errMsg) {
-							pbLoading.setVisibility(View.GONE);
-						}
-					});
+				} else {
+					ivPhoto.setImageResource(R.drawable.ic_default_icon_error);
 				}
-			} else {
-				ivPhoto.setImageResource(R.drawable.ic_default_icon_error);
 			}
 		} else {
 			ivPhoto.setImageResource(R.drawable.ic_default_icon_error);
