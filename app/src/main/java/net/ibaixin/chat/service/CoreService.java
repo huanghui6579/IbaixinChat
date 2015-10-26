@@ -84,18 +84,22 @@ import net.ibaixin.chat.listener.RosterLoadedCallback;
 import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.manager.PersonalManage;
 import net.ibaixin.chat.manager.UserManager;
+import net.ibaixin.chat.manager.web.MsgEngine;
 import net.ibaixin.chat.manager.web.PersonalEngine;
 import net.ibaixin.chat.manager.web.UserEngine;
 import net.ibaixin.chat.model.ActionResult;
+import net.ibaixin.chat.model.DownloadItem;
 import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.MsgInfo.SendState;
 import net.ibaixin.chat.model.MsgPart;
 import net.ibaixin.chat.model.MsgSenderInfo;
 import net.ibaixin.chat.model.MsgThread;
 import net.ibaixin.chat.model.Personal;
+import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.model.UserVcard;
 import net.ibaixin.chat.model.web.AttachDto;
+import net.ibaixin.chat.provider.Provider;
 import net.ibaixin.chat.receiver.BasePersonalInfoReceiver;
 import net.ibaixin.chat.smack.extension.MessageTypeExtension;
 import net.ibaixin.chat.task.ReConnectTask;
@@ -103,6 +107,7 @@ import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.JSONUtils;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
+import net.ibaixin.chat.util.Observer;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.util.UpdateManager;
 import net.ibaixin.chat.util.XmppConnectionManager;
@@ -970,6 +975,10 @@ public class CoreService extends Service {
 			MsgInfo msgInfo = processMsg(message);
 			if (msgInfo != null) {
 				msgInfo = msgManager.addMsgInfo(msgInfo);
+
+				//下载文件
+				downloadMsgFile(msgInfo, mContext);
+				
 				int threaId = msgInfo.getThreadID();
 				MsgThread msgThread = msgManager.getThreadById(threaId);
 				if (msgThread != null) {
@@ -990,7 +999,7 @@ public class CoreService extends Service {
 					msgManager.updateSnippet(msgThread, true);
 					
 					//刷新ui
-					notifyUI(msgInfo, ChatActivity.MsgProcessReceiver.ACTION_PROCESS_MSG);
+//					notifyUI(msgInfo, ChatActivity.MsgProcessReceiver.ACTION_PROCESS_MSG);
 				}
 				if (notify && msgInfo != null) {
 					if (!isChatActivityOnTop()) {
@@ -1107,9 +1116,7 @@ public class CoreService extends Service {
 					msgInfo.setMsgType(msgType);
 					msgInfo.setMsgPart(msgPart);
 					
-					//下载文件
-					int fileType = -1;
-					String filePath = savePath;
+					//设置下载文件的参数
 					switch (msgType) {
 					case IMAGE:	//先下载缩略图
 						String thumbName = typeExtension.getThumbName();
@@ -1117,64 +1124,9 @@ public class CoreService extends Service {
 						
 						msgPart.setThumbName(thumbName);
 						msgPart.setThumbPath(thumbPath);
-						fileType = Constants.FILE_TYPE_THUMB;
-						filePath = thumbPath;
 						break;
-					case LOCATION:	//地理位置,下载原始图片，地理位置不存在缩略图
-					case VOICE:	//语音
-					case VCARD:	//电子名片
-						fileType = Constants.FILE_TYPE_ORIGINAL;
-						break;
-						
 					default:
 						break;
-					}
-					if (fileType != -1) {
-						//刚开始接收图片消息的时候只是下载缩略图，地理位置下载原始图片，其他文件不下载
-						Uri.Builder builder = Uri.parse(Constants.BASE_API_URL).buildUpon();
-						builder.appendPath("receiverFile")
-							.appendQueryParameter("fileToken", msgPart.getFileToken())
-							.appendQueryParameter("fileType", String.valueOf(fileType));
-						DownloadRequest request = new DownloadRequest();
-						request.setDestFilePath(filePath)
-							.setUrl(builder.toString())
-							.setDownloadId(filePath.hashCode())
-							.setDownloadListener(new DownloadListener() {
-							
-							@Override
-							public void onSuccess(int downloadId, String filePath) {
-								Log.d("---------文件下载成功----------" + filePath);
-								Intent intent = new Intent(ChatActivity.MsgProcessReceiver.ACTION_REFRESH_MSG);
-								sendBroadcast(intent);
-							}
-							
-							@Override
-							public void onStart(int downloadId, long totalBytes) {
-								// TODO Auto-generated method stub
-								
-							}
-							
-							@Override
-							public void onRetry(int downloadId) {
-								// TODO Auto-generated method stub
-								
-							}
-							
-							@Override
-							public void onProgress(int downloadId, long bytesWritten, long totalBytes) {
-								// TODO Auto-generated method stub
-								
-							}
-							
-							@Override
-							public void onFailure(int downloadId, int statusCode, String errMsg) {
-								Log.e(statusCode + "----------" + errMsg);
-								// TODO Auto-generated method stub
-								Intent intent = new Intent(ChatActivity.MsgProcessReceiver.ACTION_REFRESH_MSG);
-								sendBroadcast(intent);
-							}
-						});
-						mDownloadManager.add(request);
 					}
 				}
 			} else {	//普通文本消息
@@ -1187,6 +1139,78 @@ public class CoreService extends Service {
 			return msgInfo;
 		}
 		return null;
+	}
+
+	/**
+	 * 下载消息的文件
+	 * @param msgInfo 消息实体
+	 */
+	private void downloadMsgFile(MsgInfo msgInfo, Context context) {
+		if (msgInfo != null) {
+			MsgPart msgPart = msgInfo.getMsgPart();
+			if (msgPart != null) {
+				MsgInfo.Type msgType = msgInfo.getMsgType();
+				int fileType = -1;
+				switch (msgType) {
+					case IMAGE:	//先下载缩略图
+
+						fileType = Constants.FILE_TYPE_THUMB;
+						break;
+					case LOCATION:	//地理位置,下载原始图片，地理位置不存在缩略图
+					case VOICE:	//语音
+					case VCARD:	//电子名片
+						fileType = Constants.FILE_TYPE_ORIGINAL;
+						break;
+
+					default:
+						break;
+				}
+				if (fileType != -1) {
+					PhotoItem downloadItem = new PhotoItem();
+					downloadItem.setThumbPath(msgPart.getThumbPath());
+					downloadItem.setFilePath(msgPart.getFilePath());
+					downloadItem.setMsgId(msgInfo.getId());
+					downloadItem.setFileToken(msgPart.getFileToken());
+					downloadItem.setDownloadType(fileType);
+					
+					MsgEngine msgEngine = new MsgEngine(context);
+					msgEngine.downloadFile(mDownloadManager, downloadItem, new DownloadListener() {
+						@Override
+						public void onStart(int downloadId, long totalBytes) {
+							
+						}
+
+						@Override
+						public void onRetry(int downloadId) {
+
+						}
+
+						@Override
+						public void onProgress(int downloadId, long bytesWritten, long totalBytes) {
+
+						}
+
+						@Override
+						public void onSuccess(int downloadId, String filePath) {
+							Log.d("---------文件下载成功-----downloadId-----" + downloadId + "-------------" + filePath);
+							MsgInfo info = new MsgInfo();
+							info.setId(downloadId);
+							msgManager.notifyObservers(Provider.MsgInfoColumns.NOTIFY_FLAG, Observer.NotifyType.UPDATE, info);
+//								Intent intent = new Intent(ChatActivity.MsgProcessReceiver.ACTION_REFRESH_MSG);
+//								sendBroadcast(intent);
+						}
+
+						@Override
+						public void onFailure(int downloadId, int statusCode, String errMsg) {
+							Log.w("-----download msg part failed-----downloadId--------" + statusCode + "----------" + errMsg);
+							// TODO Auto-generated method stub
+//								Intent intent = new Intent(ChatActivity.MsgProcessReceiver.ACTION_REFRESH_MSG);
+//								sendBroadcast(intent);
+						}
+					});
+				}
+			}
+		}
 	}
 	
 	/**

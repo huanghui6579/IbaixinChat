@@ -6,19 +6,38 @@ package net.ibaixin.chat.model;
  * @update 2015/10/24 11:02
  */
 public abstract class DownloadItem {
+    /**
+     * 消息的id
+     */
+    protected int msgId;
+    /**
+     * 文件的全路径
+     */
     protected String filePath;
-
+    /**
+     * 文件的大小
+     */
     protected long size;
 
+    /**
+     * 文件的修改时间
+     */
     protected long time;
 
+    /**
+     * 是否需要下载文件
+     */
     protected boolean needDownload;
 
+    /**
+     * 下载文件的凭证
+     */
     protected String fileToken;
 
+    /**
+     * 下载文件的类型，1：表示缩略图，2：表示原始文件
+     */
     protected int downloadType;
-
-    protected int msgId;
 
     public String getFilePath() {
         return filePath;

@@ -134,12 +134,12 @@ public class PhotoFragment extends BaseFragment {
 
 					@Override
 					public void onProgress(int downloadId, long bytesWritten, long totalBytes) {
-						int progress = (int) (bytesWritten / totalBytes);
+						int progress = (int) (bytesWritten * 100 / totalBytes);
 						pbLoading.setProgress(progress);
 					}
 
 					@Override
-					public void onSuccess(int downloadId, String filePath) {
+					public void onSuccess(int downloadId, final String filePath) {
 						pbLoading.setVisibility(View.GONE);
 						if (!TextUtils.isEmpty(filePath)) {
 							ImageUtil.clearMemoryCache(showPath);
@@ -156,7 +156,7 @@ public class PhotoFragment extends BaseFragment {
 									MsgPart msgPart = new MsgPart();
 									msgPart.setMsgId(msgId);
 									msgPart.setDownloaded(true);
-									msgManager.updateMsgPartDownload(msgPart, false);    //更新本地数据库
+									msgManager.updateMsgPartDownload(msgPart, true);    //更新本地数据库
 								}
 							});
 
@@ -171,15 +171,14 @@ public class PhotoFragment extends BaseFragment {
 			} else {	//不需要下载图片，则优先显示原始图片，如果原始图片不存在，则显示缩略图
 				if (SystemUtil.isFileExists(showPath)) {
 
-					ImageUtil.clearMemoryCache(showPath);
-					ImageUtil.clearDiskCache(showPath);
-
 					String displayPath = null;
 					if (SystemUtil.isFileExists(filePath)) {
 						displayPath = filePath;
 					} else {
 						displayPath = showPath;
 					}
+					ImageUtil.clearMemoryCache(displayPath);
+					ImageUtil.clearDiskCache(displayPath);
 					String imgUri = null;
 					if (!TextUtils.isEmpty(displayPath)) {
 						imgUri = Scheme.FILE.wrap(displayPath);

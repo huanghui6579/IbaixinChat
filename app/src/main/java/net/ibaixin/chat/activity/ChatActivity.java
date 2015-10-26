@@ -1,28 +1,5 @@
 package net.ibaixin.chat.activity;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-
-import org.jivesoftware.smack.AbstractXMPPConnection;
-import org.jivesoftware.smack.chat.Chat;
-import org.jivesoftware.smack.chat.ChatManager;
-import org.jivesoftware.smackx.chatstates.ChatState;
-import org.jxmpp.util.XmppStringUtils;
-
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.afollestad.materialdialogs.util.DialogUtils;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -71,6 +48,15 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.util.DialogUtils;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
+
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.fragment.EmojiFragment;
@@ -91,6 +77,7 @@ import net.ibaixin.chat.model.Personal;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.model.UserVcard;
 import net.ibaixin.chat.model.emoji.Emojicon;
+import net.ibaixin.chat.provider.Provider;
 import net.ibaixin.chat.record.AudioRecorder;
 import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.service.CoreService.CoreReceiver;
@@ -100,11 +87,29 @@ import net.ibaixin.chat.util.DensityUtil;
 import net.ibaixin.chat.util.ImageUtil;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
+import net.ibaixin.chat.util.Observable;
+import net.ibaixin.chat.util.Observer;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.view.ProgressDialog;
 import net.ibaixin.chat.view.RecordButton;
 import net.ibaixin.chat.view.TextViewAware;
+
+import org.jivesoftware.smack.AbstractXMPPConnection;
+import org.jivesoftware.smack.chat.Chat;
+import org.jivesoftware.smack.chat.ChatManager;
+import org.jivesoftware.smackx.chatstates.ChatState;
+import org.jxmpp.util.XmppStringUtils;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * 聊天界面
@@ -374,6 +379,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	private LocalBroadcastManager mLocalBroadcastManager;
 	
 	private ChatState mChatState;
+
+	private MsgContentObserver mMsgContentObserver;
 	
 	private Handler mHandler = new Handler() {
 
@@ -556,7 +563,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		connection = XmppConnectionManager.getInstance().getConnection();
 		
 		//注册消息观察者
-//		registerContentOberver();
+		registerContentOberver();
 	}
 	
 	@Override
@@ -619,6 +626,11 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		if (mLocalBroadcastManager != null) {
 			mLocalBroadcastManager.unregisterReceiver(msgProcessReceiver);
 		}
+		
+		//注销消息的观察者
+		if (mMsgContentObserver != null) {
+			msgManager.removeObserver(mMsgContentObserver);
+		}
 //		unregisterReceiver(msgProcessReceiver);
 //		pageOffset = 0;
 //		resetVolumeFile();
@@ -660,10 +672,11 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * 注册消息观察者
 	 * @update 2014年11月6日 下午7:32:34
 	 */
-	/*private void registerContentOberver() {
-		MsgContentObserver msgContentObserver = new MsgContentObserver(mHandler);
-		getContentResolver().registerContentObserver(Provider.MsgInfoColumns.CONTENT_URI, true, msgContentObserver);
-	}*/
+	private void registerContentOberver() {
+		mMsgContentObserver = new MsgContentObserver(mHandler);
+		msgManager.addObserver(mMsgContentObserver);
+//		getContentResolver().registerContentObserver(Provider.MsgInfoColumns.CONTENT_URI, true, msgContentObserver);
+	}
 	
 	/**
 	 * 加载聊天消息数据的后台任务
@@ -2050,21 +2063,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				} else {
 					holder.contentImgLayout.setForeground(getResources().getDrawable(R.drawable.chat_msg_in_img_selector));
 				}
-				if (msgPart != null) {
-					String filePath = msgPart.getThumbPath();
-					if (SystemUtil.isFileExists(filePath)) {
-//						mImageLoader.displayImage(Scheme.FILE.wrap(filePath), new TextViewAware(holder.tvContent), chatImageOptions);
-						mImageLoader.displayImage(Scheme.FILE.wrap(filePath), holder.ivContentImg, chatImageOptions);
-					} else {
-						filePath = msgPart.getFilePath();
-						if (SystemUtil.isFileExists(filePath)) {
-							mImageLoader.displayImage(Scheme.FILE.wrap(filePath), holder.ivContentImg, chatImageOptions);
-						} else {
-//						mImageLoader.displayImage(null, new TextViewAware(holder.tvContent), chatImageOptions);
-							mImageLoader.displayImage(null, holder.ivContentImg, chatImageOptions);
-						}
-					}
-				}
+				//显示图片
+				displayImage(msgInfo, holder.ivContentImg);
 				
 				break;
 			case VOICE:	//语音文件
@@ -2255,6 +2255,34 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		@Override
 		public int getViewTypeCount() {
 			return TYPE_COUNT;
+		}
+
+		/**
+		 * 显示图片
+		 * @param msgInfo 对应的消息实体
+		 * @param imageView 显示图片的控件
+		 */
+		public void displayImage(MsgInfo msgInfo, ImageView imageView) {
+			if (msgInfo != null) {
+				MsgPart msgPart = msgInfo.getMsgPart();
+				if (msgPart != null) {
+					String showPath = null;
+					String thumbPath = msgPart.getThumbPath();
+					if (SystemUtil.isFileExists(thumbPath)) {
+						showPath = thumbPath;
+					} else {
+						String filePath = msgPart.getFilePath();
+						if (SystemUtil.isFileExists(filePath)) {
+							showPath = filePath;
+						}
+					}
+					String imageUri = null;
+					if (!TextUtils.isEmpty(showPath)) {
+						imageUri = Scheme.FILE.wrap(showPath);
+					}
+					mImageLoader.displayImage(imageUri, imageView, chatImageOptions);
+				}
+			}
 		}
 		
 	}
@@ -2968,8 +2996,73 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	/**
 	 * 消息监听的观察者
 	 * @author huanghui1
-	 * @update 2014年11月6日 下午7:27:19
+	 * @update 2015年10月26日
 	 */
+	class MsgContentObserver extends net.ibaixin.chat.util.ContentObserver {
+
+		public MsgContentObserver(Handler handler) {
+			super(handler);
+		}
+
+		@Override
+		public void update(Observable<?> observable, int notifyFlag, NotifyType notifyType, final Object data) {
+			switch (notifyFlag) {
+				case Provider.MsgInfoColumns.NOTIFY_FLAG:	//消息的通知
+					MsgInfo msgInfo = null;
+					switch (notifyType) {
+						case ADD:	//来了新消息
+							if (data != null) {
+								msgInfo = (MsgInfo) data;
+								resetTitle();
+
+								mMsgInfos.add(msgInfo);
+								addMsgTotalCount();
+								msgAdapter.notifyDataSetChanged();
+							}
+							break;
+						case UPDATE:	//更新新消息
+							if (data != null) {
+								msgInfo = (MsgInfo) data;
+								int index = mMsgInfos.indexOf(msgInfo);
+								if (index != -1) {	//存在
+									msgInfo = mMsgInfos.get(index);
+									//局部更新
+									updateView(index, msgInfo);
+								}
+							}
+							break;
+					}
+					break;
+				case Provider.MsgPartColumns.NOTIFY_FLAG:	//附件更新的通知
+					switch (notifyType) {
+						case UPDATE:	//更新
+							if (data != null) {
+								SystemUtil.getCachedThreadPool().execute(new Runnable() {
+									@Override
+									public void run() {
+										MsgPart msgPart = (MsgPart) data;
+										int msgId = msgPart.getMsgId();
+										boolean download = msgPart.isDownloaded();
+										MsgInfo tmpInfo = new MsgInfo();
+										tmpInfo.setId(msgId);
+										int index = mMsgInfos.indexOf(tmpInfo);
+										if (index != -1) {	//存在
+											MsgInfo msgInfo = mMsgInfos.get(index);
+											MsgPart part = msgInfo.getMsgPart();
+											if (part != null) {	//更新消息附件的下载状态，不需要刷新界面
+												part.setDownloaded(download);
+											}
+										}
+									}
+								});
+
+							}
+							break;
+					}
+					break;
+			}
+		}
+	}
 	/*class MsgContentObserver extends ContentObserver {
 
 		public MsgContentObserver(Handler handler) {
@@ -3010,6 +3103,32 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	@Override
 	public void onEmojiconBackspaceClicked(View v) {
 		EmojiTypeFragment.backspace(etContent);
+	}
+
+	/**
+	 * 局部更新adapter
+	 * @param position 要更新的索引位置
+	 * @param user 要更新的实体对象
+	 * @update 2015年8月20日 下午2:54:22
+	 */
+	private void updateView(int position, MsgInfo msgInfo) {
+		//得到第一个可显示控件的位置，  
+		int visiblePosition = lvMsgs.getFirstVisiblePosition();
+		//只有当要更新的view在可见的位置时才更新，不可见时，跳过不更新 
+		int relativePosition = position - visiblePosition;
+		if (msgAdapter != null) {
+			if (relativePosition >= 0) {
+				//得到要更新的item的view  
+				View view = lvMsgs.getChildAt(relativePosition);
+				//从view中取得holder  
+				Object tag = view.getTag();
+				if (tag != null && tag instanceof MsgViewHolder) {
+					MsgViewHolder holder = (MsgViewHolder) tag;
+					
+					msgAdapter.displayImage(msgInfo, holder.ivContentImg);
+				}
+			}
+		}
 	}
 
 }
