@@ -149,7 +149,7 @@ public class SystemUtil {
 	 */
 	public static void showSoftInput(View view) {
 		InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.showSoftInput(view,InputMethodManager.SHOW_FORCED);
+		imm.showSoftInput(view, InputMethodManager.SHOW_FORCED);
 	}
 	
 	/**
@@ -1758,17 +1758,49 @@ public class SystemUtil {
 	public static String generatePhotoPath() {
 		return generatePhotoFile().getAbsolutePath();
 	}
-	
+
+	/**
+	 * 生成拍照图片的全路径
+	 * @return
+	 */
 	public static File generatePhotoFile() {
+		File file = generateMediaFile();
+		return new File(file, generateFilename("jpg"));
+	}
+
+	/**
+	 * 生成拍摄视频的全路径
+	 * @return
+	 */
+	public static File generateVideoFile() {
+		File file = generateMediaFile();
+		return new File(file, generateFilename("mp4"));
+	}
+
+	/**
+	 * 生成相机拍摄视频后视频文件的名称，如/mnt/sdcard/ChatApp/DCIM/2014_11_24_21_41_56_543546.mp4
+	 * @author tiger
+	 * @update 2015年3月13日 上午12:01:59
+	 * @return
+	 */
+	public static String generateVideoPath() {
+		return generateVideoFile().getAbsolutePath();
+	}
+
+	/**
+	 * 生成多媒体文件的路径，主要是图片和视频
+	 * @return
+	 */
+	private static File generateMediaFile() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getDefaultAppPath())
-			.append(File.separator)
-			.append("DCIM");
+				.append(File.separator)
+				.append("DCIM");
 		File file = new File(sb.toString());
 		if (!file.exists()) {
 			file.mkdirs();
 		}
-		return new File(file, generateFilename("jpg"));
+		return file;
 	}
 	
 	/**
