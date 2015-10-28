@@ -611,7 +611,7 @@ public class MsgManager extends Observable<Observer> {
 //		Uri uri = ContentUris.withAppendedId(Provider.MsgPartColumns.CONTENT_URI, msgId);
 //		Cursor cursor = mContext.getContentResolver().query(uri, null, null, null, null);
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
-		Cursor cursor = db.query(Provider.MsgPartColumns.TABLE_NAME, Provider.MsgPartColumns.DEFAULT_PROJECTION, Provider.MsgPartColumns.MSG_ID + " = ?", new String[] {String.valueOf(msgId)}, null, null, null);
+		Cursor cursor = db.query(Provider.MsgPartColumns.TABLE_NAME, Provider.MsgPartColumns.DEFAULT_PROJECTION, Provider.MsgPartColumns.MSG_ID + " = ?", new String[]{String.valueOf(msgId)}, null, null, null);
 		MsgPart msgPart = null;
 		if (cursor != null && cursor.moveToFirst()) {
 			msgPart = new MsgPart();
@@ -1240,7 +1240,7 @@ public class MsgManager extends Observable<Observer> {
 		}
 //		Cursor cursor = mContext.getContentResolver().query(Provider.MsgThreadColumns.CONTENT_URI, new String[] {Provider.MsgThreadColumns._ID}, Provider.MsgThreadColumns._ID + " = ? AND " + Provider.MsgThreadColumns.SNIPPET_ID + " = ?", new String[] {String.valueOf(threadId), String.valueOf(msgId)}, null);
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
-		Cursor cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, new String[] {"count(*)"}, Provider.MsgThreadColumns._ID + " = ? AND " + Provider.MsgThreadColumns.SNIPPET_ID + " = ?", new String[] {String.valueOf(threadId), String.valueOf(msgId)}, null, null, null);
+		Cursor cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, new String[]{"count(*)"}, Provider.MsgThreadColumns._ID + " = ? AND " + Provider.MsgThreadColumns.SNIPPET_ID + " = ?", new String[]{String.valueOf(threadId), String.valueOf(msgId)}, null, null, null);
 		if (cursor != null && cursor.moveToFirst()) {
 			flag = cursor.getLong(0) > 0;
 		}
@@ -1260,7 +1260,7 @@ public class MsgManager extends Observable<Observer> {
 //		String sortOrder = Provider.MsgInfoColumns.REVERSAL_SORT_ORDER + " limit 1 offset 0";	//取第一条记录
 //		Cursor cursor = mContext.getContentResolver().query(Provider.MsgInfoColumns.CONTENT_URI, null, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[] {String.valueOf(threadId)}, sortOrder);
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
-		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.DEFAULT_PROJECTION, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[] {String.valueOf(threadId)}, null, null, Provider.MsgInfoColumns.DEFAULT_SORT_ORDER, "1");
+		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.DEFAULT_PROJECTION, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[]{String.valueOf(threadId)}, null, null, Provider.MsgInfoColumns.DEFAULT_SORT_ORDER, "1");
 		MsgInfo msg = null;
 		if (cursor != null && cursor.moveToFirst()) {
 			msg = initMsgInfoByCursor(cursor, false, threadId, 0);
@@ -1709,6 +1709,26 @@ public class MsgManager extends Observable<Observer> {
 		}
 		return path;
 	}
+
+	/**
+	 * 根据uri获取对应视频的本地绝对路径
+	 * @param uri 图片的数据库uri,如：content://media/external/video/media/4795
+	 * @return 本地视频文件的绝对路径
+	 */
+	public String getVideoPath(Uri uri) {
+		String path = null;
+		if (uri != null) {
+			String id = uri.getLastPathSegment();
+			Cursor cursor = mContext.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, new String[] {MediaStore.Video.Media.DATA,}, MediaStore.Video.Media._ID + " = ?", new String[] {id}, null);
+			if (cursor != null && cursor.moveToFirst()) {
+				path = cursor.getString(0);
+			}
+			if (cursor != null) {
+				cursor.close();
+			}
+		}
+		return path;
+	}
 	
 	/**
 	 * 在本地获取所有的图片，图片的类型为image/jpeg或者image/png
@@ -1871,6 +1891,16 @@ public class MsgManager extends Observable<Observer> {
 	 * @return
 	 */
 	public MsgInfo setMsgInfo(MsgInfo msgInfo, PhotoItem photoItem) {
+		return setMsgInfo(msgInfo, photoItem, true);
+	}
+
+	/**
+	 * 设置消息信息
+	 * @param msgInfo
+	 * @param photoItem
+	 * @return
+	 */
+	public MsgInfo setMsgInfo(MsgInfo msgInfo, PhotoItem photoItem, boolean isImage) {
 //		MsgThread mt = new MsgThread();
 //		mt.setId(msgInfo.getThreadID());
 		
@@ -1880,7 +1910,6 @@ public class MsgManager extends Observable<Observer> {
 		String filePath = photoItem.getFilePath();
 		String fileName = SystemUtil.getFilename(filePath);
 		
-		String thumbName = SystemUtil.generateChatThumbAttachFilename(time);
 		part.setFileName(fileName);
 		part.setFilePath(photoItem.getFilePath());
 		//TODO 文件类型匹配待做
@@ -1891,11 +1920,14 @@ public class MsgManager extends Observable<Observer> {
 		part.setMsgId(msgInfo.getId());
 		part.setSize(photoItem.getSize());
 		part.setCreationDate(time);
-		
-		String savePath = ImageUtil.generateThumbImage(filePath, msgInfo.getThreadID(), thumbName);
-		if (savePath != null) {
-			part.setThumbName(thumbName);
-			part.setThumbPath(savePath);
+
+		if (isImage) {	//图片消息
+			String thumbName = SystemUtil.generateChatThumbAttachFilename(time);
+			String savePath = ImageUtil.generateThumbImage(filePath, msgInfo.getThreadID(), thumbName);
+			if (savePath != null) {
+				part.setThumbName(thumbName);
+				part.setThumbPath(savePath);
+			}
 		}
 		
 //		part = msgManager.addMsgPart(part);
@@ -1940,7 +1972,7 @@ public class MsgManager extends Observable<Observer> {
 	 * @update 2014年11月20日 下午7:41:36
 	 * @param msgInfo 对应的聊天消息
 	 * @param selectList 选择的图片集合
-	 * @param originalImage是否需要发送原图
+	 * @param originalImage 是否需要发送原图
 	 * @return
 	 */
 	public ArrayList<MsgInfo> getMsgInfoListByPhotos(MsgInfo msgInfo, List<PhotoItem> selectList, boolean originalImage) {
@@ -1991,6 +2023,30 @@ public class MsgManager extends Observable<Observer> {
 				
 			} catch (CloneNotSupportedException e) {
 				e.printStackTrace();
+			}
+		}
+		return msgList;
+	}
+
+	/**
+	 * 根据选择的视频列表创建消息列表
+	 * @param msgInfo
+	 * @param selectList
+	 * @return
+	 */
+	public ArrayList<MsgInfo> getMsgInfoListByVideos(MsgInfo msgInfo, List<PhotoItem> selectList) {
+		final ArrayList<MsgInfo> msgList = new ArrayList<>();
+		for (final PhotoItem photoItem : selectList) {
+			try {
+				String filePath = photoItem.getFilePath();
+				if (!SystemUtil.isFileExists(filePath)) {
+					continue;
+				}
+				final MsgInfo mi = (MsgInfo) msgInfo.clone();
+				msgList.add(setMsgInfo(mi, photoItem, false));
+				
+			} catch (CloneNotSupportedException e) {
+				Log.e(e.getMessage());
 			}
 		}
 		return msgList;

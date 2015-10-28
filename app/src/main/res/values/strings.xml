@@ -148,6 +148,7 @@
     <string name="album_preview_original_image">原图</string>
     <string name="album_preview_original_image_size">原图(%1$s)</string>
     <string name="album_tip_max_select">只能选择%1$d张图片</string>
+    <string name="album_video_tip_max_select">只能选择%1$d个视频</string>
     <string name="album_item_content">"%1$s\r\n%2$d张"</string>
     <string name="album_item_video_content">"%1$s\r\n%2$d个"</string>
     <string name="album_photo_chose_error">文件选择错误</string>

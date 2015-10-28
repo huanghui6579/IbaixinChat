@@ -1,22 +1,10 @@
 package net.ibaixin.chat.activity;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -53,6 +41,11 @@ import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.model.Album;
@@ -60,9 +53,17 @@ import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.DensityUtil;
+import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.view.ProgressDialog;
 import net.ibaixin.chat.view.ProgressWheel;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 图片选择界面
@@ -80,6 +81,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	public static final int REQ_TAKE_PIC = 102;
 	public static final int REQ_CLIP_PIC = 103;
 	public static final int REQ_TAKE_CLIP_PIC = 104;
+	public static final int REQ_TAKE_VIDEO = 105;
 	
 	public static final String ARG_REQ_CODE = "arg_req_code";
 	public static final String ARG_IS_IMAGE = "arg_is_image";
@@ -150,7 +152,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	/**
 	 * 拍照后照片存放的地址
 	 */
-	private String mPhotoPath;
+	private String mFilePath;
 	
 	private Handler mHandler = new Handler() {
 
@@ -216,7 +218,6 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		}
 		
 		if (!isImage) {	//不是图片，则不显示预览选项
-			tvPreview.setVisibility(View.GONE);
 			tvAllPhoto.setText(R.string.album_all_video);
 			setTitle(R.string.activity_lable_video);
 		}
@@ -251,24 +252,26 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 							break;
 						}
 						intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-						mPhotoPath = SystemUtil.generatePhotoPath();
-						File file = new File(mPhotoPath);
+						mFilePath = SystemUtil.generatePhotoPath();
+						File file = new File(mFilePath);
 						Uri uri = Uri.fromFile(file);
 						intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);	//将照片保存到指定位置
 						ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
 						ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
 					} else {
-						/*intent = new Intent();
-						intent.setAction("android.media.action.VIDEO_CAPTURE");
-						intent.addCategory("android.intent.category.DEFAULT");
-						File file = new File(FILE_PATH);
+						intent = new Intent();
+						intent.setAction(MediaStore.ACTION_VIDEO_CAPTURE);
+						mFilePath = SystemUtil.generateVideoPath();
+						File file = new File(mFilePath);
 						if(file.exists()){
 							file.delete();
 						}
 						Uri uri = Uri.fromFile(file);
 						intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-						startActivityForResult(intent, 0);*/
-						SystemUtil.makeShortToast("录视频");
+						intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+						ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
+						ActivityCompat.startActivityForResult(AlbumActivity.this, intent, REQ_TAKE_VIDEO, options.toBundle());
+//						SystemUtil.makeShortToast("录视频");
 					}
 				} else {
 					if (isImage) {	//进行图片预览
@@ -365,7 +368,12 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				
 				@Override
 				public void run() {
-					final ArrayList<MsgInfo> msgList = msgManager.getMsgInfoListByPhotos(msgInfo, selects, false);
+					ArrayList<MsgInfo> msgList = null;
+					if (isImage) {	//图片消息
+						msgList = msgManager.getMsgInfoListByPhotos(msgInfo, selects, false);
+					} else {
+						msgList = msgManager.getMsgInfoListByVideos(msgInfo, selects);
+					}
 					Message msg = mHandler.obtainMessage();
 					if (!SystemUtil.isEmpty(msgList)) {	//消息集合
 						msg.what = Constants.MSG_SUCCESS;
@@ -437,8 +445,10 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
     			topPath = temp.get(0).getFilePath();
 			} else {	//视频
 				String thumbPath = temp.get(0).getThumbPath();
-				if (TextUtils.isEmpty(thumbPath)) {
+				if (!SystemUtil.isFileExists(thumbPath)) {
 					topPath = temp.get(0).getFilePath();
+				} else {
+					topPath = thumbPath;
 				}
 			}
     		AlbumItem item = new AlbumItem(key, temp.size(), topPath);
@@ -450,7 +460,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	/**
 	 * 显示弹出菜单
 	 * @update 2014年11月14日 下午4:02:16
-	 * @param view
+	 * @param author
 	 */
 	private void showPopupWindow(final View author) {
 		if (mPopupWindow == null) {
@@ -569,10 +579,10 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				finish();
 				break;
 			case REQ_TAKE_PIC:	//调用系统相机拍照
-				File file = new File(mPhotoPath);
+				File file = new File(mFilePath);
 				SystemUtil.scanFileAsync(mContext, file);
 				PhotoItem photoItem = new PhotoItem();
-				photoItem.setFilePath(mPhotoPath);
+				photoItem.setFilePath(mFilePath);
 				photoItem.setSize(file.length());
 				photoItem.setTime(file.lastModified());
 				mPhotos.add(0, photoItem);
@@ -584,10 +594,19 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				startActivityForResult(intent, REQ_PREVIEW_IMAGE);
 				break;
 			case REQ_TAKE_CLIP_PIC:	//裁剪图片
-				SystemUtil.scanFileAsync(mContext, mPhotoPath);
+				SystemUtil.scanFileAsync(mContext, mFilePath);
 				intent = new Intent(mContext, ClipHeadIconActivity.class);
-				intent.putExtra(ClipHeadIconActivity.ARG_IMAGE_PATH, mPhotoPath);
+				intent.putExtra(ClipHeadIconActivity.ARG_IMAGE_PATH, mFilePath);
 				startActivityForResult(intent, REQ_CLIP_PIC);
+				break;
+			case REQ_TAKE_VIDEO:	//录视频
+				Uri uri = null;
+				if (data != null) {
+					uri = data.getData();
+					mFilePath = msgManager.getVideoPath(uri);
+				}
+				Log.d("----mFilePath----" + mFilePath);
+				SystemUtil.makeLongToast("---摄像--uri--" + uri + "---filePath---" + mFilePath);
 				break;
 			default:
 				break;
@@ -833,13 +852,13 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 //				holder.ivPhoto.setScaleType(ScaleType.FIT_XY);
 				
 				String filePath = null;
+				if (mIsSingleChoice) {
+					holder.cbChose.setVisibility(View.GONE);
+				} else {
+					holder.cbChose.setVisibility(View.VISIBLE);
+				}
 				if (isImage) {
 					holder.ivFlag.setVisibility(View.GONE);
-					if (mIsSingleChoice) {
-						holder.cbChose.setVisibility(View.GONE);
-					} else {
-						holder.cbChose.setVisibility(View.VISIBLE);
-					}
 					holder.viewAplha.setVisibility(View.VISIBLE);
 					holder.cbChose.setOnCheckedChangeListener(null);
 					holder.cbChose.setChecked((selectArray.indexOfKey(position) >= 0) ? selectArray.get(position) : false);
@@ -853,10 +872,11 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				} else {
 					holder.ivFlag.setVisibility(View.VISIBLE);
 					holder.viewAplha.setVisibility(View.GONE);
-					holder.cbChose.setVisibility(View.GONE);
 					String thumbPath = photo.getThumbPath();
-					if (TextUtils.isEmpty(thumbPath)) {
+					if (!SystemUtil.isFileExists(thumbPath)) {	//文件不存在
 						filePath = photo.getFilePath();
+					} else {
+						filePath = thumbPath;
 					}
 				}
 				String uri = null;
@@ -917,7 +937,13 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					selectSize = selectSize > mMaxSelectSize ? mMaxSelectSize : selectSize;
 					tvPreview.setEnabled(false);
 					holder.cbChose.setChecked(false);
-					SystemUtil.makeShortToast(getString(R.string.album_tip_max_select, mMaxSelectSize));
+					int resId = 0;
+					if (isImage) {	//选择的是图片
+						resId = R.string.album_tip_max_select;
+					} else {
+						resId = R.string.album_video_tip_max_select;
+					}
+					SystemUtil.makeShortToast(getString(resId, mMaxSelectSize));
 				}
 			}
 			

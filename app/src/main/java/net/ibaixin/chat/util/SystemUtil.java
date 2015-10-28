@@ -1167,9 +1167,9 @@ public class SystemUtil {
 	 */
 	public static DisplayImageOptions getAlbumVideoOptions() {
 		DisplayImageOptions options = new DisplayImageOptions.Builder()
-				.showImageOnLoading(R.drawable.ic_video_default)
-				.showImageForEmptyUri(R.drawable.ic_video_default)
-				.showImageOnFail(R.drawable.ic_video_default)
+				.showImageOnLoading(R.drawable.ic_image_default)
+				.showImageForEmptyUri(R.drawable.ic_image_default)
+				.showImageOnFail(R.drawable.ic_image_default)
 				.cacheInMemory(true)
 				.cacheOnDisk(true)
 				.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
