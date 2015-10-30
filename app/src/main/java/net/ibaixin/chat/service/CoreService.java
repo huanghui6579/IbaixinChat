@@ -1,57 +1,5 @@
 package net.ibaixin.chat.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Timer;
-
-import org.jivesoftware.smack.AbstractXMPPConnection;
-import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.SmackException.NoResponseException;
-import org.jivesoftware.smack.SmackException.NotConnectedException;
-import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.XMPPException.XMPPErrorException;
-import org.jivesoftware.smack.chat.Chat;
-import org.jivesoftware.smack.chat.ChatManager;
-import org.jivesoftware.smack.chat.ChatManagerListener;
-import org.jivesoftware.smack.chat.ChatMessageListener;
-import org.jivesoftware.smack.packet.ExtensionElement;
-import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.Message.Type;
-import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.packet.Stanza;
-import org.jivesoftware.smack.roster.Roster;
-import org.jivesoftware.smack.roster.RosterListener;
-import org.jivesoftware.smackx.chatstates.ChatState;
-import org.jivesoftware.smackx.chatstates.ChatStateListener;
-import org.jivesoftware.smackx.chatstates.ChatStateManager;
-import org.jivesoftware.smackx.chatstates.packet.ChatStateExtension;
-import org.jivesoftware.smackx.delay.packet.DelayInformation;
-import org.jivesoftware.smackx.delay.provider.DelayInformationProvider;
-import org.jivesoftware.smackx.filetransfer.FileTransferListener;
-import org.jivesoftware.smackx.filetransfer.FileTransferManager;
-import org.jivesoftware.smackx.filetransfer.FileTransferRequest;
-import org.jivesoftware.smackx.filetransfer.IncomingFileTransfer;
-import org.jivesoftware.smackx.offline.OfflineMessageManager;
-import org.jivesoftware.smackx.receipts.DeliveryReceipt;
-import org.jivesoftware.smackx.receipts.DeliveryReceiptManager;
-import org.jivesoftware.smackx.receipts.DeliveryReceiptManager.AutoReceiptMode;
-import org.jivesoftware.smackx.receipts.DeliveryReceiptRequest;
-import org.jivesoftware.smackx.receipts.ReceiptReceivedListener;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.jxmpp.util.XmppStringUtils;
-
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-import com.nostra13.universalimageloader.utils.DiskCacheUtils;
-
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningTaskInfo;
 import android.app.Notification;
@@ -71,6 +19,14 @@ import android.os.Looper;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
+
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+import com.nostra13.universalimageloader.utils.DiskCacheUtils;
+
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.activity.ChatActivity;
@@ -78,7 +34,6 @@ import net.ibaixin.chat.activity.LoginActivity;
 import net.ibaixin.chat.activity.MainActivity;
 import net.ibaixin.chat.download.DownloadListener;
 import net.ibaixin.chat.download.DownloadManager;
-import net.ibaixin.chat.download.DownloadRequest;
 import net.ibaixin.chat.listener.ChatRostListener;
 import net.ibaixin.chat.listener.RosterLoadedCallback;
 import net.ibaixin.chat.manager.MsgManager;
@@ -88,7 +43,6 @@ import net.ibaixin.chat.manager.web.MsgEngine;
 import net.ibaixin.chat.manager.web.PersonalEngine;
 import net.ibaixin.chat.manager.web.UserEngine;
 import net.ibaixin.chat.model.ActionResult;
-import net.ibaixin.chat.model.DownloadItem;
 import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.MsgInfo.SendState;
 import net.ibaixin.chat.model.MsgPart;
@@ -113,6 +67,42 @@ import net.ibaixin.chat.util.UpdateManager;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.util.XmppUtil;
 import net.ibaixin.chat.volley.toolbox.MultiPartStringRequest;
+
+import org.jivesoftware.smack.AbstractXMPPConnection;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.SmackException.NoResponseException;
+import org.jivesoftware.smack.SmackException.NotConnectedException;
+import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.XMPPException.XMPPErrorException;
+import org.jivesoftware.smack.chat.Chat;
+import org.jivesoftware.smack.chat.ChatManager;
+import org.jivesoftware.smack.chat.ChatManagerListener;
+import org.jivesoftware.smack.chat.ChatMessageListener;
+import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Message.Type;
+import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smack.roster.RosterListener;
+import org.jivesoftware.smackx.chatstates.ChatState;
+import org.jivesoftware.smackx.chatstates.ChatStateManager;
+import org.jivesoftware.smackx.delay.packet.DelayInformation;
+import org.jivesoftware.smackx.filetransfer.FileTransferListener;
+import org.jivesoftware.smackx.filetransfer.FileTransferManager;
+import org.jivesoftware.smackx.filetransfer.FileTransferRequest;
+import org.jivesoftware.smackx.filetransfer.IncomingFileTransfer;
+import org.jivesoftware.smackx.offline.OfflineMessageManager;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.jxmpp.util.XmppStringUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Timer;
 
 /**
  * 核心的service服务，主要用来同步联系人数据
@@ -473,7 +463,7 @@ public class CoreService extends Service {
 	 * 发送消息的线程
 	 * @author Administrator
 	 * @update 2014年11月16日 下午5:35:14
-	 * @param msgInfo
+	 * @param senderInfo 发送消息的实体
 	 */
 	public void sendChatMsg(MsgSenderInfo senderInfo) {
 		if (senderInfo.chat != null) {
@@ -732,7 +722,7 @@ public class CoreService extends Service {
 	private void updateSendInfo(MsgSenderInfo senderInfo ,MsgInfo msgInfo) {
 		if (!senderInfo.isReSend) {	//不是重发该消息，则更新会话的一些摘要信息
 			msgManager.addMsgInfo(msgInfo);
-			senderInfo.msgThread.setSnippetId(msgInfo.getId());
+			senderInfo.msgThread.setSnippetId(msgInfo.getMsgId());
 //			String snippetContent = msgManager.getSnippetContentByMsgType(msgInfo.getMsgType(), msgInfo);
 			String snippetContent = msgInfo.getSnippetContent();
 			if (TextUtils.isEmpty(snippetContent)) {
@@ -983,7 +973,7 @@ public class CoreService extends Service {
 				MsgThread msgThread = msgManager.getThreadById(threaId);
 				if (msgThread != null) {
 					msgThread.setModifyDate(msgInfo.getCreationDate());
-					msgThread.setSnippetId(msgInfo.getId());
+					msgThread.setSnippetId(msgInfo.getMsgId());
 					String snippetContent = msgInfo.getSnippetContent()/*msgManager.getSnippetContentByMsgType(msgInfo.getMsgType(), msgInfo)*/;
 					if (TextUtils.isEmpty(snippetContent)) {
 						MsgPart msgPart = msgInfo.getMsgPart();
@@ -1169,7 +1159,7 @@ public class CoreService extends Service {
 					PhotoItem downloadItem = new PhotoItem();
 					downloadItem.setThumbPath(msgPart.getThumbPath());
 					downloadItem.setFilePath(msgPart.getFilePath());
-					downloadItem.setMsgId(msgInfo.getId());
+					downloadItem.setMsgId(msgInfo.getMsgId());
 					downloadItem.setFileToken(msgPart.getFileToken());
 					downloadItem.setDownloadType(fileType);
 					
@@ -1483,7 +1473,7 @@ public class CoreService extends Service {
 			MsgThread msgThread = msgManager.getThreadById(threadId);
 			if (msgThread != null) {
 				msgThread.setModifyDate(System.currentTimeMillis());
-				msgThread.setSnippetId(msgInfo.getId());
+				msgThread.setSnippetId(msgInfo.getMsgId());
 //				MsgInfo.Type msgType = msgInfo.getMsgType();
 				String snippetContent = msgInfo.getMsgPart().getFileName()/*msgManager.getSnippetContentByMsgType(msgType, msgInfo)*/;
 				msgThread.setSnippetContent(snippetContent);

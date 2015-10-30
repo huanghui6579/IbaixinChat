@@ -151,7 +151,7 @@ public class PhotoFragment extends BaseFragment {
 							SystemUtil.getCachedThreadPool().execute(new Runnable() {
 								@Override
 								public void run() {
-									int msgId = mPhoto.getMsgId();
+									String msgId = mPhoto.getMsgId();
 									MsgManager msgManager = MsgManager.getInstance();
 									MsgPart msgPart = new MsgPart();
 									msgPart.setMsgId(msgId);

@@ -1,18 +1,22 @@
 package net.ibaixin.chat.manager;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.OperationApplicationException;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.RemoteException;
+import android.provider.MediaStore;
+import android.text.TextUtils;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+import com.nostra13.universalimageloader.utils.DiskCacheUtils;
+import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
@@ -37,24 +41,18 @@ import net.ibaixin.chat.util.Observable;
 import net.ibaixin.chat.util.Observer;
 import net.ibaixin.chat.util.Observer.NotifyType;
 import net.ibaixin.chat.util.SystemUtil;
-import android.content.ContentProviderOperation;
-import android.content.ContentProviderResult;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.OperationApplicationException;
-import android.content.res.AssetManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.net.Uri;
-import android.os.RemoteException;
-import android.provider.MediaStore;
-import android.text.TextUtils;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-import com.nostra13.universalimageloader.utils.DiskCacheUtils;
-import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * 聊天相关的业务逻辑层
@@ -153,7 +151,7 @@ public class MsgManager extends Observable<Observer> {
 			List<User> members = getMemebersByMemberIds(memberIds);
 			mt.setMembers(members);
 			
-			int snippetId = cursor.getInt(cursor.getColumnIndex(Provider.MsgThreadColumns.SNIPPET_ID));
+			String snippetId = cursor.getString(cursor.getColumnIndex(Provider.MsgThreadColumns.SNIPPET_ID));
 			mt.setSnippetId(snippetId);
 			//查询该会话的最后一条消息
 			MsgInfo msgInfo = getMsgInfoById(snippetId);
@@ -172,21 +170,9 @@ public class MsgManager extends Observable<Observer> {
 	}
 	
 	/**
-	 * 根据uri获取会话信息， 使用{@link MsgManager#getThreadById(int)}来替代
-	 * @update 2014年10月31日 上午10:55:25
-	 * @param uri
-	 * @return
-	 */
-	@Deprecated
-	public MsgThread getThreadByUri(Uri uri) {
-		int id = Integer.parseInt(uri.getLastPathSegment());
-		return getThreadById(id);
-	}
-	
-	/**
 	 * 根据聊天的参与成员获取对应的会话
 	 * @update 2014年10月31日 上午10:00:59
-	 * @param members
+	 * @param member 聊天成员
 	 * @return
 	 */
 	public MsgThread getThreadByMember(User member) {
@@ -250,7 +236,7 @@ public class MsgManager extends Observable<Observer> {
 //		Cursor cursor = mContext.getContentResolver().query(Provider.MsgThreadColumns.CONTENT_URI, new String[] {Provider.MsgThreadColumns._ID}, Provider.MsgThreadColumns.MEMBER_IDS + " = ?", new String[] {memberIds}, null);
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
 		String[] projection = {Provider.MsgThreadColumns._ID};
-		Cursor cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, projection, Provider.MsgThreadColumns.MEMBER_IDS + " = ?", new String[] {memberIds}, null, null, null);
+		Cursor cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, projection, Provider.MsgThreadColumns.MEMBER_IDS + " = ?", new String[]{memberIds}, null, null, null);
 		if (cursor != null && cursor.moveToFirst()) {
 			msgThread = new MsgThread();
 			msgThread.setId(cursor.getInt(0));
@@ -450,16 +436,16 @@ public class MsgManager extends Observable<Observer> {
 	 * @return
 	 */
 	public List<MsgInfo> getMsgInfoIdsByThreadId(int threadId) {
-//		Cursor cursor = mContext.getContentResolver().query(Provider.MsgInfoColumns.CONTENT_URI, new String[] {Provider.MsgInfoColumns._ID, Provider.MsgInfoColumns.MSG_TYPE}, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[] {String.valueOf(threadId)}, null);
+//		Cursor cursor = mContext.getContentResolver().query(Provider.MsgInfoColumns.CONTENT_URI, new String[] {Provider.MsgInfoColumns.MSG_ID, Provider.MsgInfoColumns.MSG_TYPE}, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[] {String.valueOf(threadId)}, null);
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
-		String[] projection = {Provider.MsgInfoColumns._ID, Provider.MsgInfoColumns.MSG_TYPE};
-		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, projection, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[] {String.valueOf(threadId)}, null, null, Provider.MsgInfoColumns.DEFAULT_SORT_ORDER);
+		String[] projection = {Provider.MsgInfoColumns.MSG_ID, Provider.MsgInfoColumns.MSG_TYPE};
+		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, projection, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[]{String.valueOf(threadId)}, null, null, Provider.MsgInfoColumns.DEFAULT_SORT_ORDER);
 		List<MsgInfo> list = null;
 		if (cursor != null) {
 			list = new ArrayList<>();
 			while (cursor.moveToNext()) {
 				MsgInfo msgInfo = new MsgInfo();
-				msgInfo.setId(cursor.getInt(0));
+				msgInfo.setMsgId(cursor.getString(0));
 				msgInfo.setMsgType(Type.valueOf(cursor.getInt(1)));
 				list.add(msgInfo);
 			}
@@ -477,7 +463,7 @@ public class MsgManager extends Observable<Observer> {
 	public boolean deleteMsgThreadById(int threadId) {
 		boolean falg = false;
 		SQLiteDatabase db = mChatDBHelper.getWritableDatabase();
-		int count = db.delete(Provider.MsgThreadColumns.TABLE_NAME, Provider.MsgThreadColumns._ID + " = ?", new String[] {String.valueOf(threadId)});
+		int count = db.delete(Provider.MsgThreadColumns.TABLE_NAME, Provider.MsgThreadColumns._ID + " = ?", new String[]{String.valueOf(threadId)});
 //		int count = mContext.getContentResolver().delete(ContentUris.withAppendedId(Provider.MsgThreadColumns.CONTENT_URI, threadId), null, null);
 		if (count > 0) {	//删除成功
 			//删除会话中的消息
@@ -524,7 +510,7 @@ public class MsgManager extends Observable<Observer> {
 				msgThread.setMembers(members);
 				msgThread.setTop(cursor.getInt(cursor.getColumnIndex(Provider.MsgThreadColumns.IS_TOP)) == 0 ? false : true);
 				
-				int snippetId = cursor.getInt(cursor.getColumnIndex(Provider.MsgThreadColumns.SNIPPET_ID));
+				String snippetId = cursor.getString(cursor.getColumnIndex(Provider.MsgThreadColumns.SNIPPET_ID));
 				msgThread.setSnippetId(snippetId);
 				//查询该会话最后一条消息
 				MsgInfo msgInfo = getMsgInfoById(snippetId);
@@ -588,8 +574,8 @@ public class MsgManager extends Observable<Observer> {
 			msgThread.setUnReadCount(cursor.getInt(cursor.getColumnIndex(Provider.MsgThreadColumns.UNREAD_COUNT)));
 			msgThread.setTop(cursor.getInt(cursor.getColumnIndex(Provider.MsgThreadColumns.IS_TOP)) == 0 ? false : true);
 			msgThread.setMembers(members);
-			
-			int snippetId = cursor.getInt(cursor.getColumnIndex(Provider.MsgThreadColumns.SNIPPET_ID));
+
+			String snippetId = cursor.getString(cursor.getColumnIndex(Provider.MsgThreadColumns.SNIPPET_ID));
 			msgThread.setSnippetId(snippetId);
 			//查询会话最后一条消息
 			MsgInfo msgInfo = getMsgInfoById(snippetId);
@@ -607,11 +593,11 @@ public class MsgManager extends Observable<Observer> {
 	 * @param msgId
 	 * @return
 	 */
-	public MsgPart getMsgPartByMsgId(int msgId) {
+	public MsgPart getMsgPartByMsgId(String msgId) {
 //		Uri uri = ContentUris.withAppendedId(Provider.MsgPartColumns.CONTENT_URI, msgId);
 //		Cursor cursor = mContext.getContentResolver().query(uri, null, null, null, null);
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
-		Cursor cursor = db.query(Provider.MsgPartColumns.TABLE_NAME, Provider.MsgPartColumns.DEFAULT_PROJECTION, Provider.MsgPartColumns.MSG_ID + " = ?", new String[]{String.valueOf(msgId)}, null, null, null);
+		Cursor cursor = db.query(Provider.MsgPartColumns.TABLE_NAME, Provider.MsgPartColumns.DEFAULT_PROJECTION, Provider.MsgPartColumns.MSG_ID + " = ?", new String[]{msgId}, null, null, null);
 		MsgPart msgPart = null;
 		if (cursor != null && cursor.moveToFirst()) {
 			msgPart = new MsgPart();
@@ -639,12 +625,12 @@ public class MsgManager extends Observable<Observer> {
 	 * @param msgId
 	 * @return
 	 */
-	public MsgPart getMsgPartPathByMsgId(int msgId) {
+	public MsgPart getMsgPartPathByMsgId(String msgId) {
 //		Uri uri = ContentUris.withAppendedId(Provider.MsgPartColumns.CONTENT_URI, msgId);
 //		Cursor cursor = mContext.getContentResolver().query(uri, new String[] {Provider.MsgPartColumns.FILE_PATH}, null, null, null);
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
 		String[] projection = {Provider.MsgPartColumns.FILE_PATH, Provider.MsgPartColumns.FILE_THUMB_PATH, Provider.MsgPartColumns.DOWNLOADED};
-		Cursor cursor = db.query(Provider.MsgPartColumns.TABLE_NAME, projection, Provider.MsgPartColumns.MSG_ID + " = ?", new String[] {String.valueOf(msgId)}, null, null, null);
+		Cursor cursor = db.query(Provider.MsgPartColumns.TABLE_NAME, projection, Provider.MsgPartColumns.MSG_ID + " = ?", new String[]{msgId}, null, null, null);
 		MsgPart msgPart = null;
 		if (cursor != null && cursor.moveToFirst()) {
 			msgPart = new MsgPart();
@@ -677,7 +663,7 @@ public class MsgManager extends Observable<Observer> {
 		if (cursor != null) {
 			list = new ArrayList<>();
 			while (cursor.moveToNext()) {
-				MsgInfo msg = initMsgInfoByCursor(cursor, true, threadId, 0);
+				MsgInfo msg = initMsgInfoByCursor(cursor, true, threadId, null);
 				list.add(msg);
 			}
 			cursor.close();
@@ -711,15 +697,15 @@ public class MsgManager extends Observable<Observer> {
 	 * @param cursor
 	 * @param loadAttach 是否加载消息的附件信息
 	 * @param threadId 该消息所在的会话id,若该值<=0,则从数据库里获取
-	 * @param msgId 该消息id,若该值<=0,则从数据库里获取
+	 * @param msgId 该消息id,若该值为空,则从数据库里获取
 	 * @return 组装后的消息对象
 	 */
-	private MsgInfo initMsgInfoByCursor(Cursor cursor, boolean loadAttach, int threadId, int msgId) {
+	private MsgInfo initMsgInfoByCursor(Cursor cursor, boolean loadAttach, int threadId, String msgId) {
 		MsgInfo msg = new MsgInfo();
-		if (msgId <= 0) {
-			msg.setId(cursor.getInt(cursor.getColumnIndex(Provider.MsgInfoColumns._ID)));
+		if (msgId == null) {
+			msg.setMsgId(cursor.getString(cursor.getColumnIndex(Provider.MsgInfoColumns.MSG_ID)));
 		} else {
-			msg.setId(msgId);
+			msg.setMsgId(msgId);
 		}
 		if (threadId <= 0) {
 			msg.setThreadID(cursor.getInt(cursor.getColumnIndex(Provider.MsgInfoColumns.THREAD_ID)));
@@ -739,7 +725,7 @@ public class MsgManager extends Observable<Observer> {
 			Type msgType = msg.getMsgType();
 			//如果消息不是文本类型，则加载附件
 			if (msgType != Type.TEXT) {	//加载附件
-				MsgPart msgPart = getMsgPartByMsgId(msg.getId());
+				MsgPart msgPart = getMsgPartByMsgId(msg.getMsgId());
 				msg.setMsgPart(msgPart);
 			}
 		}
@@ -749,17 +735,17 @@ public class MsgManager extends Observable<Observer> {
 	/**
 	 * 根据msgid获得消息对象
 	 * @update 2014年11月6日 下午9:08:40
-	 * @param msgId
+	 * @param msgId 消息id
 	 * @return
 	 */
-	public MsgInfo getMsgInfoById(int msgId) {
-		if (msgId <= 0) {
+	public MsgInfo getMsgInfoById(String msgId) {
+		if (msgId == null) {
 			return null;
 		}
 //		Uri uri = ContentUris.withAppendedId(Provider.MsgInfoColumns.CONTENT_URI, msgId);
 //		Cursor cursor = mContext.getContentResolver().query(uri, null, null, null, null);
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
-		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.DEFAULT_PROJECTION, Provider.MsgInfoColumns._ID + " = ?", new String[] {String.valueOf(msgId)}, null, null, null);
+		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.DEFAULT_PROJECTION, Provider.MsgInfoColumns.MSG_ID + " = ?", new String[] {msgId}, null, null, null);
 		MsgInfo msg = null;
 		if (cursor != null && cursor.moveToFirst()) {
 			msg = initMsgInfoByCursor(cursor, true, 0, msgId);
@@ -768,21 +754,6 @@ public class MsgManager extends Observable<Observer> {
 			cursor.close();
 		}
 		return msg;
-	}
-	
-	/**
-	 * 根据uri获得消息信息，该方法已被{@link MsgManager#getMsgInfoById(int)}代替
-	 * @update 2014年11月6日 下午9:15:45
-	 * @param uri
-	 * @return
-	 */
-	@Deprecated
-	public MsgInfo getMsgInfoByUri(Uri uri) {
-		if (uri == null) {
-			return null;
-		}
-		int msgId = Integer.parseInt(uri.getLastPathSegment());
-		return getMsgInfoById(msgId);
 	}
 	
 	/**
@@ -1073,6 +1044,7 @@ public class MsgManager extends Observable<Observer> {
 		values.put(Provider.MsgInfoColumns.CREATIO_NDATE, msgInfo.getCreationDate());
 		values.put(Provider.MsgInfoColumns.IS_COMMING, msgInfo.isComming() ? 1 : 0);
 		values.put(Provider.MsgInfoColumns.IS_READ, msgInfo.isRead() ? 1 : 0);
+		values.put(Provider.MsgInfoColumns.MSG_ID, msgInfo.getMsgId());
 		Type type = msgInfo.getMsgType();
 		if (type == null) {
 			type = Type.TEXT;
@@ -1158,21 +1130,21 @@ public class MsgManager extends Observable<Observer> {
 		//查询该消息是否是该会话的最后一条消息，如果是最后一条消息，则更新该会话的最后一条消息
 		boolean isLastMsg = false;
 		if (msgThread != null) {
-			isLastMsg = isSnippetMsgInThread(msgInfo.getId(), msgThread.getId());
+			isLastMsg = isSnippetMsgInThread(msgInfo.getMsgId(), msgThread.getId());
 		}
 //		int count = mContext.getContentResolver().delete(ContentUris.withAppendedId(Provider.MsgInfoColumns.CONTENT_URI, msgInfo.getId()), null, null);
 		SQLiteDatabase db = mChatDBHelper.getWritableDatabase();
-		int count = db.delete(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns._ID + " = ?", new String[] {String.valueOf(msgInfo.getId())});
+		int count = db.delete(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.MSG_ID + " = ?", new String[]{msgInfo.getMsgId()});
 		if (count > 0) {	//删除消息成功
 			if (isLastMsg) {	//是最后一条消息，就跟新会话的最后一条消息的摘要
 				//获取最新的最后一条消息
 				MsgInfo tempMsg = getLastMsgInThread(msgThread.getId());
-				int snippetId = 0;
+				String snippetId = null;
 				String snippetContent = null;
 				int unReadCount = msgThread.getUnReadCount();
 				if (tempMsg != null) {
 					//重新设置该会话的最后一条消息的摘要
-					snippetId = tempMsg.getId();
+					snippetId = tempMsg.getMsgId();
 //					snippetContent = getSnippetContentByMsgType(tempMsg);
 					snippetContent = tempMsg.getSnippetContent();
 					if (!tempMsg.isRead()) {	//该消息未读
@@ -1207,13 +1179,13 @@ public class MsgManager extends Observable<Observer> {
 	 * @update 2014年11月12日 下午8:14:14
 	 * @param msgId
 	 */
-	public void deleteMsgPartByMsgId(int msgId) {
+	public void deleteMsgPartByMsgId(String msgId) {
 		MsgPart msgPart = getMsgPartPathByMsgId(msgId);
 		if (msgPart != null) {	//有附件
 			//查询该消息对应的附件
 //			mContext.getContentResolver().delete(ContentUris.withAppendedId(Provider.MsgPartColumns.CONTENT_URI, msgId), null, null);
 			SQLiteDatabase db = mChatDBHelper.getWritableDatabase();
-			db.delete(Provider.MsgPartColumns.TABLE_NAME, Provider.MsgPartColumns.MSG_ID + " = ?", new String[] {String.valueOf(msgId)});
+			db.delete(Provider.MsgPartColumns.TABLE_NAME, Provider.MsgPartColumns.MSG_ID + " = ?", new String[] {msgId});
 			notifyObservers(Provider.MsgPartColumns.NOTIFY_FLAG, NotifyType.DELETE, msgPart);
 			//int count =
 			//无需删除本地文件
@@ -1232,15 +1204,28 @@ public class MsgManager extends Observable<Observer> {
 	 * @param threadId 会话id
 	 * @return
 	 */
-	public boolean isSnippetMsgInThread(int msgId, int threadId) {
+	public boolean isSnippetMsgInThread(String msgId, int threadId) {
 		boolean flag = false;
 		MsgThread tThread = mThreadCache.get(threadId);
 		if (tThread != null) {
-			return tThread.getSnippetId() == msgId;
+			String snippetId = tThread.getSnippetId();
+			if (msgId != null) {
+				if (snippetId != null) {
+					return snippetId.equals(msgId);
+				} else {
+					return false;
+				}
+			} else {
+				if (snippetId != null) {
+					return false;
+				} else {
+					return true;
+				}
+			}
 		}
 //		Cursor cursor = mContext.getContentResolver().query(Provider.MsgThreadColumns.CONTENT_URI, new String[] {Provider.MsgThreadColumns._ID}, Provider.MsgThreadColumns._ID + " = ? AND " + Provider.MsgThreadColumns.SNIPPET_ID + " = ?", new String[] {String.valueOf(threadId), String.valueOf(msgId)}, null);
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
-		Cursor cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, new String[]{"count(*)"}, Provider.MsgThreadColumns._ID + " = ? AND " + Provider.MsgThreadColumns.SNIPPET_ID + " = ?", new String[]{String.valueOf(threadId), String.valueOf(msgId)}, null, null, null);
+		Cursor cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, new String[]{"count(*)"}, Provider.MsgThreadColumns._ID + " = ? AND " + Provider.MsgThreadColumns.SNIPPET_ID + " = ?", new String[]{String.valueOf(threadId), msgId}, null, null, null);
 		if (cursor != null && cursor.moveToFirst()) {
 			flag = cursor.getLong(0) > 0;
 		}
@@ -1263,7 +1248,7 @@ public class MsgManager extends Observable<Observer> {
 		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.DEFAULT_PROJECTION, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[]{String.valueOf(threadId)}, null, null, Provider.MsgInfoColumns.DEFAULT_SORT_ORDER, "1");
 		MsgInfo msg = null;
 		if (cursor != null && cursor.moveToFirst()) {
-			msg = initMsgInfoByCursor(cursor, false, threadId, 0);
+			msg = initMsgInfoByCursor(cursor, false, threadId, null);
 		}
 		if (cursor != null) {
 			cursor.close();
@@ -1296,7 +1281,7 @@ public class MsgManager extends Observable<Observer> {
 			case LOCATION:	//地理位置
 				//添加附件信息
 				MsgPart msgPart = msgInfo.getMsgPart();
-				msgPart.setMsgId(msgInfo.getId());
+				msgPart.setMsgId(msgInfo.getMsgId());
 				msgPart = addMsgPart(msgPart);
 				msgInfo.setMsgPart(msgPart);
 				break;
@@ -1344,7 +1329,7 @@ public class MsgManager extends Observable<Observer> {
 		if (SystemUtil.isNotEmpty(list)) {
 			int len = list.size();
 			ContentValues[] arrayValues = new ContentValues[len];
-			ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+			ArrayList<ContentProviderOperation> ops = new ArrayList<>();
 			for (int i = 0; i < len; i++) {
 				MsgInfo msgInfo = list.get(i);
 				if (msgInfo != null) {
@@ -1366,12 +1351,12 @@ public class MsgManager extends Observable<Observer> {
 							tempIdSet.add(msgInfo.getThreadID());
 							Uri uri = resultes[i].uri;
 							if (uri != null) {
-								String msgId = uri.getLastPathSegment();
-								msgInfo.setId(Integer.parseInt(msgId));
+								int msgId = Integer.parseInt(uri.getLastPathSegment());
+								msgInfo.setId(msgId);
 								if (msgInfo.getMsgType() != Type.TEXT) {	//非文本消息就添加附件
 									//添加附件信息
 									MsgPart msgPart = msgInfo.getMsgPart();
-									msgPart.setMsgId(msgInfo.getId());
+									msgPart.setMsgId(msgInfo.getMsgId());
 									msgPart = addMsgPart(msgPart);
 									msgInfo.setMsgPart(msgPart);
 								}
@@ -1451,7 +1436,7 @@ public class MsgManager extends Observable<Observer> {
 //		Uri uri = ContentUris.withAppendedId(Provider.MsgInfoColumns.CONTENT_URI, msgInfo.getId());
 //		mContext.getContentResolver().update(uri, values, null, null);
 		SQLiteDatabase db = mChatDBHelper.getWritableDatabase();
-		db.update(Provider.MsgInfoColumns.TABLE_NAME, values, Provider.MsgInfoColumns._ID + " = ?", new String[] {String.valueOf(msgInfo.getId())});
+		db.update(Provider.MsgInfoColumns.TABLE_NAME, values, Provider.MsgInfoColumns.MSG_ID + " = ?", new String[] {msgInfo.getMsgId()});
 		notifyObservers(Provider.MsgInfoColumns.NOTIFY_FLAG, NotifyType.UPDATE, msgInfo);
 		return msgInfo;
 	}
@@ -1473,7 +1458,7 @@ public class MsgManager extends Observable<Observer> {
 			sendState = SendState.SUCCESS;
 		}
 		values.put(Provider.MsgInfoColumns.SEND_STATE, sendState.ordinal());
-		db.update(Provider.MsgInfoColumns.TABLE_NAME, values, Provider.MsgInfoColumns._ID + " = ?", new String[] {String.valueOf(msgInfo.getId())});
+		db.update(Provider.MsgInfoColumns.TABLE_NAME, values, Provider.MsgInfoColumns.MSG_ID + " = ?", new String[] {msgInfo.getMsgId()});
 		notifyObservers(Provider.MsgInfoColumns.NOTIFY_FLAG, NotifyType.UPDATE, msgInfo);
 		return msgInfo;
 	}
@@ -1490,7 +1475,7 @@ public class MsgManager extends Observable<Observer> {
 		ContentValues values = new ContentValues();
 		values.put(Provider.MsgInfoColumns.IS_READ, msgInfo.isRead() ? 1 : 0);
 		SQLiteDatabase db = mChatDBHelper.getWritableDatabase();
-		db.update(Provider.MsgInfoColumns.TABLE_NAME, values, Provider.MsgInfoColumns._ID + " = ?", new String[] {String.valueOf(msgInfo.getId())});
+		db.update(Provider.MsgInfoColumns.TABLE_NAME, values, Provider.MsgInfoColumns.MSG_ID + " = ?", new String[] {msgInfo.getMsgId()});
 		notifyObservers(Provider.MsgInfoColumns.NOTIFY_FLAG, NotifyType.UPDATE, msgInfo);
 		
 		if (msgThread != null) {
@@ -1917,7 +1902,7 @@ public class MsgManager extends Observable<Observer> {
 		String subfix = SystemUtil.getFileSubfix(fileName);
 		String mimeType = MimeUtils.guessMimeTypeFromExtension(subfix);
 		part.setMimeType(mimeType);
-		part.setMsgId(msgInfo.getId());
+		part.setMsgId(msgInfo.getMsgId());
 		part.setSize(photoItem.getSize());
 		part.setCreationDate(time);
 
@@ -1956,7 +1941,7 @@ public class MsgManager extends Observable<Observer> {
 		String subfix = SystemUtil.getFileSubfix(part.getFileName());
 		String mimeType = MimeUtils.guessMimeTypeFromExtension(subfix);
 		part.setMimeType(mimeType);
-		part.setMsgId(msgInfo.getId());
+		part.setMsgId(msgInfo.getMsgId());
 		part.setSize(file.length());
 		part.setCreationDate(System.currentTimeMillis());
 		
@@ -2117,7 +2102,7 @@ public class MsgManager extends Observable<Observer> {
 		SQLiteDatabase db = mChatDBHelper.getWritableDatabase();
 		ContentValues values = new ContentValues(1);
 		values.put(Provider.MsgPartColumns.DOWNLOADED, msgPart.isDownloaded() ? 1 : 0);
-		int count = db.update(Provider.MsgPartColumns.TABLE_NAME, values, Provider.MsgPartColumns.MSG_ID + " = ?", new String[] {String.valueOf(msgPart.getMsgId())});
+		int count = db.update(Provider.MsgPartColumns.TABLE_NAME, values, Provider.MsgPartColumns.MSG_ID + " = ?", new String[] {msgPart.getMsgId()});
 		if (count > 0 && refreshUi) {
 			notifyObservers(Provider.MsgPartColumns.NOTIFY_FLAG, NotifyType.UPDATE, msgPart);
 			return true;

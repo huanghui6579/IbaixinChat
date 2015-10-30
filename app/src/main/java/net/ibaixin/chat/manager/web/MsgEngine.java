@@ -63,7 +63,7 @@ public class MsgEngine {
             }
             DownloadRequest downloadRequest = new DownloadRequest();
             downloadRequest.setUrl(builder.toString())
-                    .setDownloadId(downloadItem.getMsgId())
+                    .setDownloadId(downloadItem.getMsgId().hashCode())
                     .setDestFilePath(destFilePath)
                     .setDownloadListener(downloadListener);
             if (downloadManager != null) {

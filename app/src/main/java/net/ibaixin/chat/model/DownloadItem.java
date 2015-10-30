@@ -9,7 +9,7 @@ public abstract class DownloadItem {
     /**
      * 消息的id
      */
-    protected int msgId;
+    protected String msgId;
     /**
      * 文件的全路径
      */
@@ -87,11 +87,11 @@ public abstract class DownloadItem {
         this.downloadType = downloadType;
     }
 
-    public int getMsgId() {
+    public String getMsgId() {
         return msgId;
     }
 
-    public void setMsgId(int msgId) {
+    public void setMsgId(String msgId) {
         this.msgId = msgId;
     }
 }

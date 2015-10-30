@@ -849,44 +849,6 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 //		}
 //	}
 	
-	/**
-	 * 根据声音的大小来动态显示对应的图片
-	 * @update 2014年11月24日 下午9:55:32
-	 * @param signalEMA
-	 */
-	/*private void updateDisplay(double signalEMA) {
-		
-		switch ((int) signalEMA) {
-		case 0:
-		case 1:
-			ivVolume.setImageResource(R.drawable.amp1);
-			break;
-		case 2:
-		case 3:
-			ivVolume.setImageResource(R.drawable.amp2);
-			
-			break;
-		case 4:
-		case 5:
-			ivVolume.setImageResource(R.drawable.amp3);
-			break;
-		case 6:
-		case 7:
-			ivVolume.setImageResource(R.drawable.amp4);
-			break;
-		case 8:
-		case 9:
-			ivVolume.setImageResource(R.drawable.amp5);
-			break;
-		case 10:
-		case 11:
-			ivVolume.setImageResource(R.drawable.amp6);
-			break;
-		default:
-			ivVolume.setImageResource(R.drawable.amp7);
-			break;
-		}
-	}*/
 
 	@Override
 	protected void addListener() {
@@ -1107,7 +1069,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 //					msgPart.setMimeTye(MimeUtils.guessMimeTypeFromExtension(subfix));
 					msgPart.setMimeType(MimeUtils.MIME_TYPE_AUDIO_AMR);
 					msgPart.setSize(file.length());
-					
+					msgPart.setMsgId(msgInfo.getMsgId());
 					msgInfo.setMsgPart(msgPart);
 					
 					mMsgInfos.add(msgInfo);
@@ -1652,8 +1614,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	/**
 	 * 发送文本消息
 	 * @update 2014年11月6日 下午9:46:44
-	 * @param chat
-	 * @param content
+	 * @param msgInfo 消息实体信息
 	 * @return
 	 */
 	private MsgInfo sendMsg(MsgInfo msgInfo) {
@@ -1685,7 +1646,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	
 	/**
 	 * 发送输入状态的消息
-	 * @param msgInfo
+	 * @param state 消息的状态
 	 * @update 2015年9月12日 下午4:48:08
 	 */
 	private void sendStateMsg(ChatState state) {
@@ -2747,7 +2708,6 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	/**
 	 * 停止播放语音文件
 	 * @update 2015年2月11日 下午9:10:13
-	 * @param filePath 播放的文件的全路径
 	 * @param animation 动画图片资源
 	 * @param itemType 消息类型，分为接收的消息和发出的消息
 	 * @param view 填充资源图片的view
@@ -3041,10 +3001,10 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 									@Override
 									public void run() {
 										MsgPart msgPart = (MsgPart) data;
-										int msgId = msgPart.getMsgId();
+										String msgId = msgPart.getMsgId();
 										boolean download = msgPart.isDownloaded();
 										MsgInfo tmpInfo = new MsgInfo();
-										tmpInfo.setId(msgId);
+										tmpInfo.setMsgId(msgId);
 										int index = mMsgInfos.indexOf(tmpInfo);
 										if (index != -1) {	//存在
 											MsgInfo msgInfo = mMsgInfos.get(index);
