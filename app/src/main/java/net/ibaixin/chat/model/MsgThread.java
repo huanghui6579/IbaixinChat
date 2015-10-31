@@ -1,15 +1,15 @@
 package net.ibaixin.chat.model;
 
+import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import net.ibaixin.chat.util.SystemUtil;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.os.Parcel;
-import android.os.Parcelable;
-import net.ibaixin.chat.util.SystemUtil;
 
 /**
  * 消息的会话，一个会话包含多条消息，一个人与另一个人之间只有一个会话
@@ -43,9 +43,9 @@ public class MsgThread implements Parcelable, Comparator<MsgThread> {
 	private long modifyDate;
 	
 	/**
-	 * 最后一条消息的id
+	 * 最后一条消息的msgId
 	 */
-	private int snippetId;
+	private String snippetId;
 	
 	/**
 	 * 最后一条消息的内容，主要用户会话列表的展示
@@ -107,11 +107,11 @@ public class MsgThread implements Parcelable, Comparator<MsgThread> {
 		this.modifyDate = modifyDate;
 	}
 
-	public int getSnippetId() {
+	public String getSnippetId() {
 		return snippetId;
 	}
 
-	public void setSnippetId(int snippetId) {
+	public void setSnippetId(String snippetId) {
 		this.snippetId = snippetId;
 	}
 

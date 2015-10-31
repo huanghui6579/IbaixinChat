@@ -1,10 +1,12 @@
 package net.ibaixin.chat.model;
 
-import java.util.Comparator;
-
-import net.ibaixin.chat.util.Constants;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import net.ibaixin.chat.util.Constants;
+import net.ibaixin.chat.util.SystemUtil;
+
+import java.util.Comparator;
 
 /**
  * 聊天消息实体类
@@ -17,6 +19,10 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 	 * 主键
 	 */
 	private int id;
+	/**
+	 * uuid，可看作主键
+	 */
+	private String msgId;
 	/**
 	 * 会话id
 	 */
@@ -171,7 +177,15 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 	public String getToJid() {
 		return toUser + "@" + Constants.SERVER_NAME;
 	}
-	
+
+	public String getMsgId() {
+		return msgId;
+	}
+
+	public void setMsgId(String msgId) {
+		this.msgId = msgId;
+	}
+
 	/**
 	 * 获取摘要信息，长度为100
 	 * @return
@@ -190,14 +204,22 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 
 	@Override
 	public String toString() {
-		return "MsgInfo [id=" + id + ", threadID=" + threadID + ", fromUser="
-				+ fromUser + ", toUser=" + toUser + ", content=" + content
-				+ ", subject=" + subject + ", creationDate=" + creationDate
-				+ ", isComming=" + isComming + ", isRead=" + isRead
-				+ ", msgPart=" + msgPart + ", msgType=" + msgType
-				+ ", sendState=" + sendState + "]";
+		return "MsgInfo{" +
+				"id=" + id +
+				", msgId='" + msgId + '\'' +
+				", threadID=" + threadID +
+				", fromUser='" + fromUser + '\'' +
+				", toUser='" + toUser + '\'' +
+				", content='" + content + '\'' +
+				", subject='" + subject + '\'' +
+				", creationDate=" + creationDate +
+				", isComming=" + isComming +
+				", isRead=" + isRead +
+				", msgPart=" + msgPart +
+				", msgType=" + msgType +
+				", sendState=" + sendState +
+				'}';
 	}
-
 
 	/**
 	 * 消息的分类，主要有:
@@ -369,9 +391,11 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 		dest.writeParcelable(msgPart, flags);
 		dest.writeInt(msgType.ordinal());
 		dest.writeInt(sendState.ordinal());
+		dest.writeString(msgId);
 	}
 	
 	public MsgInfo() {
+		msgId = SystemUtil.generateUUID();
 	}
 	
 	public MsgInfo(Parcel in) {
@@ -387,6 +411,7 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 		msgPart = in.readParcelable(MsgPart.class.getClassLoader());
 		msgType = Type.valueOf(in.readInt());
 		sendState = SendState.valueOf(in.readInt());
+		msgId = in.readString();
 	}
 	
 	public static final Creator<MsgInfo> CREATOR = new Creator<MsgInfo>() {

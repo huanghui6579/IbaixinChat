@@ -20,9 +20,9 @@ public class MsgPart implements Parcelable, Cloneable {
 	 */
 	private int id;
 	/**
-	 * 文件所属的消息，依赖于{@link MsgInfo}的id
+	 * 文件所属的消息，依赖于{@link MsgInfo}的msgId
 	 */
-	private int msgId;
+	private String msgId;
 	/**
 	 * 文件名称，不含有路径名称，但含有文件的格式后缀名
 	 */
@@ -78,11 +78,11 @@ public class MsgPart implements Parcelable, Cloneable {
 		this.id = id;
 	}
 
-	public int getMsgId() {
+	public String getMsgId() {
 		return msgId;
 	}
 
-	public void setMsgId(int msgId) {
+	public void setMsgId(String msgId) {
 		this.msgId = msgId;
 	}
 
@@ -179,28 +179,22 @@ public class MsgPart implements Parcelable, Cloneable {
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + id;
-		result = prime * result + msgId;
-		return result;
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		MsgPart msgPart = (MsgPart) o;
+
+		if (id != msgPart.id) return false;
+		return !(msgId != null ? !msgId.equals(msgPart.msgId) : msgPart.msgId != null);
+
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		MsgPart other = (MsgPart) obj;
-		if (id != other.id)
-			return false;
-		if (msgId != other.msgId)
-			return false;
-		return true;
+	public int hashCode() {
+		int result = id;
+		result = 31 * result + (msgId != null ? msgId.hashCode() : 0);
+		return result;
 	}
 
 	@Override
@@ -232,7 +226,7 @@ public class MsgPart implements Parcelable, Cloneable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeInt(id);
-		dest.writeInt(msgId);
+		dest.writeString(msgId);
 		dest.writeString(fileName);
 		dest.writeString(filePath);
 		dest.writeString(mimeType);
@@ -250,7 +244,7 @@ public class MsgPart implements Parcelable, Cloneable {
 	
 	public MsgPart(Parcel in) {
 		id = in.readInt();
-		msgId = in.readInt();
+		msgId = in.readString();
 		fileName = in.readString();
 		filePath = in.readString();
 		mimeType = in.readString();

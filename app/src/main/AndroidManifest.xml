@@ -58,6 +58,9 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
+    <!-- 要使用相机,但不是必需的 -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"

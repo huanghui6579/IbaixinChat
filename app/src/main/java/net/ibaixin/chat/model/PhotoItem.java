@@ -50,7 +50,7 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 		dest.writeInt(needDownload ? 1 : 0);
 		dest.writeString(fileToken);
 		dest.writeInt(downloadType);
-		dest.writeInt(msgId);
+		dest.writeString(msgId);
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 		needDownload = in.readInt() == 1;
 		fileToken = in.readString();
 		downloadType = in.readInt();
-		msgId = in.readInt();
+		msgId = in.readString();
 	}
 	
 	public static final Creator<PhotoItem> CREATOR = new Creator<PhotoItem>() {

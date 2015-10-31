@@ -149,7 +149,7 @@ public class SystemUtil {
 	 */
 	public static void showSoftInput(View view) {
 		InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.showSoftInput(view,InputMethodManager.SHOW_FORCED);
+		imm.showSoftInput(view, InputMethodManager.SHOW_FORCED);
 	}
 	
 	/**
@@ -1167,9 +1167,9 @@ public class SystemUtil {
 	 */
 	public static DisplayImageOptions getAlbumVideoOptions() {
 		DisplayImageOptions options = new DisplayImageOptions.Builder()
-				.showImageOnLoading(R.drawable.ic_video_default)
-				.showImageForEmptyUri(R.drawable.ic_video_default)
-				.showImageOnFail(R.drawable.ic_video_default)
+				.showImageOnLoading(R.drawable.ic_image_default)
+				.showImageForEmptyUri(R.drawable.ic_image_default)
+				.showImageOnFail(R.drawable.ic_image_default)
 				.cacheInMemory(true)
 				.cacheOnDisk(true)
 				.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
@@ -1758,17 +1758,49 @@ public class SystemUtil {
 	public static String generatePhotoPath() {
 		return generatePhotoFile().getAbsolutePath();
 	}
-	
+
+	/**
+	 * 生成拍照图片的全路径
+	 * @return
+	 */
 	public static File generatePhotoFile() {
+		File file = generateMediaFile();
+		return new File(file, generateFilename("jpg"));
+	}
+
+	/**
+	 * 生成拍摄视频的全路径
+	 * @return
+	 */
+	public static File generateVideoFile() {
+		File file = generateMediaFile();
+		return new File(file, generateFilename("mp4"));
+	}
+
+	/**
+	 * 生成相机拍摄视频后视频文件的名称，如/mnt/sdcard/ChatApp/DCIM/2014_11_24_21_41_56_543546.mp4
+	 * @author tiger
+	 * @update 2015年3月13日 上午12:01:59
+	 * @return
+	 */
+	public static String generateVideoPath() {
+		return generateVideoFile().getAbsolutePath();
+	}
+
+	/**
+	 * 生成多媒体文件的路径，主要是图片和视频
+	 * @return
+	 */
+	private static File generateMediaFile() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getDefaultAppPath())
-			.append(File.separator)
-			.append("DCIM");
+				.append(File.separator)
+				.append("DCIM");
 		File file = new File(sb.toString());
 		if (!file.exists()) {
 			file.mkdirs();
 		}
-		return new File(file, generateFilename("jpg"));
+		return file;
 	}
 	
 	/**
@@ -2722,35 +2754,46 @@ public class SystemUtil {
             return false;
         }
     }
-    /**
-    * 判断字符是否是中文
-    * @param c 字符
-    * @return 是否是中文
-    */
-   public static boolean isChinese(char c) {
-       Character.UnicodeBlock ub = Character.UnicodeBlock.of(c);
-       if (ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
-               || ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
-               || ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
-               || ub == Character.UnicodeBlock.GENERAL_PUNCTUATION
-               || ub == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION
-               || ub == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS) {
-           return true;
-       }
-       return false;
-   }
-   
-   /**
-    * 检测某个权限是否可用
-    * @param context
-    * @param permission
-    * @return
-    * @update 2015年9月14日 下午7:25:07
-    */
-   public static boolean isPermissionEnable(Context context, String permission) {
-       String pkgName = context.getPackageName();
-       // 结果为0则表示使用了该权限，-1则表求没有使用该权限
-       int reslut = context.getPackageManager().checkPermission(permission, pkgName);
-       return reslut == 0;
-   }
+
+	/**
+	 * 判断字符是否是中文
+	 *
+	 * @param c 字符
+	 * @return 是否是中文
+	 */
+	public static boolean isChinese(char c) {
+		Character.UnicodeBlock ub = Character.UnicodeBlock.of(c);
+		if (ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
+				|| ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
+				|| ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+				|| ub == Character.UnicodeBlock.GENERAL_PUNCTUATION
+				|| ub == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION
+				|| ub == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 检测某个权限是否可用
+	 *
+	 * @param context
+	 * @param permission
+	 * @return
+	 * @update 2015年9月14日 下午7:25:07
+	 */
+	public static boolean isPermissionEnable(Context context, String permission) {
+		String pkgName = context.getPackageName();
+		// 结果为0则表示使用了该权限，-1则表求没有使用该权限
+		int reslut = context.getPackageManager().checkPermission(permission, pkgName);
+		return reslut == 0;
+	}
+
+	/**
+	 * 获取uuid
+	 * @return uuid
+	 */
+	public static String generateUUID() {
+		return UUID.randomUUID().toString();
+	}
 }

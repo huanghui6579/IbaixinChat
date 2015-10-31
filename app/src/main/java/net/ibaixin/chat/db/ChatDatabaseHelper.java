@@ -1,9 +1,10 @@
 package net.ibaixin.chat.db;
 
-import net.ibaixin.chat.provider.Provider;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import net.ibaixin.chat.provider.Provider;
 
 /**
  * 数据库创建
@@ -13,7 +14,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class ChatDatabaseHelper extends SQLiteOpenHelper {
 	public static final String DB_NAME = "ibaixin_chat.db";
-	private static final int DB_VERSION = 8;
+	private static final int DB_VERSION = 9;
 	
 	public ChatDatabaseHelper(Context context) {
 		this(context, null);
@@ -61,7 +62,8 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 		
 		//创建聊天消息表
 		db.execSQL("CREATE TABLE " + Provider.MsgInfoColumns.TABLE_NAME + " ("
-				+ Provider.MsgInfoColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ Provider.MsgInfoColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+				+ Provider.MsgInfoColumns.MSG_ID + " TEXT UNIQUE NOT NULL, "
 				+ Provider.MsgInfoColumns.THREAD_ID + " INTEGER NOT NULL, "
 				+ Provider.MsgInfoColumns.FROM_USER + " TEXT NOT NULL, "
 				+ Provider.MsgInfoColumns.TO_USER + " TEXT NOT NULL, "
@@ -76,7 +78,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 		//创建聊天消息的附件表
 		db.execSQL("CREATE TABLE " + Provider.MsgPartColumns.TABLE_NAME + " ("
 				+ Provider.MsgPartColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-				+ Provider.MsgPartColumns.MSG_ID + " INTEGER NOT NULL, "
+				+ Provider.MsgPartColumns.MSG_ID + " TEXT UNIQUE NOT NULL, "
 				+ Provider.MsgPartColumns.FILE_NAME + " TEXT NOT NULL, "
 				+ Provider.MsgPartColumns.FILE_PATH + " TEXT NOT NULL, "
 				+ Provider.MsgPartColumns.SIZE + " LONG, "
@@ -93,7 +95,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 				+ Provider.MsgThreadColumns.MSG_THREAD_NAME + " TEXT, "
 				+ Provider.MsgThreadColumns.UNREAD_COUNT + " INTEGER, "
 				+ Provider.MsgThreadColumns.MODIFY_DATE + " LONG, "
-				+ Provider.MsgThreadColumns.SNIPPET_ID + " INTEGER, "
+				+ Provider.MsgThreadColumns.SNIPPET_ID + " TEXT, "
 				+ Provider.MsgThreadColumns.SNIPPET_CONTENT + " TEXT, "
 				+ Provider.MsgThreadColumns.MEMBER_IDS + " TEXT, "
 				+ Provider.MsgThreadColumns.IS_TOP + " INTEGER DEFAULT 0);");
@@ -115,6 +117,12 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 		
 		//添加用户表的username索引
 		createUsernameIndex(db);
+		
+		//添加消息表的msgId字段的索引
+		createMsgIdIndex(db);
+		
+		//添加消息附件表的msgId字段的索引
+		createMsgIdPartIndex(db);
 		
 		//创建t_msg_info更新isRead=1时，更新t_msg_thread表的unReadCount-1
 		createCountUnreadMsgTrigger(db);
@@ -148,11 +156,12 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 			//创建删除用户后，同时删除用户对应的电子名片,会话的触发器
 			createDeleteUserTrigger(db);
 			break;
-
 		default:
 			//删除电子名片的索引
 			db.execSQL("DROP INDEX IF EXISTS " + Provider.UserVcardColumns.USERID_INDEX);  
 			db.execSQL("DROP INDEX IF EXISTS " + Provider.UserColumns.USERNAME_INDEX);  
+			db.execSQL("DROP INDEX IF EXISTS " + Provider.MsgInfoColumns.MSGID_INDEX);  
+			db.execSQL("DROP INDEX IF EXISTS " + Provider.MsgPartColumns.MSGID_PART_INDEX);  
 			
 			//删除会话更新未读信息数量的触发器
 			db.execSQL("DROP TRIGGER IF EXISTS " + Provider.MsgInfoColumns.EVENT_COUNT_UNREAD_MSG);  
@@ -191,6 +200,42 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 			.append(Provider.UserColumns.USERNAME)
 			.append(");");
 		//添加用户表的username索引
+		db.execSQL(sb.toString());
+	}
+
+	/**
+	 * 创建t_msg_info表中的msgId索引
+	 * @param db
+	 */
+	private void createMsgIdIndex(SQLiteDatabase db) {
+		//CREATE UNIQUE INDEX 'msg_id_idx' ON t_msg_info (msgId);
+		StringBuilder sb = new StringBuilder();
+		sb.append("CREATE UNIQUE INDEX IF NOT EXISTS ")
+			.append(Provider.MsgInfoColumns.MSGID_INDEX)
+			.append(" ON ")
+			.append(Provider.MsgInfoColumns.TABLE_NAME)
+			.append("(")
+			.append(Provider.MsgInfoColumns.MSG_ID)
+			.append(");");
+		//添加消息表的msgId索引
+		db.execSQL(sb.toString());
+	}
+
+	/**
+	 * 创建t_msg_part表中的msgId索引
+	 * @param db
+	 */
+	private void createMsgIdPartIndex(SQLiteDatabase db) {
+		//CREATE UNIQUE INDEX 'msg_id_part_idx' ON t_msg_part(msgId);
+		StringBuilder sb = new StringBuilder();
+		sb.append("CREATE UNIQUE INDEX IF NOT EXISTS ")
+			.append(Provider.MsgPartColumns.MSGID_PART_INDEX)
+			.append(" ON ")
+			.append(Provider.MsgInfoColumns.TABLE_NAME)
+			.append("(")
+			.append(Provider.MsgInfoColumns.MSG_ID)
+			.append(");");
+		//添加消息表的msgId索引
 		db.execSQL(sb.toString());
 	}
 	

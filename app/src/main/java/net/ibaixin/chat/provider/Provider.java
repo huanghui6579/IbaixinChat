@@ -155,6 +155,11 @@ public class Provider {
 		 * 更新回话摘要的触发器
 		 */
 		public static final String EVENT_UPDATE_THREAD_SNIPPET = "update_thread_snippet_event";
+
+		/**
+		 * msgId字段的索引
+		 */
+		public static final String MSGID_INDEX = "msg_id_idx";
 		
 		/**
 		 * 通知标识，主要是区分别的通知内容
@@ -165,6 +170,7 @@ public class Provider {
         public static final String DEFAULT_SORT_ORDER = "creationDate DESC";	//按时间降序，后面的消息先查出来
         public static final String REVERSAL_SORT_ORDER = "creationDate ASC";	//默认按时间升序，后面的消息后查出来
         
+		public static final String MSG_ID = "msgId";
         public static final String THREAD_ID = "threadID";
         public static final String FROM_USER = "fromUser";
         public static final String TO_USER = "toUser";
@@ -176,7 +182,7 @@ public class Provider {
         public static final String MSG_TYPE = "msgType";
         public static final String SEND_STATE = "sendState";
         
-		public static final String[] DEFAULT_PROJECTION = {_ID, THREAD_ID, FROM_USER, TO_USER, CONTENT, SUBJECT, CREATIO_NDATE, IS_COMMING, IS_READ, MSG_TYPE, SEND_STATE};
+		public static final String[] DEFAULT_PROJECTION = {_ID, MSG_ID, THREAD_ID, FROM_USER, TO_USER, CONTENT, SUBJECT, CREATIO_NDATE, IS_COMMING, IS_READ, MSG_TYPE, SEND_STATE};
 		
 		public static final String DEAULT_NULL_COLUMN = THREAD_ID;
 	}
@@ -190,6 +196,11 @@ public class Provider {
 		public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY_MSG + "/msgParts");
 		public static final String TABLE_NAME = "t_msg_part";
 		public static final String DEFAULT_SORT_ORDER = "msgId DESC";
+
+		/**
+		 * msgId字段的索引
+		 */
+		public static final String MSGID_PART_INDEX = "msg_id_part_idx";
 		
 		/**
 		 * 通知标识，主要是区分别的通知内容
