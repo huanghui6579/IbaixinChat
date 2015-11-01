@@ -1,13 +1,5 @@
 package net.ibaixin.chat.activity;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -18,7 +10,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
-import android.text.TextUtils;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,6 +23,11 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.loader.FileItemLoder;
 import net.ibaixin.chat.manager.MsgManager;
@@ -41,6 +37,10 @@ import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.NativeUtil;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.view.ProgressWheel;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 文件浏览的界面
@@ -317,6 +317,7 @@ public class FileExplorerActivity extends BaseActivity implements LoaderCallback
 			File file = fileItem.getFile();
 			holder.tvTitle.setText(file.getName());
 			holder.tvContent.setText(SystemUtil.formatTime(file.lastModified(), Constants.DATEFORMA_TPATTERN_DEFAULT));
+			holder.ivIcon.setTag(position);
 			if (file.isDirectory()) {	//文件夹
 				holder.ivIcon.setImageResource(R.drawable.ic_folder);
 				String desc = null;
@@ -350,20 +351,20 @@ public class FileExplorerActivity extends BaseActivity implements LoaderCallback
 				holder.ivIcon.setImageResource(resId);
 				switch (fileItem.getFileType()) {
 				case IMAGE:	//图片,则直接加载图片缩略图
-					String imagePath = msgManager.getImageThumbPath(filePath);
+					/*String imagePath = msgManager.getImageThumbPath(filePath);
 					if (TextUtils.isEmpty(imagePath)) {
 						imagePath = filePath;
-					}
-					mImageLoader.displayImage(Scheme.FILE.wrap(imagePath), holder.ivIcon, options);
+					}*/
+					mImageLoader.displayImage(Scheme.FILE.wrap(filePath), holder.ivIcon, options);
 					break;
-				case AUDIO:	//音频
-					String thumbPath = msgManager.getAudioThumbPath(filePath);
+				/*case AUDIO:	//音频
+					String thumbPath = msgManager.getVideoThumbPath(filePath);
 					if (!TextUtils.isEmpty(thumbPath)) {
 						mImageLoader.displayImage(Scheme.FILE.wrap(thumbPath), holder.ivIcon, options);
 					}
-					break;
+					break;*/
 				case APK:	//安装文件
-					new LoadApkIconTask(holder).execute(filePath);
+					new LoadApkIconTask(holder, position).execute(filePath);
 					break;
 				default:
 					break;
@@ -415,9 +416,12 @@ public class FileExplorerActivity extends BaseActivity implements LoaderCallback
 	 */
 	class LoadApkIconTask extends AsyncTask<String, Drawable, Drawable> {
 		FileItemViewHolder holder;
-		public LoadApkIconTask(FileItemViewHolder holder) {
+		private int position;
+
+		public LoadApkIconTask(FileItemViewHolder holder, int position) {
 			super();
 			this.holder = holder;
+			this.position = position;
 		}
 		@Override
 		protected Drawable doInBackground(String... params) {
@@ -427,7 +431,11 @@ public class FileExplorerActivity extends BaseActivity implements LoaderCallback
 		@Override
 		protected void onPostExecute(Drawable result) {
 			if(result != null) {
-				holder.ivIcon.setImageDrawable(result);
+				Integer tag = (Integer) holder.ivIcon.getTag();
+				int tagPos = tag == null ? -1 : tag.intValue();
+				if (tagPos == position) {
+					holder.ivIcon.setImageDrawable(result);
+				}
 			}
 			super.onPostExecute(result);
 		}

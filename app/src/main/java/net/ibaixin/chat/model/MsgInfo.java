@@ -335,28 +335,22 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + id;
-		result = prime * result + threadID;
-		return result;
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		MsgInfo msgInfo = (MsgInfo) o;
+
+		if (threadID != msgInfo.threadID) return false;
+		return !(msgId != null ? !msgId.equals(msgInfo.msgId) : msgInfo.msgId != null);
+
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		MsgInfo other = (MsgInfo) obj;
-		if (id != other.id)
-			return false;
-		if (threadID != other.threadID)
-			return false;
-		return true;
+	public int hashCode() {
+		int result = msgId != null ? msgId.hashCode() : 0;
+		result = 31 * result + threadID;
+		return result;
 	}
 
 	@Override

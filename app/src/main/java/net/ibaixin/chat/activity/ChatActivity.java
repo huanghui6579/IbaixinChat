@@ -88,7 +88,6 @@ import net.ibaixin.chat.util.ImageUtil;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
 import net.ibaixin.chat.util.Observable;
-import net.ibaixin.chat.util.Observer;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.view.ProgressDialog;
@@ -105,7 +104,6 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -2365,62 +2363,64 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 					.adapter(new MenuItemAdapter(menus, mContext))
 					.build();
 				ListView listView = dialog.getListView();
-				listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+				if (listView != null) {
+					listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-					@Override
-					public void onItemClick(AdapterView<?> parent, View view,
-							int position, long id) {
-						switch ((int) id) {
-						case MENU_COPY:	//复制
-						    SystemUtil.copyText(msgInfo.getContent());
-							break;
-						case MENU_FORWARD:	//转发
-							break;
-						case MENU_DELETE:	//删除
-							pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading), true);
-							SystemUtil.getCachedThreadPool().execute(new Runnable() {
-								
-								@Override
-								public void run() {
-									pDialog.dismiss();
-									if (msgManager.deleteMsgInfoById(msgInfo, msgThread)) {
-										mMsgInfos.remove(msgInfo);
-										minusMsgTotalCount();
-										mHandler.sendEmptyMessage(Constants.MSG_SUCCESS);
-									} else {
-										mHandler.sendEmptyMessage(Constants.MSG_FAILED);
-									}
-								}
-							});
-							break;
-						case MENU_SHARE:	//分享
-							if (Type.TEXT != msgInfo.getMsgType()) {//除了文本外
-								String filepath = msgInfo.getMsgPart().getFilePath();
-								if(SystemUtil.isFileExists(filepath)){
-									Intent in = new Intent(Intent.ACTION_SEND);// 启动分享发送到属性
-									in.setType(msgInfo.getMsgPart().getMimeType());// 分享发送到数据类型
-									in.putExtra(Intent.EXTRA_STREAM,Uri.parse("file://"+filepath));// 分享的内容
-									in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);// 允许intent启动新的activity
-									startActivity(Intent.createChooser(in,getResources().getString(R.string.share)));// 目标应用选择对话框的标题
-								}else{
-									SystemUtil.makeShortToast(R.string.file_not_exists);
-								}
-							}else{
-								Intent intent=new Intent(Intent.ACTION_SEND);
-								intent.setType("text/plain");
+						@Override
+						public void onItemClick(AdapterView<?> parent, View view,
+												int position, long id) {
+							switch ((int) id) {
+								case MENU_COPY:	//复制
+									SystemUtil.copyText(msgInfo.getContent());
+									break;
+								case MENU_FORWARD:	//转发
+									break;
+								case MENU_DELETE:	//删除
+									pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading), true);
+									SystemUtil.getCachedThreadPool().execute(new Runnable() {
+
+										@Override
+										public void run() {
+											pDialog.dismiss();
+											if (msgManager.deleteMsgInfoById(msgInfo, msgThread)) {
+												mMsgInfos.remove(msgInfo);
+												minusMsgTotalCount();
+												mHandler.sendEmptyMessage(Constants.MSG_SUCCESS);
+											} else {
+												mHandler.sendEmptyMessage(Constants.MSG_FAILED);
+											}
+										}
+									});
+									break;
+								case MENU_SHARE:	//分享
+									if (Type.TEXT != msgInfo.getMsgType()) {//除了文本外
+										String filepath = msgInfo.getMsgPart().getFilePath();
+										if(SystemUtil.isFileExists(filepath)){
+											Intent in = new Intent(Intent.ACTION_SEND);// 启动分享发送到属性
+											in.setType(msgInfo.getMsgPart().getMimeType());// 分享发送到数据类型
+											in.putExtra(Intent.EXTRA_STREAM,Uri.parse("file://"+filepath));// 分享的内容
+											in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);// 允许intent启动新的activity
+											startActivity(Intent.createChooser(in,getResources().getString(R.string.share)));// 目标应用选择对话框的标题
+										}else{
+											SystemUtil.makeShortToast(R.string.file_not_exists);
+										}
+									}else{
+										Intent intent=new Intent(Intent.ACTION_SEND);
+										intent.setType("text/plain");
 //					             intent.setType("image/*");
 //								intent.putExtra(Intent.EXTRA_SUBJECT, "百信趣味阅读");
-								intent.putExtra(Intent.EXTRA_TEXT, msgInfo.getContent()+"【来自百信趣味阅读】");
-								intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-								startActivity(Intent.createChooser(intent, getResources().getString(R.string.share)));
+										intent.putExtra(Intent.EXTRA_TEXT, msgInfo.getContent()+"【来自百信趣味阅读】");
+										intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+										startActivity(Intent.createChooser(intent, getResources().getString(R.string.share)));
+									}
+									break;
+								default:
+									break;
 							}
-							break;
-						default:
-							break;
+							dialog.dismiss();
 						}
-						dialog.dismiss();
-					}
-				});
+					});
+				}
 				dialog.show();
 				return true;
 			} else {

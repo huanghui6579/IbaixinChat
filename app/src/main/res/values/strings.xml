@@ -152,7 +152,8 @@
     <string name="album_item_content">"%1$s\r\n%2$d张"</string>
     <string name="album_item_video_content">"%1$s\r\n%2$d个"</string>
     <string name="album_photo_chose_error">文件选择错误</string>
-    
+    <string name="album_no_data">没有更多记录</string>
+
     <string name="msg_thread_snippet_content_audio">[音频]%1$s</string>
     <string name="msg_thread_snippet_content_image">[图片]%1$s</string>
     <string name="msg_thread_snippet_content_video">[视频]%1$s</string>

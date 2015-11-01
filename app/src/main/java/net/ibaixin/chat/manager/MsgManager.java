@@ -1676,7 +1676,7 @@ public class MsgManager extends Observable<Observer> {
 	 * @update 2014年11月21日 下午5:44:14
 	 * @return
 	 */
-	public String getAudioThumbPath(String audioPath) {
+	public String getVideoThumbPath(String audioPath) {
 		String path = null;
 		Cursor cursor = mContext.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, new String[] {MediaStore.Video.Media._ID,}, MediaStore.Video.Media.DATA + " = ?", new String[] {audioPath}, null);
 		if (cursor != null && cursor.moveToFirst()) {
@@ -1693,6 +1693,41 @@ public class MsgManager extends Observable<Observer> {
 			cursor.close();
 		}
 		return path;
+	}
+	
+	/**
+	 * 获取视频文件的缩略图和原始文件地址
+	 * @param uri 文件的数据库路径，格式为：content://media/external/video/media/4795
+	 * @return 返回视频文件的路径数组，[0]:原始文件的绝对路径，[1]:视频文件的缩略图
+	 * @author tiger
+	 * @update 2015/11/1 10:59
+	 * @version 1.0.0
+	 */
+	public String[] getVideoThumbPath(Uri uri) {
+		String thumbPath = null;
+		String path = null;
+		String[] array = new String[2];
+		if (uri != null) {
+			String id = uri.getLastPathSegment();
+			//根据ID查询缩略图地址
+			Cursor thumbCursor = mContext.getContentResolver().query(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, new String[]{MediaStore.Video.Thumbnails.DATA}, MediaStore.Video.Thumbnails.VIDEO_ID + " = ?", new String[]{id}, null);
+			if (thumbCursor != null && thumbCursor.moveToFirst()) {
+				thumbPath = thumbCursor.getString(0);
+			}
+			if (thumbCursor != null) {
+				thumbCursor.close();
+			}
+			Cursor cursor = mContext.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, new String[] {MediaStore.Video.Media.DATA,}, MediaStore.Video.Media._ID + " = ?", new String[] {id}, null);
+			if (cursor != null && cursor.moveToFirst()) {
+				path = cursor.getString(0);
+			}
+			if (cursor != null) {
+				cursor.close();
+			}
+		}
+		array[0] = path;
+		array[1] = thumbPath;
+		return array;
 	}
 
 	/**

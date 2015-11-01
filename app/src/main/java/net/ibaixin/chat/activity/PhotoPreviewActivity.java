@@ -186,7 +186,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	/**
 	 * 更新选择原图发送的复选框的样式
 	 * @update 2014年11月15日 下午5:52:01
-	 * @param list
+	 * @param selectSize 当前选择的数量
 	 */
 	private void updateOriginalCheckbox(long selectSize) {
 		if (selectSize > 0) {	//选中了图片
@@ -328,6 +328,9 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			Bundle args = new Bundle();
 			if (!SystemUtil.isEmpty(mPhotos)) {
 				PhotoItem photoItem = mPhotos.get(position);
+				if (msgInfo != null) {
+					photoItem.setMsgId(msgInfo.getMsgId());
+				}
 				args.putParcelable(PhotoFragment.ARG_PHOTO, photoItem);
 			}
 			return android.support.v4.app.Fragment.instantiate(mContext, PhotoFragment.class.getCanonicalName(), args);

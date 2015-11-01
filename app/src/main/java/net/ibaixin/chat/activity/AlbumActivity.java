@@ -168,6 +168,20 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				SystemUtil.makeShortToast(R.string.album_photo_chose_error);
 				setResult(RESULT_CANCELED);
 				break;
+			case Constants.MSG_UPDATE_ONE://局部更新一个文件
+				PhotoItem photoItem = (PhotoItem) msg.obj;
+				if (photoItem != null) {
+					mPhotos.add(0, photoItem);
+
+					Intent intent = new Intent(mContext, PhotoPreviewActivity.class);
+					intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_BROWSE);
+					intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
+					intent.putExtra(ChatActivity.ARG_MSG_INFO, msgInfo);
+					startActivityForResult(intent, REQ_PREVIEW_IMAGE);
+
+					mPhotoAdapter.notifyDataSetChanged();
+				}
+				break;
 			default:
 				break;
 			}
@@ -491,19 +505,19 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				@Override
 				public void onItemClick(AdapterView<?> parent, View view,
 						int position, long id) {
-					albumAdapter.setCurrentPosition(position);
-					togglewindow(mPopupWindow, author);
-					if (position == 0) {	//加载全部
-						new LoadPhotoTask().execute();
-					} else {
-						AlbumItem albumItem = list.get(position);
-						List<PhotoItem> temp = folderMap.get(albumItem.getAlbumName());
-						mPhotos.clear();
-						mPhotos.addAll(temp);
-						resetActionMenu();
-						
-						mPhotoAdapter.clearSelect();
-					}
+				albumAdapter.setCurrentPosition(position);
+				togglewindow(mPopupWindow, author);
+				if (position == 0) {	//加载全部
+					new LoadPhotoTask().execute();
+				} else {
+					AlbumItem albumItem = list.get(position);
+					List<PhotoItem> temp = folderMap.get(albumItem.getAlbumName());
+					mPhotos.clear();
+					mPhotos.addAll(temp);
+					resetActionMenu();
+
+					mPhotoAdapter.clearSelect();
+				}
 				}
 			});
 			
@@ -550,7 +564,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		switch (v.getId()) {
 		case R.id.tv_all_photo:	//所有相册菜单
 			if (SystemUtil.isEmpty(mPhotos)) {
-				SystemUtil.makeShortToast("没有更多记录");
+				SystemUtil.makeShortToast(R.string.album_no_data);
 			} else {
 				showPopupWindow(v);
 			}
@@ -592,6 +606,8 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
 				intent.putExtra(ChatActivity.ARG_MSG_INFO, msgInfo);
 				startActivityForResult(intent, REQ_PREVIEW_IMAGE);
+
+				mPhotoAdapter.notifyDataSetChanged();
 				break;
 			case REQ_TAKE_CLIP_PIC:	//裁剪图片
 				SystemUtil.scanFileAsync(mContext, mFilePath);
@@ -599,14 +615,32 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				intent.putExtra(ClipHeadIconActivity.ARG_IMAGE_PATH, mFilePath);
 				startActivityForResult(intent, REQ_CLIP_PIC);
 				break;
-			case REQ_TAKE_VIDEO:	//录视频
-				Uri uri = null;
-				if (data != null) {
-					uri = data.getData();
-					mFilePath = msgManager.getVideoPath(uri);
-				}
-				Log.d("----mFilePath----" + mFilePath);
-				SystemUtil.makeLongToast("---摄像--uri--" + uri + "---filePath---" + mFilePath);
+				case REQ_TAKE_VIDEO:	//录视频
+					if (data != null) {
+						pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading), true);
+						final Uri uri = data.getData();
+						SystemUtil.getCachedThreadPool().execute(new Runnable() {
+							@Override
+							public void run() {
+								String[] pathArray = msgManager.getVideoThumbPath(uri);
+								if (pathArray != null) {
+									//[0]存入的是原始文件的绝对路径
+									mFilePath = pathArray[0];
+									PhotoItem photoItem = new PhotoItem();
+									photoItem.setFilePath(mFilePath);
+									File file = new File(mFilePath);
+									photoItem.setThumbPath(pathArray[1]);
+									photoItem.setSize(file.length());
+									photoItem.setTime(file.lastModified());
+									Log.d("----mFilePath----" + mFilePath);
+									Message msg = mHandler.obtainMessage();
+									msg.obj = photoItem;
+									msg.what = Constants.MSG_UPDATE_ONE;
+									mHandler.sendMessage(msg);
+								}
+							}
+						});
+					}
 				break;
 			default:
 				break;
@@ -640,10 +674,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				if (album != null) {
 					List<PhotoItem> list = album.getmPhotos();
 					folderMap = album.getFolderMap();
-					if (!SystemUtil.isEmpty(list)) {
-						mPhotos.addAll(list);
-						return list;
-					}
+					return list;
 				}
 			}
 			return null;
@@ -651,6 +682,14 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		
 		@Override
 		protected void onPostExecute(List<PhotoItem> result) {
+			mPhotos.clear();
+			if (!SystemUtil.isEmpty(result)) {
+				mPhotos.addAll(result);
+			} else {
+				if (tvAllPhoto.getVisibility() == View.VISIBLE) {
+					tvAllPhoto.setVisibility(View.GONE);
+				}
+			}
 			if (pbLoading.getVisibility() == View.VISIBLE) {
 				pbLoading.setVisibility(View.GONE);
 			}

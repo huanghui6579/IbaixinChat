@@ -20,6 +20,8 @@ public class ChatImagePreviewActivity extends BaseActivity implements PhotoFragm
 	
 	public static final String ARG_IMAGE_PATH = "arg_image_path";
 
+	public static final String ARG_IMAGE_THUMB_PATH = "arg_image_thumb_path";
+
 	@Override
 	protected int getContentView() {
 		return R.layout.activity_container;
