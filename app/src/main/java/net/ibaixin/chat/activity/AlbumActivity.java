@@ -352,7 +352,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		if (isImage && !mIsSingleChoice) {	//是图片且是多选模式下才加载该菜单
+		if (!mIsSingleChoice) {	//是图片且是多选模式下才加载该菜单
 			MenuInflater menuInflater = getMenuInflater();
 			menuInflater.inflate(R.menu.menu_save, menu);
 			mMenuDone = menu.findItem(R.id.action_select_complete);
@@ -878,7 +878,6 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			} else {
 				holder = (PhotoViewHolder) convertView.getTag();
 			}
-			
 			if (position == 0) {	//拍照
 				holder.viewAplha.setVisibility(View.GONE);
 				holder.cbChose.setVisibility(View.GONE);
@@ -896,17 +895,16 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				} else {
 					holder.cbChose.setVisibility(View.VISIBLE);
 				}
+				holder.cbChose.setOnCheckedChangeListener(null);
+				holder.cbChose.setChecked((selectArray.indexOfKey(position) >= 0) ? selectArray.get(position) : false);
+				if(holder.cbChose.isChecked()) {
+					holder.viewAplha.setVisibility(View.VISIBLE);
+				} else {
+					holder.viewAplha.setVisibility(View.GONE);
+				}
+				holder.cbChose.setOnCheckedChangeListener(new OnCheckedChangeListenerImpl(holder, position));
 				if (isImage) {
 					holder.ivFlag.setVisibility(View.GONE);
-					holder.viewAplha.setVisibility(View.VISIBLE);
-					holder.cbChose.setOnCheckedChangeListener(null);
-					holder.cbChose.setChecked((selectArray.indexOfKey(position) >= 0) ? selectArray.get(position) : false);
-					if(holder.cbChose.isChecked()) {
-						holder.viewAplha.setVisibility(View.VISIBLE);
-					} else {
-						holder.viewAplha.setVisibility(View.GONE);
-					}
-					holder.cbChose.setOnCheckedChangeListener(new OnCheckedChangeListenerImpl(holder, position));
 					filePath = photo.getFilePath();
 				} else {
 					holder.ivFlag.setVisibility(View.VISIBLE);
