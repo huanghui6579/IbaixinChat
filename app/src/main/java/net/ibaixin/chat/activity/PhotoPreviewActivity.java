@@ -20,15 +20,20 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.fragment.PhotoFragment;
 import net.ibaixin.chat.manager.MsgManager;
+import net.ibaixin.chat.model.DownloadItem;
+import net.ibaixin.chat.model.FileItem;
 import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.util.Constants;
+import net.ibaixin.chat.util.MimeUtils;
 import net.ibaixin.chat.util.SystemUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,6 +64,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	private ViewPager mViewPager;
 	private CheckBox cbOrigianlImage;
 	private CheckBox cbChose;
+	private TextView mTvFileSize;
 	private View layoutBottom;
 	private MenuItem mMenuDone;
 //	private TextView btnOpt;
@@ -131,6 +137,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		mViewPager = (ViewPager) findViewById(R.id.view_pager);
 		cbOrigianlImage = (CheckBox) findViewById(R.id.cb_original_image);
 		cbChose = (CheckBox) findViewById(R.id.cb_chose);
+		mTvFileSize = (TextView) findViewById(R.id.tv_file_size);
 		layoutBottom = findViewById(R.id.layout_bottom);
 		layoutBottom.setAlpha(0.8f);
 	}
@@ -331,6 +338,11 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				if (msgInfo != null) {
 					photoItem.setMsgId(msgInfo.getMsgId());
 				}
+				if (photoItem.getFileType() == FileItem.FileType.VIDEO) {	//视频文件
+					cbOrigianlImage.setVisibility(View.GONE);
+					mTvFileSize.setVisibility(View.VISIBLE);
+					mTvFileSize.setText(getString(R.string.album_video_size, SystemUtil.sizeToString(photoItem.getSize())));
+				}
 				args.putParcelable(PhotoFragment.ARG_PHOTO, photoItem);
 			}
 			return android.support.v4.app.Fragment.instantiate(mContext, PhotoFragment.class.getCanonicalName(), args);
@@ -344,26 +356,43 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	}
 
 	@Override
-	public void onTap(View view) {
-		if (mAppBar != null) {
-			int bottomHeight = layoutBottom.getHeight();
-			if (mShow) {	//hide
-				mShow = false;
-				ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
-				int height = mAppBar.getHeight();
-				ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(mAppBar).translationY(-height).setInterpolator(new AccelerateInterpolator(2));
-				ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(bottomHeight).setInterpolator(new AccelerateInterpolator(2));
-				anim.play(toolBarAnim)
-					.play(bottomAnim);
-				anim.start();
-			} else {
-				mShow = true;
-				ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
-				ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(-bottomHeight).setInterpolator(new AccelerateInterpolator(2));
-				ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(mAppBar).translationY(0).setInterpolator(new DecelerateInterpolator(2));
-				anim.play(toolBarAnim)
-						.play(bottomAnim);
-				anim.start();
+	public void onTap(View view, FileItem.FileType fileType, DownloadItem downloadItem) {
+		if (FileItem.FileType.VIDEO == fileType) {	//视频文件，则打开
+			if (downloadItem != null) {
+				String filePath = downloadItem.getFilePath();
+				File file = new File(filePath);
+				if (SystemUtil.isFileExists(file)) {	//文件存在
+					Intent intent = MimeUtils.getVideoFileIntent(file);
+					if (intent != null && (intent.resolveActivity(getPackageManager()) != null)) {
+						startActivity(intent);
+					} else {
+						SystemUtil.makeShortToast(R.string.file_open_intent_error);
+					}
+				} else {
+					SystemUtil.makeShortToast(R.string.file_not_exists);
+				}
+			}
+		} else {
+			if (mAppBar != null) {
+				int bottomHeight = layoutBottom.getHeight();
+				if (mShow) {	//hide
+					mShow = false;
+					ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
+					int height = mAppBar.getHeight();
+					ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(mAppBar).translationY(-height).setInterpolator(new AccelerateInterpolator(2));
+					ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(bottomHeight).setInterpolator(new AccelerateInterpolator(2));
+					anim.play(toolBarAnim)
+							.play(bottomAnim);
+					anim.start();
+				} else {
+					mShow = true;
+					ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
+					ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(-bottomHeight).setInterpolator(new AccelerateInterpolator(2));
+					ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(mAppBar).translationY(0).setInterpolator(new DecelerateInterpolator(2));
+					anim.play(toolBarAnim)
+							.play(bottomAnim);
+					anim.start();
+				}
 			}
 		}
 	}

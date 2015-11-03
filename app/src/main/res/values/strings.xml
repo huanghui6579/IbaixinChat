@@ -73,6 +73,8 @@
     <string name="sdcard_not_available">SD卡不可用！</string>
     <string name="file_not_exists">文件不存在或者已损坏！</string>
     
+    <string name="file_open_intent_error">没有对应的软件能打开该文件</string>
+    
     <!-- MainActivity的主菜单 -->
     <string name="action_exit">退出</string>
     <string name="action_search">搜索</string>
@@ -153,6 +155,7 @@
     <string name="album_item_video_content">"%1$s\r\n%2$d个"</string>
     <string name="album_photo_chose_error">文件选择错误</string>
     <string name="album_no_data">没有更多记录</string>
+    <string name="album_video_size">视频大小：%1$s</string>
 
     <string name="msg_thread_snippet_content_audio">[音频]%1$s</string>
     <string name="msg_thread_snippet_content_image">[图片]%1$s</string>

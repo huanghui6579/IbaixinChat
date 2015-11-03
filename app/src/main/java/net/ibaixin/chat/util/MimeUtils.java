@@ -1,5 +1,11 @@
 package net.ibaixin.chat.util;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import net.ibaixin.chat.R;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -7,11 +13,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import net.ibaixin.chat.R;
-import android.content.Intent;
-import android.net.Uri;
-import android.text.TextUtils;
 
 public final class MimeUtils {
 	private static final Map<String, String> mimeTypeToExtensionMap = new HashMap<>();
@@ -557,7 +558,7 @@ public final class MimeUtils {
 	 */
 	public static Intent getVideoFileIntent(File file) {
 		Intent intent = new Intent(Intent.ACTION_VIEW);
-		intent.addCategory(Intent.CATEGORY_DEFAULT);
+//		intent.addCategory(Intent.CATEGORY_DEFAULT);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		intent.putExtra("oneshot", 0);
 		intent.putExtra("configchange", 0);

@@ -2457,7 +2457,7 @@ public class SystemUtil {
 	/**
 	 * 扫描指定的文件夹
 	 * @update 2015年3月13日 上午11:24:56
-	 * @param ctx
+	 * @param context
 	 * @param dir
 	 */
     public static void scanDirAsync(Context context, String dir) {

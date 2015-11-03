@@ -39,6 +39,11 @@ public abstract class DownloadItem {
      */
     protected int downloadType;
 
+    /**
+     * 下载的文件类型
+     */
+    protected FileItem.FileType fileType;
+
     public String getFilePath() {
         return filePath;
     }
@@ -93,5 +98,13 @@ public abstract class DownloadItem {
 
     public void setMsgId(String msgId) {
         this.msgId = msgId;
+    }
+
+    public FileItem.FileType getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(FileItem.FileType fileType) {
+        this.fileType = fileType;
     }
 }

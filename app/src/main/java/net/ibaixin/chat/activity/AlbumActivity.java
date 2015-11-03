@@ -288,28 +288,24 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 //						SystemUtil.makeShortToast("录视频");
 					}
 				} else {
-					if (isImage) {	//进行图片预览
-						Intent intent = null;
-						int reqCode = 0;
-						if (mIsSingleChoice) {	//单选模式,裁剪图像
-							reqCode = REQ_CLIP_PIC;
-							PhotoItem item = (PhotoItem) mPhotoAdapter.getItem(position);
-							intent = new Intent(mContext, ClipHeadIconActivity.class);
-							intent.putExtra(ClipHeadIconActivity.ARG_IMAGE_PATH, item.getFilePath());
-						} else {
-							intent = new Intent(mContext, PhotoPreviewActivity.class);
-							intent.putExtra(PhotoPreviewActivity.ARG_POSITION, position - 1);
-							intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_BROWSE);
-							intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
-							intent.putExtra(ChatActivity.ARG_MSG_INFO, msgInfo);
-							
-							reqCode = REQ_PREVIEW_IMAGE;
-						}
-						ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
-						ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
-					} else {	//直接选择视频
-						SystemUtil.makeShortToast("选择" + position + "位置的视频");
+					Intent intent = null;
+					int reqCode = 0;
+					if (mIsSingleChoice) {	//单选模式,裁剪图像
+						reqCode = REQ_CLIP_PIC;
+						PhotoItem item = (PhotoItem) mPhotoAdapter.getItem(position);
+						intent = new Intent(mContext, ClipHeadIconActivity.class);
+						intent.putExtra(ClipHeadIconActivity.ARG_IMAGE_PATH, item.getFilePath());
+					} else {
+						intent = new Intent(mContext, PhotoPreviewActivity.class);
+						intent.putExtra(PhotoPreviewActivity.ARG_POSITION, position - 1);
+						intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_BROWSE);
+						intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
+						intent.putExtra(ChatActivity.ARG_MSG_INFO, msgInfo);
+						
+						reqCode = REQ_PREVIEW_IMAGE;
 					}
+					ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
+					ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
 					
 				}
 			}

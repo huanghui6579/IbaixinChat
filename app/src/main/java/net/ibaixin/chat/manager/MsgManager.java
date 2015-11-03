@@ -1776,6 +1776,7 @@ public class MsgManager extends Observable<Observer> {
 				Map<String, List<PhotoItem>>  map = new HashMap<>();
 				while (cursor.moveToNext()) {
 					PhotoItem photo = new PhotoItem();
+					photo.setFileType(FileItem.FileType.IMAGE);
 					photo.setFilePath(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA)));
 					String parentName = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
 					photo.setSize(cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.SIZE)));
@@ -1820,6 +1821,7 @@ public class MsgManager extends Observable<Observer> {
 				Map<String, List<PhotoItem>>  map = new HashMap<>();
 				while (cursor.moveToNext()) {
 					PhotoItem photo = new PhotoItem();
+					photo.setFileType(FileItem.FileType.VIDEO);
 					int id = cursor.getInt(cursor.getColumnIndex(MediaStore.Video.Media._ID));
 					photo.setFilePath(cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA)));
 					String parentName = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));

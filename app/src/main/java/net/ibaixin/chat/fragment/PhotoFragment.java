@@ -1,6 +1,6 @@
 package net.ibaixin.chat.fragment;
 
-import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -20,6 +20,8 @@ import net.ibaixin.chat.activity.PhotoPreviewActivity;
 import net.ibaixin.chat.download.DownloadListener;
 import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.manager.web.MsgEngine;
+import net.ibaixin.chat.model.DownloadItem;
+import net.ibaixin.chat.model.FileItem;
 import net.ibaixin.chat.model.MsgPart;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.util.ImageUtil;
@@ -43,7 +45,12 @@ public class PhotoFragment extends BaseFragment {
 	private PowerImageView ivPhoto;
 //	private ProgressWheel pbLoading;
 	private CircleProgressBar pbLoading;
+	private View mIvFlag;
 	private PhotoItem mPhoto;
+	/**
+	 * 是否是视频文件
+	 */
+	private boolean mIsVideo;
 	
 	private FinishCallBackListener mFinishCallBackListener;
 	
@@ -63,19 +70,20 @@ public class PhotoFragment extends BaseFragment {
 		View view = inflater.inflate(R.layout.fragment_photo_preview, container, false);
 		ivPhoto = (PowerImageView) view.findViewById(R.id.iv_photo);
 		pbLoading = (CircleProgressBar) view.findViewById(R.id.pb_loading);
+		mIvFlag = view.findViewById(R.id.iv_flag);
 //		pbLoading.setVisibility(View.GONE);
 		return view;
 	}
 	
 	@Override
-	public void onAttach(Activity activity) {
-		if (activity instanceof FinishCallBackListener) {
-			mFinishCallBackListener = (FinishCallBackListener) activity;
+	public void onAttach(Context context) {
+		if (context instanceof FinishCallBackListener) {
+			mFinishCallBackListener = (FinishCallBackListener) context;
 		}
-		if (activity instanceof PhotoPreviewActivity) {
-			mOnViewTapListener = (PhotoPreviewActivity) activity;
+		if (context instanceof PhotoPreviewActivity) {
+			mOnViewTapListener = (PhotoPreviewActivity) context;
 		}
-		super.onAttach(activity);
+		super.onAttach(context);
 	}
 	
 	@Override
@@ -96,6 +104,7 @@ public class PhotoFragment extends BaseFragment {
 		if (args != null) {
 			mPhoto = args.getParcelable(ARG_PHOTO);
 			mOnTouchFinish = args.getBoolean(ARG_TOUCH_FINISH, false);
+			mIsVideo = mPhoto.getFileType() == FileItem.FileType.VIDEO;
 		}
 		ivPhoto.setOnViewTapListener(new PhotoViewAttacher.OnViewTapListener() {
 			
@@ -105,7 +114,11 @@ public class PhotoFragment extends BaseFragment {
 					mFinishCallBackListener.onFinish();
 				}
                 if (mOnViewTapListener != null) {
-                    mOnViewTapListener.onTap(view);
+					FileItem.FileType fileType = null;
+					if (mPhoto != null) {
+						fileType = mPhoto.getFileType();
+					}
+                    mOnViewTapListener.onTap(view, fileType, mPhoto);
                 }
 			}
 		});
@@ -114,6 +127,13 @@ public class PhotoFragment extends BaseFragment {
 			boolean download = mPhoto.isNeedDownload();
 			final String showPath = mPhoto.getShowPath();
 			String filePath = mPhoto.getFilePath();
+			if (mIsVideo) {	//视频文件
+				options = SystemUtil.getAlbumVideoOptions();
+				mIvFlag.setVisibility(View.VISIBLE);
+			} else {
+				mIvFlag.setVisibility(View.GONE);
+				options = SystemUtil.getPhotoPreviewOptions();
+			}
 			if (download) {	//需要下载文件
 				mImageLoader.displayImage(Scheme.FILE.wrap(showPath), ivPhoto, options);
 				//开始下载文件
@@ -142,10 +162,12 @@ public class PhotoFragment extends BaseFragment {
 					public void onSuccess(int downloadId, final String filePath) {
 						pbLoading.setVisibility(View.GONE);
 						if (!TextUtils.isEmpty(filePath)) {
-							ImageUtil.clearMemoryCache(showPath);
-							ImageUtil.clearDiskCache(showPath);
-							//显示下载的原始图片
-							mImageLoader.displayImage(Scheme.FILE.wrap(filePath), ivPhoto, options);
+							if (!mIsVideo) {	//只有图片才清除缓存
+								ImageUtil.clearMemoryCache(showPath);
+								ImageUtil.clearDiskCache(showPath);
+								//显示下载的原始图片
+								mImageLoader.displayImage(Scheme.FILE.wrap(filePath), ivPhoto, options);
+							}
 
 							//更新本地数据库
 							SystemUtil.getCachedThreadPool().execute(new Runnable() {
@@ -172,13 +194,22 @@ public class PhotoFragment extends BaseFragment {
 				if (SystemUtil.isFileExists(showPath)) {
 
 					String displayPath = null;
-					if (SystemUtil.isFileExists(filePath)) {
-						displayPath = filePath;
-					} else {
-						displayPath = showPath;
+					if (!mIsVideo) {	//非视频
+						if (SystemUtil.isFileExists(filePath)) {
+							displayPath = filePath;
+						} else {
+							displayPath = showPath;
+						}
+						ImageUtil.clearMemoryCache(displayPath);
+						ImageUtil.clearDiskCache(displayPath);
+					} else {	//视频
+						String thumbPath = mPhoto.getThumbPath();
+						if (SystemUtil.isFileExists(thumbPath)) {
+							displayPath = thumbPath;
+						} else {
+							displayPath = filePath;
+						}
 					}
-					ImageUtil.clearMemoryCache(displayPath);
-					ImageUtil.clearDiskCache(displayPath);
 					String imgUri = null;
 					if (!TextUtils.isEmpty(displayPath)) {
 						imgUri = Scheme.FILE.wrap(displayPath);
@@ -220,7 +251,7 @@ public class PhotoFragment extends BaseFragment {
 			ivPhoto.setImageResource(R.drawable.ic_default_icon_error);
 		}
 	}
-	
+
 	/**
 	 * 该activity消失的回调事件
 	 * @author huanghui1
@@ -241,8 +272,9 @@ public class PhotoFragment extends BaseFragment {
 	public interface OnViewTapListener {
 		/**
 		 * 单击的响应事件
-		 * @param view
+		 * @param view 点击的视图
+		 * @param fileType 文件的类型      
 		 */
-		public void onTap(View view);
+		public void onTap(View view, FileItem.FileType fileType, DownloadItem photoItem);
 	}
 }

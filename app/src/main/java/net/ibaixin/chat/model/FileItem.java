@@ -36,6 +36,34 @@ public class FileItem implements Comparator<FileItem> {
 		VIDEO,
 		APK,
 		FILE;
+		
+		public static FileType valueOf(int value) {
+			FileType fileType = null;
+			switch (value) {
+				case 0:	//文本
+					fileType = TEXT;
+					break;
+				case 1:	//图片
+					fileType = IMAGE;
+					break;
+				case 2:	//音频
+					fileType = AUDIO;
+					break;
+				case 3:	//视频文件
+					fileType = VIDEO;
+					break;
+				case 4:	//apk文件
+					fileType = APK;
+					break;
+				case 5:	//其他文件
+					fileType = FILE;
+					break;
+				default:
+					fileType = FILE;
+					break;
+			}
+			return fileType;
+		}
 	}
 
 	@Override
