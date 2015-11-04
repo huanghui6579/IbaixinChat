@@ -54,6 +54,8 @@
 		            android:layout_alignParentLeft="true"
 		            android:layout_alignParentStart="true"
 		            android:layout_centerVertical="true"
+					android:layout_marginTop="@dimen/chat_edit_panel_padding"
+					android:layout_marginBottom="@dimen/chat_edit_panel_padding"
 		            android:background="@drawable/chat_voice_mode_selector"/>
 		        
 		        <TextView 
@@ -67,6 +69,8 @@
 		            android:layout_centerVertical="true"
 		            android:textColor="@android:color/white"
 		            android:textSize="@dimen/font_size_m"
+					android:layout_marginTop="@dimen/chat_edit_panel_padding"
+					android:layout_marginBottom="@dimen/chat_edit_panel_padding"
 		            android:background="@drawable/chat_attach_selector"/>
 		        
 		        <FrameLayout 
@@ -97,9 +101,9 @@
 					            android:layout_alignParentRight="true"
 					            android:layout_alignParentEnd="true"
 					            android:layout_centerVertical="true"
+								android:layout_marginTop="@dimen/chat_edit_panel_padding"
+								android:layout_marginBottom="@dimen/chat_edit_panel_padding"
 					            android:clickable="true"
-					            android:layout_marginTop="@dimen/chat_edit_panel_padding"
-					            android:layout_marginBottom="@dimen/chat_edit_panel_padding"
 					            android:background="@drawable/chat_facial_selector"/><!-- net.ibaixin.chat.view.Emojicon -->
 				            <net.ibaixin.chat.view.EmojiconEditText
 					            android:id="@+id/et_content"
@@ -110,10 +114,10 @@
 					            android:gravity="center_vertical"
 					            android:layout_alignParentLeft="true"
 					            android:layout_alignParentStart="true"
-					            android:layout_marginTop="@dimen/chat_edit_panel_padding"
-					            android:layout_marginBottom="@dimen/chat_edit_panel_padding"
 					            android:layout_marginRight="@dimen/chat_emoji_btn_horizontal"
 					            android:layout_marginEnd="@dimen/chat_emoji_btn_horizontal"
+								android:layout_marginTop="@dimen/chat_edit_panel_padding"
+								android:layout_marginBottom="@dimen/chat_edit_panel_padding"
 					            android:layout_toLeftOf="@id/btn_emoji"
 					            android:layout_toStartOf="@id/btn_emoji"
 					            android:background="@null"

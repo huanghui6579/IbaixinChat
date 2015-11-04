@@ -589,6 +589,10 @@ public class CoreService extends Service {
 							typeExtension.setThumbName(thumbName);
 							if (!senderInfo.originalImage) {	//非原图发送，则需压缩图片
 								sendFile = DiskCacheUtils.findInCache(Scheme.FILE.wrap(msgPart.getFilePath()), mImageLoader.getDiskCache());
+								File originalFile = new File(msgPart.getFilePath());
+								if (sendFile.length() > originalFile.length()) {	//压缩后的图片比原始图片还大，则直接发送原始图片
+									sendFile = originalFile;
+								}
 							}
 							File[] uploads = new File[2];
 							uploads[0] = sendFile;
@@ -649,7 +653,7 @@ public class CoreService extends Service {
 
 								@Override
 								public void onErrorResponse(VolleyError error) {
-									Log.e(error.getMessage());
+									Log.e(error.toString());
 									msgInfo.setSendState(SendState.FAILED);
 									
 									updateSendStatus(senderInfo, msgInfo);
@@ -721,7 +725,7 @@ public class CoreService extends Service {
 	 */
 	private void updateSendInfo(MsgSenderInfo senderInfo ,MsgInfo msgInfo) {
 		if (!senderInfo.isReSend) {	//不是重发该消息，则更新会话的一些摘要信息
-			msgManager.addMsgInfo(msgInfo);
+			msgManager.addMsgInfo(msgInfo, false);
 			senderInfo.msgThread.setSnippetId(msgInfo.getMsgId());
 //			String snippetContent = msgManager.getSnippetContentByMsgType(msgInfo.getMsgType(), msgInfo);
 			String snippetContent = msgInfo.getSnippetContent();
@@ -964,7 +968,7 @@ public class CoreService extends Service {
 		public void run() {
 			MsgInfo msgInfo = processMsg(message);
 			if (msgInfo != null) {
-				msgInfo = msgManager.addMsgInfo(msgInfo);
+				msgInfo = msgManager.addMsgInfo(msgInfo, true);
 
 				//下载文件
 				downloadMsgFile(msgInfo, mContext);
@@ -1164,42 +1168,51 @@ public class CoreService extends Service {
 					downloadItem.setDownloadType(fileType);
 					
 					MsgEngine msgEngine = new MsgEngine(context);
-					msgEngine.downloadFile(mDownloadManager, downloadItem, new DownloadListener() {
-						@Override
-						public void onStart(int downloadId, long totalBytes) {
-							
-						}
-
-						@Override
-						public void onRetry(int downloadId) {
-
-						}
-
-						@Override
-						public void onProgress(int downloadId, long bytesWritten, long totalBytes) {
-
-						}
-
-						@Override
-						public void onSuccess(int downloadId, String filePath) {
-							Log.d("---------文件下载成功-----downloadId-----" + downloadId + "-------------" + filePath);
-							MsgInfo info = new MsgInfo();
-							info.setId(downloadId);
-							msgManager.notifyObservers(Provider.MsgInfoColumns.NOTIFY_FLAG, Observer.NotifyType.UPDATE, info);
-//								Intent intent = new Intent(ChatActivity.MsgProcessReceiver.ACTION_REFRESH_MSG);
-//								sendBroadcast(intent);
-						}
-
-						@Override
-						public void onFailure(int downloadId, int statusCode, String errMsg) {
-							Log.w("-----download msg part failed-----downloadId--------" + statusCode + "----------" + errMsg);
-							// TODO Auto-generated method stub
-//								Intent intent = new Intent(ChatActivity.MsgProcessReceiver.ACTION_REFRESH_MSG);
-//								sendBroadcast(intent);
-						}
-					});
+					msgEngine.downloadFile(mDownloadManager, downloadItem, new MsgAttachDownloadListener(msgInfo));
 				}
 			}
+		}
+	}
+
+	/**
+	 * 消息附件的下载监听器
+	 */
+	class MsgAttachDownloadListener implements DownloadListener {
+		private MsgInfo msgInfo;
+		
+		public MsgAttachDownloadListener(MsgInfo msgInfo) {
+			this.msgInfo = msgInfo;
+		}
+
+		@Override
+		public void onStart(int downloadId, long totalBytes) {
+			
+		}
+
+		@Override
+		public void onRetry(int downloadId) {
+
+		}
+
+		@Override
+		public void onProgress(int downloadId, long bytesWritten, long totalBytes) {
+
+		}
+
+		@Override
+		public void onSuccess(int downloadId, String filePath) {
+			Log.d("---------文件下载成功-----downloadId-----" + downloadId + "-------------" + filePath);
+			msgManager.notifyObservers(Provider.MsgInfoColumns.NOTIFY_FLAG, Observer.NotifyType.UPDATE, msgInfo);
+//								Intent intent = new Intent(ChatActivity.MsgProcessReceiver.ACTION_REFRESH_MSG);
+//								sendBroadcast(intent);
+		}
+
+		@Override
+		public void onFailure(int downloadId, int statusCode, String errMsg) {
+			Log.w("-----download msg part failed-----downloadId--------" + statusCode + "----------" + errMsg);
+			// TODO Auto-generated method stub
+//								Intent intent = new Intent(ChatActivity.MsgProcessReceiver.ACTION_REFRESH_MSG);
+//								sendBroadcast(intent);
 		}
 	}
 	
@@ -1468,7 +1481,7 @@ public class CoreService extends Service {
 		@Override
 		public void fileTransferRequest(FileTransferRequest request) {
 			MsgInfo msgInfo = processFileMessage(request);
-			msgInfo = msgManager.addMsgInfo(msgInfo);
+			msgInfo = msgManager.addMsgInfo(msgInfo, true);
 			int threadId = msgInfo.getThreadID();
 			MsgThread msgThread = msgManager.getThreadById(threadId);
 			if (msgThread != null) {

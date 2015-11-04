@@ -335,7 +335,6 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 	
 	/**
 	 * 初始化滑动返回的配置,如果需要滑动返回，前提是返回箭头要显示
-	 * @see homeAsUpEnabled
 	 * 
 	 * @update 2015年8月7日 下午4:56:46
 	 */

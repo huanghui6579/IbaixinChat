@@ -1260,9 +1260,10 @@ public class MsgManager extends Observable<Observer> {
 	 * 添加一条消息记录
 	 * @update 2014年11月4日 下午10:41:46
 	 * @param msgInfo 消息记录
+	 * @param refreshUi 是否刷新界面   
 	 * @return
 	 */
-	public MsgInfo addMsgInfo(MsgInfo msgInfo) {
+	public MsgInfo addMsgInfo(MsgInfo msgInfo, boolean refreshUi) {
 		if (msgInfo == null) {
 			return null;
 		}
@@ -1289,7 +1290,9 @@ public class MsgManager extends Observable<Observer> {
 			default:
 				break;
 			}
-			notifyObservers(Provider.MsgInfoColumns.NOTIFY_FLAG, NotifyType.ADD, msgInfo);
+			if (refreshUi) {
+				notifyObservers(Provider.MsgInfoColumns.NOTIFY_FLAG, NotifyType.ADD, msgInfo);
+			}
 		}
 //		Uri uri = mContext.getContentResolver().insert(Provider.MsgInfoColumns.CONTENT_URI, infoVaules);
 //		if (uri != null) {
@@ -1318,7 +1321,7 @@ public class MsgManager extends Observable<Observer> {
 	}
 	
 	/**
-	 * 批量添加消息对象，利用事务，提高效率，该方法已废弃，直接循环添加就行了{@link MsgManager#addMsgInfo(MsgInfo)}
+	 * 批量添加消息对象，利用事务，提高效率，该方法已废弃，直接循环添加就行了{@link MsgManager#addMsgInfo(MsgInfo, boolean)}
 	 * @update 2015年2月27日 下午5:58:00
 	 * @param list 要添加的消息列表
 	 * @return 添加的消息所属会话id的集合

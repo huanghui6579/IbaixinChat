@@ -154,8 +154,10 @@ public class PhotoFragment extends BaseFragment {
 
 					@Override
 					public void onProgress(int downloadId, long bytesWritten, long totalBytes) {
-						int progress = (int) (bytesWritten * 100 / totalBytes);
-						pbLoading.setProgress(progress);
+						if (totalBytes > 0) {
+							int progress = (int) (bytesWritten * 100 / totalBytes);
+							pbLoading.setProgress(progress);
+						}
 					}
 
 					@Override

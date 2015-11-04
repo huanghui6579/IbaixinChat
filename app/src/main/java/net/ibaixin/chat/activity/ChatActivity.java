@@ -21,7 +21,9 @@ import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.internal.widget.TintManager;
+import android.support.v7.view.ActionMode;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -31,6 +33,8 @@ import android.text.TextWatcher;
 import android.text.style.TextAppearanceSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -380,6 +384,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 
 	private MsgContentObserver mMsgContentObserver;
 	
+	private ActionMode mActionMode; 
+	
 	private Handler mHandler = new Handler() {
 
 		@Override
@@ -650,6 +656,9 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * @return
 	 */
 	private Chat createChat(AbstractXMPPConnection connection) {
+		if (connection == null) {
+			connection = XmppConnectionManager.getInstance().getConnection();
+		}
 		if (connection.isAuthenticated()) {	//是否登录
 			if (chatManager == null) {
 				chatManager = ChatManager.getInstanceFor(connection);
@@ -2395,16 +2404,16 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 								case MENU_SHARE:	//分享
 									if (Type.TEXT != msgInfo.getMsgType()) {//除了文本外
 										String filepath = msgInfo.getMsgPart().getFilePath();
-										if(SystemUtil.isFileExists(filepath)){
+										if (SystemUtil.isFileExists(filepath)) {
 											Intent in = new Intent(Intent.ACTION_SEND);// 启动分享发送到属性
 											in.setType(msgInfo.getMsgPart().getMimeType());// 分享发送到数据类型
 											in.putExtra(Intent.EXTRA_STREAM,Uri.parse("file://"+filepath));// 分享的内容
 											in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);// 允许intent启动新的activity
 											startActivity(Intent.createChooser(in,getResources().getString(R.string.share)));// 目标应用选择对话框的标题
-										}else{
+										} else {
 											SystemUtil.makeShortToast(R.string.file_not_exists);
 										}
-									}else{
+									} else {
 										Intent intent=new Intent(Intent.ACTION_SEND);
 										intent.setType("text/plain");
 //					             intent.setType("image/*");
@@ -2413,6 +2422,38 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 										intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 										startActivity(Intent.createChooser(intent, getResources().getString(R.string.share)));
 									}
+									break;
+								case MENU_MORE:	//更多
+									mActionMode = startSupportActionMode(new ActionModeCallback() {
+										@Override
+										public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+											MenuItem saveItem = menu.add("保存");
+											MenuItemCompat.setShowAsAction(saveItem, MenuItemCompat.SHOW_AS_ACTION_ALWAYS);
+
+											MenuItem searchItem = menu.add("搜索");
+											MenuItemCompat.setShowAsAction(searchItem, MenuItemCompat.SHOW_AS_ACTION_ALWAYS);
+
+											MenuItem refreshItem = menu.add("刷新");
+											MenuItemCompat.setShowAsAction(refreshItem, MenuItemCompat.SHOW_AS_ACTION_ALWAYS);
+											return true;
+										}
+
+										@Override
+										public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+											return super.onPrepareActionMode(mode, menu);
+										}
+
+										@Override
+										public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+											mActionMode.finish();
+											return super.onActionItemClicked(mode, item);
+										}
+
+										@Override
+										public void onDestroyActionMode(ActionMode mode) {
+											super.onDestroyActionMode(mode);
+										}
+									});
 									break;
 								default:
 									break;
@@ -3005,6 +3046,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 										boolean download = msgPart.isDownloaded();
 										MsgInfo tmpInfo = new MsgInfo();
 										tmpInfo.setMsgId(msgId);
+										tmpInfo.setThreadID(mThreadId);
 										int index = mMsgInfos.indexOf(tmpInfo);
 										if (index != -1) {	//存在
 											MsgInfo msgInfo = mMsgInfos.get(index);

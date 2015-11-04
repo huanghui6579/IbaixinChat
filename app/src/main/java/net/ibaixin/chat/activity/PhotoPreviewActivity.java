@@ -364,6 +364,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				if (SystemUtil.isFileExists(file)) {	//文件存在
 					Intent intent = MimeUtils.getVideoFileIntent(file);
 					if (intent != null && (intent.resolveActivity(getPackageManager()) != null)) {
+						intent = Intent.createChooser(intent, SystemUtil.getFilename(filePath));
 						startActivity(intent);
 					} else {
 						SystemUtil.makeShortToast(R.string.file_open_intent_error);

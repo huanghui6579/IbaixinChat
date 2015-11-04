@@ -1,17 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/ChatItemRootStyle" xmlns:app="http://schemas.android.com/apk/res/net.ibaixin.chat">
     
     <TextView 
         android:id="@+id/tv_msg_time"
         style="@style/ChatItemSpliteTimeStyle"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
         android:visibility="visible"/>
+
+    <CheckBox
+        android:id="@+id/cb_chose"
+        style="@style/CommonCheckboxStyle"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginLeft="@dimen/item_horizonal_padding"
+        android:layout_marginStart="@dimen/item_horizonal_padding"
+        android:layout_marginTop="@dimen/item_veritcal_padding"
+        android:layout_alignTop="@+id/layout_body"
+        android:visibility="gone"/>
     
     <RelativeLayout
-        android:id="@+id/layout_body"
+        android:id="@id/layout_body"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_msg_time"
+        android:layout_toLeftOf="@id/cb_chose"
+        android:layout_toStartOf="@id/cb_chose"
+        android:layout_alignWithParentIfMissing="true">
+
         <ImageView
 	        android:id="@+id/iv_head_icon"
 	        style="@style/ChatItemHeadIconStyle"
@@ -92,4 +109,4 @@
         
     </RelativeLayout>
 
-</LinearLayout>
+</RelativeLayout>

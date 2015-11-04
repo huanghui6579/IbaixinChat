@@ -1,11 +1,19 @@
 package net.ibaixin.chat.volley.toolbox;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
+import android.widget.TextView;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Request.Method;
+import com.android.volley.toolbox.HttpClientStack.HttpPatch;
+import com.android.volley.toolbox.HurlStack;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.util.Log;
@@ -31,19 +39,11 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Handler;
-import android.os.Looper;
-import android.view.View;
-import android.widget.TextView;
-
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.Request.Method;
-import com.android.volley.toolbox.HttpClientStack.HttpPatch;
-import com.android.volley.toolbox.HurlStack;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * 用于文件上传的扩展
@@ -83,7 +83,8 @@ public class MultiPartStack extends HurlStack {
         int timeoutMs = request.getTimeoutMs();
 
         if(timeoutMs != -1) {
-        	HttpConnectionParams.setSoTimeout(httpParams, timeoutMs);
+        	HttpConnectionParams.setSoTimeout(httpParams, timeoutMs * 2);
+			HttpConnectionParams.setConnectionTimeout(httpParams, timeoutMs);
         }
         
         /* Make a thread safe connection manager for the client */

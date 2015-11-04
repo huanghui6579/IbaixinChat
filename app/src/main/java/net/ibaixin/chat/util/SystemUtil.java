@@ -42,12 +42,13 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.Response.ErrorListener;
 import com.android.volley.Response.Listener;
+import com.nostra13.universalimageloader.cache.disc.DiskCache;
+import com.nostra13.universalimageloader.cache.disc.impl.BaseDiskCache;
+import com.nostra13.universalimageloader.cache.disc.impl.ext.LruDiskCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.assist.ImageSize;
 import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
@@ -215,7 +216,6 @@ public class SystemUtil {
 	 * 设置Toast的样式
 	 * @update 2014年11月12日 下午4:22:41
 	 * @param toast
-	 * @param resId 文字的资源id
 	 * @return
 	 */
 	private static Toast setToastStyle(Toast toast) {
@@ -309,8 +309,7 @@ public class SystemUtil {
 	 * 保存文件，根据用户名动态生成文件夹，该用户名为当前登录的用户名
 	 * @update 2014年10月23日 下午5:06:50
 	 * @param data
-	 * @param filePath 保存文件的路径，不含文件名
-	 * @param filename 保存的文件名称，不含有路径
+	 * @param savePath 保存文件的路径，含文件名
 	 * @return
 	 */
 	public static File saveFile(byte[] data, String savePath) {
@@ -1344,8 +1343,8 @@ public class SystemUtil {
 
         int listviewHeight = 0;
 
-        list.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), 
-                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        list.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+				MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
 
         listviewHeight = list.getMeasuredHeight() * adapter.getCount() + (adapter.getCount() * list.getDividerHeight());
 
@@ -1464,7 +1463,7 @@ public class SystemUtil {
 	/**
 	 * 根据文件名获得文件的后缀，如jpg
 	 * @update 2014年11月17日 下午10:10:51
-	 * @param filename
+	 * @param url
 	 * @return
 	 */
 	public static String getFileSubfix(String url) {
@@ -1476,6 +1475,24 @@ public class SystemUtil {
 			return url.substring(index + 1);
 		} else {	//返回空串，直接作为文件名
 			return "";
+		}
+	}
+
+	/**
+	 * 根据文件的全路径来判断文件是否是jpg/jpeg的文件
+	 * @param filePath
+	 * @return
+	 */
+	public static boolean isJpgFile(String filePath) {
+		String subFix = getFileSubfix(filePath);
+		if (TextUtils.isEmpty(subFix)) {
+			return false;
+		} else {
+			if (subFix.equalsIgnoreCase("jpg") || subFix.equalsIgnoreCase("jpeg")) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 	
@@ -1905,6 +1922,19 @@ public class SystemUtil {
 	 */
 	public static boolean saveBitmap(ImageLoader imageLoader, Bitmap bitmap, PhotoItem photoItem) {
 		try {
+			DiskCache diskCache = imageLoader.getDiskCache();
+			boolean isJpg = SystemUtil.isJpgFile(photoItem.getFilePath());
+			Bitmap.CompressFormat compressFormat = Bitmap.CompressFormat.PNG;
+			if (isJpg) {
+				compressFormat = Bitmap.CompressFormat.JPEG;
+			}
+			if (diskCache instanceof LruDiskCache) {
+				LruDiskCache lruDiskCache = (LruDiskCache) diskCache;
+				lruDiskCache.setCompressFormat(compressFormat);
+			} else if (diskCache instanceof BaseDiskCache) {
+				BaseDiskCache baseDiskCache = (BaseDiskCache) diskCache;
+				baseDiskCache.setCompressFormat(compressFormat);
+			}
 			return imageLoader.getDiskCache().save(Scheme.FILE.wrap(photoItem.getFilePath()), bitmap);
 		} catch (IOException e) {
 			e.printStackTrace();
