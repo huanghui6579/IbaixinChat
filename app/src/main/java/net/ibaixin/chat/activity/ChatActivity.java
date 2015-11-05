@@ -21,7 +21,10 @@ import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.MenuItemCompat;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.view.ViewPropertyAnimatorCompat;
+import android.support.v4.view.ViewPropertyAnimatorListenerAdapter;
+import android.support.v7.internal.view.ViewPropertyAnimatorCompatSet;
 import android.support.v7.internal.widget.TintManager;
 import android.support.v7.view.ActionMode;
 import android.text.Editable;
@@ -31,9 +34,12 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.TextAppearanceSpan;
+import android.util.SparseArray;
+import android.util.SparseBooleanArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -41,10 +47,14 @@ import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
+import android.widget.Checkable;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridView;
@@ -109,9 +119,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 聊天界面
@@ -243,6 +256,10 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * 输入框底部的面板
 	 */
 	private FrameLayout layoutBottom;
+	/**
+	 * 底部编辑部分
+	 */
+	private View layoutContent;
 	/**
 	 * 表情面板
 	 */
@@ -384,7 +401,22 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 
 	private MsgContentObserver mMsgContentObserver;
 	
-	private ActionMode mActionMode; 
+	private ActionMode mActionMode;
+
+	/**
+	 * 批量选择的集合
+	 */
+	private Map<String, Boolean> mSelectMap = null;
+
+	/**
+	 * 消息选中的条数
+	 */
+	private long mSelectSize = 0;
+	
+	/**
+	 * 是否是批量模式
+	 */
+	private boolean mIsBatchMode;
 	
 	private Handler mHandler = new Handler() {
 
@@ -443,6 +475,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		etContent = (/*Emojicon*/EditText) findViewById(R.id.et_content);
 		layoutBottom = (FrameLayout) findViewById(R.id.layout_bottom);
 		layoutEmoji = (FrameLayout) findViewById(R.id.layout_emoji);
+		layoutContent = findViewById(R.id.layout_content);
 		
 		btnMakeVoice = (RecordButton) findViewById(R.id.btn_make_voice);
 		layoutEdit = (RelativeLayout) findViewById(R.id.layout_edit);
@@ -485,6 +518,74 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 */
 	private void initMsgInfo() {
 		new LoadDataTask(true).execute();
+	}
+
+	/**
+	 * 进入菜单“更多”的模式
+	 * @param msgId 选择的项的消息id
+	 */
+	private void initMoreMode(String msgId) {
+		mIsBatchMode = true;
+		
+		if (mSelectMap == null) {
+			mSelectMap = new HashMap<>();
+		} else {
+			mSelectMap.clear();
+		}
+		
+		if (msgId != null) {
+			mSelectSize ++;
+			mSelectMap.put(msgId, true);
+		}
+
+		if (mActionMode != null && mSelectSize > 0) {
+			mActionMode.setTitle(String.valueOf(mSelectSize));
+		}
+		
+		msgAdapter.notifyDataSetChanged();
+
+		//1、隐藏底部编辑部分和附件面板部分
+		layoutBottom.setVisibility(View.GONE);
+		
+		int contentHeigth = layoutContent.getHeight();
+		ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
+		ViewPropertyAnimatorCompat contentAnim = ViewCompat.animate(layoutContent).translationYBy(contentHeigth).setInterpolator(new AccelerateInterpolator(2));
+		anim.setListener(new ViewPropertyAnimatorListenerAdapter() {
+			@Override
+			public void onAnimationEnd(View view) {
+				layoutContent.setVisibility(View.GONE);
+			}
+		});
+		anim.play(contentAnim);
+		anim.start();
+	}
+
+	/**
+	 * 退出菜单“更多”模式
+	 * @param isAnim
+	 */
+	private void outMoreMode(boolean isAnim) {
+		mIsBatchMode = false;
+		if (mSelectMap != null) {
+			mSelectMap.clear();
+			mSelectMap = null;
+		}
+		msgAdapter.notifyDataSetChanged();
+		if (isAnim) {
+			int contentHeigth = layoutContent.getHeight();
+			ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
+			ViewPropertyAnimatorCompat contentAnim = ViewCompat.animate(layoutContent).translationYBy(-contentHeigth).setInterpolator(new AccelerateInterpolator(2));
+			anim.setListener(new ViewPropertyAnimatorListenerAdapter() {
+				@Override
+				public void onAnimationEnd(View view) {
+					layoutContent.setVisibility(View.VISIBLE);
+				}
+			});
+			anim.play(contentAnim);
+			anim.start();
+		} else {
+			layoutContent.setVisibility(View.VISIBLE);
+		}
 	}
 
 	@Override
@@ -924,21 +1025,27 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			}
 		});
 		lvMsgs.setOnTouchListener(new OnTouchListener() {
-			
+
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				switch (event.getAction()) {
-				case MotionEvent.ACTION_DOWN:	//点击外面
-					//隐藏底部所有内容
-					hideBottomLayout(true);
-					//隐藏输入法
-					hideKeybroad();
-					break;
+					case MotionEvent.ACTION_DOWN:    //点击外面
+						//隐藏底部所有内容
+						hideBottomLayout(true);
+						//隐藏输入法
+						hideKeybroad();
+						break;
 
-				default:
-					break;
+					default:
+						break;
 				}
 				return false;
+			}
+		});
+		lvMsgs.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				SystemUtil.makeShortToast("单选了" + position);
 			}
 		});
 		lvMsgs.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -1926,7 +2033,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			MsgViewHolder holder = null;
 			final MsgInfo msgInfo = list.get(position);
 			int type = getItemViewType(position);
-			
+			String msgId = msgInfo.getMsgId();
 			if (convertView == null) {
 				holder = new MsgViewHolder();
 				switch (type) {
@@ -1949,12 +2056,12 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				holder.tvContentDesc = (TextView) convertView.findViewById(R.id.tv_content_desc);
 				holder.contentImgLayout = (FrameLayout) convertView.findViewById(R.id.content_img_layout);
 				holder.contentLayout = convertView.findViewById(R.id.content_layout);
+				holder.cbChose = (CheckBox) convertView.findViewById(R.id.cb_chose);
 				
 				convertView.setTag(holder);
 			} else {
 				holder = (MsgViewHolder) convertView.getTag();
 			}
-			
 			if (maxConentWidth == 0) {
 				//获取头像的宽度
 				int iconWith = SystemUtil.getViewSize(holder.ivHeadIcon)[0];
@@ -1963,7 +2070,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				int stateMargin = DensityUtil.dip2px(context, getResources().getDimension(R.dimen.chat_msg_item_send_state_margin_left_right));
 				maxConentWidth = screenSize[0] - 2 * (iconWith + textMargin) - stateWidth - stateMargin;
 			}
-			
+
 			holder.tvContent.setVisibility(View.VISIBLE);
 			holder.ivContentImg.setVisibility(View.GONE);
 			holder.tvContentDesc.setVisibility(View.GONE);
@@ -1973,6 +2080,21 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			holder.ivContentImg.setMaxHeight(getResources().getDimensionPixelSize(R.dimen.chat_msg_img_max_height));
 			
 			holder.contentImgLayout.setForeground(null);
+			
+			if (mIsBatchMode) {	//选择了菜单“更多”，进入了多选模式
+				holder.cbChose.setVisibility(View.VISIBLE);
+				holder.cbChose.setOnCheckedChangeListener(null);
+				if (mSelectMap != null) {
+					holder.cbChose.setChecked(mSelectMap.containsKey(msgId));
+				} else {
+					holder.cbChose.setChecked(false);
+				}
+				holder.cbChose.setOnCheckedChangeListener(new OnCheckedChangeListenerImpl(holder, msgId));
+			} else {
+				if (holder.cbChose.getVisibility() == View.VISIBLE) {
+					holder.cbChose.setVisibility(View.GONE);
+				}
+			}
 			
 //			int paddingLeft = 0;
 //			int paddingRight = 0;
@@ -2191,7 +2313,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			holder.contentLayout.setOnClickListener(new MsgItemClickListener(type, msgInfo, position));
 			
 //			holder.tvContent.setOnTouchListener(new MyMsgItemTouchListener(msgInfo));
-			holder.contentLayout.setOnLongClickListener(new MyMsgItemLongClickListener(type, msgInfo));
+			holder.contentLayout.setOnLongClickListener(new MyMsgItemLongClickListener(type, msgInfo, msgId));
 			holder.ivHeadIcon.setOnClickListener(new OnClickListener() {
 				
 				@Override
@@ -2252,8 +2374,38 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				}
 			}
 		}
+
+		/**
+		 * 复选框的选择监听器
+		 */
+		class OnCheckedChangeListenerImpl implements CompoundButton.OnCheckedChangeListener {
+			private MsgViewHolder holder;
+			private String msgId;
+
+			public OnCheckedChangeListenerImpl(MsgViewHolder holder, String msgId) {
+				this.holder = holder;
+				this.msgId = msgId;
+			}
+
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (isChecked) {
+					mSelectSize ++;
+					mSelectSize = (mSelectSize > mMsgTotalCount) ? mMsgTotalCount : mSelectSize;
+					mSelectMap.put(msgId, true);
+				} else {
+					mSelectMap.remove(msgId);
+					mSelectSize --;
+					mSelectSize = mSelectSize < 0 ? 0 : mSelectSize;
+				}
+				if (mActionMode != null && mSelectSize > 0) {
+					mActionMode.setTitle(String.valueOf(mSelectSize));
+				}
+			}
+		}
 		
 	}
+	
 	
 	/**
 	 * 控件的touch事件监听器
@@ -2342,10 +2494,16 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		 */
 		private MsgInfo msgInfo;
 
-		public MyMsgItemLongClickListener(int itemType, MsgInfo msgInfo) {
+		/**
+		 * 选择项的消息id
+		 */
+		private String msgId;
+
+		public MyMsgItemLongClickListener(int itemType, MsgInfo msgInfo, String msgId) {
 			super();
 			this.itemType = itemType;
 			this.msgInfo = msgInfo;
+			this.msgId = msgId;
 		}
 
 		@Override
@@ -2377,7 +2535,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 
 						@Override
 						public void onItemClick(AdapterView<?> parent, View view,
-												int position, long id) {
+												final int position, long id) {
 							switch ((int) id) {
 								case MENU_COPY:	//复制
 									SystemUtil.copyText(msgInfo.getContent());
@@ -2424,37 +2582,38 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 									}
 									break;
 								case MENU_MORE:	//更多
-									mActionMode = startSupportActionMode(new ActionModeCallback() {
-										@Override
-										public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-											MenuItem saveItem = menu.add("保存");
-											MenuItemCompat.setShowAsAction(saveItem, MenuItemCompat.SHOW_AS_ACTION_ALWAYS);
+									if (toolbar != null) {
+										mActionMode = startSupportActionMode(new ActionModeCallback() {
+											@Override
+											public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+												MenuInflater menuInflater = getMenuInflater();
+												menuInflater.inflate(R.menu.menu_chat_opt, menu);
+												
+												return true;
+											}
 
-											MenuItem searchItem = menu.add("搜索");
-											MenuItemCompat.setShowAsAction(searchItem, MenuItemCompat.SHOW_AS_ACTION_ALWAYS);
+											@Override
+											public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+												return super.onPrepareActionMode(mode, menu);
+											}
 
-											MenuItem refreshItem = menu.add("刷新");
-											MenuItemCompat.setShowAsAction(refreshItem, MenuItemCompat.SHOW_AS_ACTION_ALWAYS);
-											return true;
-										}
+											@Override
+											public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+												mActionMode.finish();
+												return super.onActionItemClicked(mode, item);
+											}
 
-										@Override
-										public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-											return super.onPrepareActionMode(mode, menu);
-										}
+											@Override
+											public void onDestroyActionMode(ActionMode mode) {
+												outMoreMode(true);
+												super.onDestroyActionMode(mode);
+											}
+										});
 
-										@Override
-										public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-											mActionMode.finish();
-											return super.onActionItemClicked(mode, item);
-										}
-
-										@Override
-										public void onDestroyActionMode(ActionMode mode) {
-											super.onDestroyActionMode(mode);
-										}
-									});
-									break;
+										//变为多选模式
+										initMoreMode(msgId);
+										break;
+									}
 								default:
 									break;
 							}
@@ -2860,6 +3019,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		ImageView ivMsgState;
 		FrameLayout contentImgLayout;
 		View contentLayout;
+		private CheckBox cbChose;
 	}
 	
 	/**

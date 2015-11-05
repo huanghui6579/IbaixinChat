@@ -8,6 +8,7 @@
     <string name="splash_desc">让沟通更简单</string>
     
     <string name="delete">删除</string>
+    <string name="forward">转发</string>
     <string name="delete_failed">删除失败</string>
     <string name="delete_success">删除成功</string>
     <string name="add_success">添加成功</string>
