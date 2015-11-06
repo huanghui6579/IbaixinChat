@@ -278,4 +278,14 @@ public class Provider {
 		
 		public static final String[] DEFAULT_PROJECTION = {_ID, USER_ID, FRIEND_STATUS, CONTENT, CREATION_DATE, FROM_USER, TO_USER, ICON_HASH, ICON_PATH};
 	}
+
+	/**
+	 * 观察者的通知类型
+	 */
+	public static final class NotifyColumns {
+		/**
+		 * 消息附件上传的通知
+		 */
+		public static final int NOTIFY_MSG_UPLOAD_FLAG = 7;
+	}
 }

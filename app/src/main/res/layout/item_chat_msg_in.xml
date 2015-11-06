@@ -11,12 +11,7 @@
 
     <CheckBox
         android:id="@+id/cb_chose"
-        style="@style/CommonCheckboxStyle"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginLeft="@dimen/item_horizonal_padding"
-        android:layout_marginStart="@dimen/item_horizonal_padding"
-        android:layout_marginTop="@dimen/item_veritcal_padding"
+        style="@style/ChatMsgCheckboxStyle"
         android:layout_alignTop="@+id/layout_body"
         android:visibility="gone"/>
     

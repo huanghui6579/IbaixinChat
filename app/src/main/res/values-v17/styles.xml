@@ -10,7 +10,18 @@
         </item>
         <item name="android:paddingEnd">@dimen/md_button_padding_horizontal_internalexternal</item>
     </style>
-    
+
+    <!-- 聊天消息界面的复选框样式 -->
+    <style name="ChatMsgCheckboxStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_alignParentRight">true</item>
+        <item name="android:layout_alignParentEnd">true</item>
+        <item name="android:layout_marginLeft">@dimen/item_horizonal_padding</item>
+        <item name="android:layout_marginStart">@dimen/item_horizonal_padding</item>
+        <item name="android:layout_marginTop">@dimen/item_veritcal_padding</item>
+    </style>
+
     <!-- 我的位置按钮的样式 -->
     <!-- <style name="MyLocationBtnStyle">
         <item name="android:layout_width">wrap_content</item>

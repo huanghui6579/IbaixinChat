@@ -48,6 +48,7 @@ import net.ibaixin.chat.model.MsgInfo.SendState;
 import net.ibaixin.chat.model.MsgPart;
 import net.ibaixin.chat.model.MsgSenderInfo;
 import net.ibaixin.chat.model.MsgThread;
+import net.ibaixin.chat.model.MsgUploadInfo;
 import net.ibaixin.chat.model.Personal;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.model.User;
@@ -67,6 +68,7 @@ import net.ibaixin.chat.util.UpdateManager;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.util.XmppUtil;
 import net.ibaixin.chat.volley.toolbox.MultiPartStringRequest;
+import net.ibaixin.chat.volley.toolbox.ProgressUpdateCallback;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
@@ -661,6 +663,7 @@ public class CoreService extends Service {
 							}, null, mHandler);
 							//发送文件
 							if (multiPartRequest != null) {
+								multiPartRequest.setProgressCallback(new UploadProgressCallback(msgInfo));
 								mRequestQueue.add(multiPartRequest);
 							}
 						} else {
@@ -685,6 +688,23 @@ public class CoreService extends Service {
 			updateSendStatus(senderInfo, msgInfo);
 		}
 		
+	}
+
+	/**
+	 * 上传的监听器
+	 */
+	class UploadProgressCallback implements ProgressUpdateCallback {
+		private MsgInfo msgInfo;
+
+		public UploadProgressCallback(MsgInfo msgInfo) {
+			this.msgInfo = msgInfo;
+		}
+
+		@Override
+		public void setProgressUpdateStatus(int value) {
+			MsgUploadInfo uploadInfo = new MsgUploadInfo(msgInfo, value);
+			msgManager.updateMsgUploadInfo(uploadInfo);
+		}
 	}
 	
 	/**

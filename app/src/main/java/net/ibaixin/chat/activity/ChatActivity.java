@@ -34,8 +34,6 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.TextAppearanceSpan;
-import android.util.SparseArray;
-import android.util.SparseBooleanArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -53,7 +51,6 @@ import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
-import android.widget.Checkable;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -87,6 +84,7 @@ import net.ibaixin.chat.model.MsgInfo.Type;
 import net.ibaixin.chat.model.MsgPart;
 import net.ibaixin.chat.model.MsgSenderInfo;
 import net.ibaixin.chat.model.MsgThread;
+import net.ibaixin.chat.model.MsgUploadInfo;
 import net.ibaixin.chat.model.Personal;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.model.UserVcard;
@@ -124,7 +122,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 聊天界面
@@ -537,9 +534,17 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			mSelectSize ++;
 			mSelectMap.put(msgId, true);
 		}
+		
+		if (SystemUtil.isSoftInputActive()) {
+			SystemUtil.hideSoftInput(this);
+		}
 
-		if (mActionMode != null && mSelectSize > 0) {
-			mActionMode.setTitle(String.valueOf(mSelectSize));
+		if (mActionMode != null) {
+			if (mSelectSize > 0) {
+				mActionMode.setTitle(String.valueOf(mSelectSize));
+			} else {
+				mActionMode.setTitle(null);
+			}
 		}
 		
 		msgAdapter.notifyDataSetChanged();
@@ -566,25 +571,33 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 */
 	private void outMoreMode(boolean isAnim) {
 		mIsBatchMode = false;
+		mSelectSize = 0;
 		if (mSelectMap != null) {
 			mSelectMap.clear();
 			mSelectMap = null;
 		}
-		msgAdapter.notifyDataSetChanged();
-		if (isAnim) {
-			int contentHeigth = layoutContent.getHeight();
-			ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
-			ViewPropertyAnimatorCompat contentAnim = ViewCompat.animate(layoutContent).translationYBy(-contentHeigth).setInterpolator(new AccelerateInterpolator(2));
-			anim.setListener(new ViewPropertyAnimatorListenerAdapter() {
-				@Override
-				public void onAnimationEnd(View view) {
-					layoutContent.setVisibility(View.VISIBLE);
-				}
-			});
-			anim.play(contentAnim);
-			anim.start();
-		} else {
-			layoutContent.setVisibility(View.VISIBLE);
+		if (mActionMode != null) {
+			mActionMode.finish();
+		}
+		if (msgAdapter != null) {
+			msgAdapter.notifyDataSetChanged();
+		}
+		if (layoutContent != null) {
+			if (isAnim) {
+				int contentHeigth = layoutContent.getHeight();
+				ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
+				ViewPropertyAnimatorCompat contentAnim = ViewCompat.animate(layoutContent).translationYBy(-contentHeigth).setInterpolator(new AccelerateInterpolator(2));
+				anim.setListener(new ViewPropertyAnimatorListenerAdapter() {
+					@Override
+					public void onAnimationEnd(View view) {
+						layoutContent.setVisibility(View.VISIBLE);
+					}
+				});
+				anim.play(contentAnim);
+				anim.start();
+			} else {
+				layoutContent.setVisibility(View.VISIBLE);
+			}
 		}
 	}
 
@@ -679,6 +692,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
     	 */
 		super.onNewIntent(intent);
 		setIntent(intent);
+		
+		outMoreMode(false);
 		
 		resetData();
 		
@@ -1045,7 +1060,12 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		lvMsgs.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				SystemUtil.makeShortToast("单选了" + position);
+				if (mIsBatchMode) {	//全选模式
+					MsgViewHolder holder = (MsgViewHolder) view.getTag();
+					if (holder != null) {
+						holder.cbChose.toggle();
+					}
+				}
 			}
 		});
 		lvMsgs.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -2197,19 +2217,21 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 					Integer resId = SystemUtil.getResIdByFile(fileItem, R.drawable.ic_attach_file);
 					holder.tvContent.setCompoundDrawablesWithIntrinsicBounds(resId, 0, 0, 0);
 					
-					switch (fileItem.getFileType()) {
-					case IMAGE:	//图片,则直接加载图片缩略图
-						holder.tvContent.setCompoundDrawablePadding(0);
-						holder.tvContent.setText("");
-						if (SystemUtil.isFileExists(partPath)) {
-							mImageLoader.displayImage(Scheme.FILE.wrap(partPath), new TextViewAware(holder.tvContent), chatImageOptions);
+					if (fileItem != null) {
+						switch (fileItem.getFileType()) {
+							case IMAGE:	//图片,则直接加载图片缩略图
+								holder.tvContent.setCompoundDrawablePadding(0);
+								holder.tvContent.setText("");
+								if (SystemUtil.isFileExists(partPath)) {
+									mImageLoader.displayImage(Scheme.FILE.wrap(partPath), new TextViewAware(holder.tvContent), chatImageOptions);
+								}
+								break;
+							case APK:	//安装文件
+								new LoadApkIconTask(holder).execute(partPath);
+								break;
+							default:
+								break;
 						}
-						break;
-					case APK:	//安装文件
-						new LoadApkIconTask(holder).execute(partPath);
-						break;
-					default:
-						break;
 					}
 				}
 				break;
@@ -2310,25 +2332,12 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				}
 			}
 
-			holder.contentLayout.setOnClickListener(new MsgItemClickListener(type, msgInfo, position));
+			holder.contentLayout.setOnClickListener(new MsgItemClickListener(type, msgInfo, position, holder));
 			
 //			holder.tvContent.setOnTouchListener(new MyMsgItemTouchListener(msgInfo));
 			holder.contentLayout.setOnLongClickListener(new MyMsgItemLongClickListener(type, msgInfo, msgId));
-			holder.ivHeadIcon.setOnClickListener(new OnClickListener() {
-				
-				@Override
-				public void onClick(View v) {
-//					SystemUtil.makeShortToast("点击了头像");
-				}
-			});
-			holder.ivMsgState.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					if(msgInfo.getSendState() == SendState.FAILED) {//update by dudejin
-						sendMsg(msgInfo, true);
-					}
-				}
-			});
+			holder.ivHeadIcon.setOnClickListener(new MsgItemClickListener(type, msgInfo, position, holder));
+			holder.ivMsgState.setOnClickListener(new MsgItemClickListener(type, msgInfo, position, holder));
 			return convertView;
 		}
 
@@ -2398,8 +2407,12 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 					mSelectSize --;
 					mSelectSize = mSelectSize < 0 ? 0 : mSelectSize;
 				}
-				if (mActionMode != null && mSelectSize > 0) {
-					mActionMode.setTitle(String.valueOf(mSelectSize));
+				if (mActionMode != null) {
+					if (mSelectSize > 0) {
+						mActionMode.setTitle(String.valueOf(mSelectSize));
+					} else {
+						mActionMode.setTitle(null);
+					}
 				}
 			}
 		}
@@ -2744,12 +2757,14 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		private int itemType;
 		private MsgInfo msgInfo;
 		private int position;
+		private MsgViewHolder holder;
 
-		public MsgItemClickListener(int itemType, MsgInfo msgInfo, int position) {
+		public MsgItemClickListener(int itemType, MsgInfo msgInfo, int position, MsgViewHolder holder) {
 			super();
 			this.itemType = itemType;
 			this.msgInfo = msgInfo;
 			this.position = position;
+			this.holder = holder;
 		}
 		
 		/**
@@ -2783,74 +2798,90 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 
 		@Override
 		public void onClick(View v) {
-			Type msgType = msgInfo.getMsgType();
-			Intent intent = null;
-			if (msgType == Type.TEXT) {	//文本消息
-				intent = new Intent(mContext, MsgShowActivity.class);
-            	intent.putExtra(MsgShowActivity.ARG_MSG_CONTENT, msgInfo.getContent());
-            	ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
-				ActivityCompat.startActivity(ChatActivity.this, intent, options.toBundle());
+			if (mIsBatchMode) {	//多选模式
+				holder.cbChose.toggle();
 			} else {
-				MsgPart msgPart = msgInfo.getMsgPart();
-				if (msgPart != null) {
-					String showPath = msgPart.getShowPath();
-					File file = new File(showPath);
-					if (msgType == Type.LOCATION) {	//地理位置的文件，不需要判断文件是否存在
-						String location = msgPart.getDesc();
-						if (TextUtils.isEmpty(location)) {
-							location = msgInfo.getSubject();
-							if (TextUtils.isEmpty(location)) {
-								SystemUtil.makeShortToast(R.string.location_info_error);
-							} else {
-								showLocation(v, location);
-							}
-						} else {
-							showLocation(v, location);
+				switch (v.getId()) {
+					case R.id.iv_msg_state:	//重发消息
+						if(msgInfo.getSendState() == SendState.FAILED) {//update by dudejin
+							sendMsg(msgInfo, true);
 						}
-					} else {
-						if (SystemUtil.isFileExists(file)) {
-							switch (msgType) {
-							case IMAGE:	//打开图片
-								String filePath = msgPart.getFilePath();
-								boolean download = false;	//是否需要下载原始图片
-								if (msgInfo.isComming() && (!msgPart.isDownloaded() || !SystemUtil.isFileExists(filePath))) {	//原始图片不存在或者没有下载原始图片
-									filePath = showPath;
-									download = true;
-								}
-								if (!SystemUtil.isFileExists(filePath)) {
-									filePath = msgPart.getThumbPath();
-								}
-								intent = new Intent(mContext, ChatImagePreviewActivity.class);
-								intent.putExtra(ChatImagePreviewActivity.ARG_IMAGE_PATH, filePath);
-								intent.putExtra(PhotoFragment.ARG_TOUCH_FINISH, true);
-								intent.putExtra(PhotoFragment.ARG_DOWNLOAD_IMG, download);
-								intent.putExtra(MsgPart.ARG_MSG_PART, msgPart);
-								ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
-								ActivityCompat.startActivity(ChatActivity.this, intent, options.toBundle());
-								break;
-							case VOICE:	//语音类型的消息
-								TextView view = (TextView) v.findViewById(R.id.tv_content);
-								playVoice(showPath, position, itemType, view);
-								break;
-							case AUDIO:	//音频文件，则调用系统或者第三方应用打开
-								intent = MimeUtils.getAudioFileIntent(file);
-								startActivity(intent);
-								break;
-							case VIDEO:	//视频
-								intent = MimeUtils.getVideoFileIntent(file);
-								startActivity(intent);
-								break;
-							case FILE:	//其他文件
-								intent = MimeUtils.getFileIntent(file, msgPart.getMimeType());
-								startActivity(intent);
-								break;
-							default:
-								break;
-							}
+						break;
+					case R.id.content_layout:	//消息实体
+						Type msgType = msgInfo.getMsgType();
+						Intent intent = null;
+						if (msgType == Type.TEXT) {	//文本消息
+							intent = new Intent(mContext, MsgShowActivity.class);
+							intent.putExtra(MsgShowActivity.ARG_MSG_CONTENT, msgInfo.getContent());
+							ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
+							ActivityCompat.startActivity(ChatActivity.this, intent, options.toBundle());
 						} else {
-							SystemUtil.makeShortToast(R.string.file_not_exists);
+							MsgPart msgPart = msgInfo.getMsgPart();
+							if (msgPart != null) {
+								String showPath = msgPart.getShowPath();
+								File file = new File(showPath);
+								if (msgType == Type.LOCATION) {	//地理位置的文件，不需要判断文件是否存在
+									String location = msgPart.getDesc();
+									if (TextUtils.isEmpty(location)) {
+										location = msgInfo.getSubject();
+										if (TextUtils.isEmpty(location)) {
+											SystemUtil.makeShortToast(R.string.location_info_error);
+										} else {
+											showLocation(v, location);
+										}
+									} else {
+										showLocation(v, location);
+									}
+								} else {
+									if (SystemUtil.isFileExists(file)) {
+										switch (msgType) {
+											case IMAGE:	//打开图片
+												String filePath = msgPart.getFilePath();
+												boolean download = false;	//是否需要下载原始图片
+												if (msgInfo.isComming() && (!msgPart.isDownloaded() || !SystemUtil.isFileExists(filePath))) {	//原始图片不存在或者没有下载原始图片
+													filePath = showPath;
+													download = true;
+												}
+												if (!SystemUtil.isFileExists(filePath)) {
+													filePath = msgPart.getThumbPath();
+												}
+												intent = new Intent(mContext, ChatImagePreviewActivity.class);
+												intent.putExtra(ChatImagePreviewActivity.ARG_IMAGE_PATH, filePath);
+												intent.putExtra(PhotoFragment.ARG_TOUCH_FINISH, true);
+												intent.putExtra(PhotoFragment.ARG_DOWNLOAD_IMG, download);
+												intent.putExtra(MsgPart.ARG_MSG_PART, msgPart);
+												ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
+												ActivityCompat.startActivity(ChatActivity.this, intent, options.toBundle());
+												break;
+											case VOICE:	//语音类型的消息
+												TextView view = (TextView) v.findViewById(R.id.tv_content);
+												playVoice(showPath, position, itemType, view);
+												break;
+											case AUDIO:	//音频文件，则调用系统或者第三方应用打开
+												intent = MimeUtils.getAudioFileIntent(file);
+												startActivity(intent);
+												break;
+											case VIDEO:	//视频
+												intent = MimeUtils.getVideoFileIntent(file);
+												startActivity(intent);
+												break;
+											case FILE:	//其他文件
+												intent = MimeUtils.getFileIntent(file, msgPart.getMimeType());
+												startActivity(intent);
+												break;
+											default:
+												break;
+										}
+									} else {
+										SystemUtil.makeShortToast(R.string.file_not_exists);
+									}
+								}
+							}
 						}
-					}
+						break;
+					case R.id.iv_head_icon:	//点击了头像
+						SystemUtil.makeShortToast("点击了头像");
+						break;
 				}
 			}
 		}
@@ -3167,9 +3198,9 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 
 		@Override
 		public void update(Observable<?> observable, int notifyFlag, NotifyType notifyType, final Object data) {
+			MsgInfo msgInfo = null;
 			switch (notifyFlag) {
 				case Provider.MsgInfoColumns.NOTIFY_FLAG:	//消息的通知
-					MsgInfo msgInfo = null;
 					switch (notifyType) {
 						case ADD:	//来了新消息
 							if (data != null) {
@@ -3220,6 +3251,13 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 
 							}
 							break;
+					}
+					break;
+				case Provider.NotifyColumns.NOTIFY_MSG_UPLOAD_FLAG:	//消息附件上传进度条的更新
+					if (data != null) {
+						MsgUploadInfo uploadInfo = (MsgUploadInfo) data;
+						msgInfo = uploadInfo.getMsgInfo();
+						int progress = uploadInfo.getProgress();
 					}
 					break;
 			}

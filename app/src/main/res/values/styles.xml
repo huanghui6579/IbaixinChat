@@ -410,6 +410,15 @@
         <item name="android:button">@drawable/album_checkbox_selector</item>
     </style>
     
+    <!-- 聊天消息界面的复选框样式 -->
+    <style name="ChatMsgCheckboxStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_alignParentRight">true</item>
+        <item name="android:layout_marginLeft">@dimen/item_horizonal_padding</item>
+        <item name="android:layout_marginTop">@dimen/item_veritcal_padding</item>
+    </style>
+    
     <style name="CommonCheckedTextViewStyle">
 	    <item name="android:layout_width">match_parent</item>
 	    <item name="android:layout_height">wrap_content</item>

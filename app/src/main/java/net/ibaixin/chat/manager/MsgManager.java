@@ -29,6 +29,7 @@ import net.ibaixin.chat.model.MsgInfo.SendState;
 import net.ibaixin.chat.model.MsgInfo.Type;
 import net.ibaixin.chat.model.MsgPart;
 import net.ibaixin.chat.model.MsgThread;
+import net.ibaixin.chat.model.MsgUploadInfo;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.provider.Provider;
@@ -1464,6 +1465,16 @@ public class MsgManager extends Observable<Observer> {
 		db.update(Provider.MsgInfoColumns.TABLE_NAME, values, Provider.MsgInfoColumns.MSG_ID + " = ?", new String[] {msgInfo.getMsgId()});
 		notifyObservers(Provider.MsgInfoColumns.NOTIFY_FLAG, NotifyType.UPDATE, msgInfo);
 		return msgInfo;
+	}
+
+	/**
+	 * 通知界面更新上传进度
+	 * @param uploadInfo 消息上传的实体
+	 */
+	public void updateMsgUploadInfo(MsgUploadInfo uploadInfo) {
+		if (uploadInfo != null) {
+			notifyObservers(Provider.NotifyColumns.NOTIFY_MSG_UPLOAD_FLAG, NotifyType.UPDATE, uploadInfo);
+		}
 	}
 	
 	/**
