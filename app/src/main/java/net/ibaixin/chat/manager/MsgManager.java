@@ -1174,7 +1174,65 @@ public class MsgManager extends Observable<Observer> {
 			return false;
 		}
 	}
-	
+
+	/**
+	 * 根据消息id的数组msgIds来删除对应的消息
+	 * @param msgIds 消息id的数组
+	 * @param unReadCount 这些消息中所包含的问题消息数量，如果为0，则都是已读消息
+	 * @param msgThread 消息对应的会话
+	 * @return 是否删除成功
+	 * @author tiger
+	 * @update 2015/11/7 11:10
+	 * @version 1.0.0
+	 */
+	public boolean deleteMsgsByIds(String[] msgIds, int unReadCount, MsgThread msgThread) {
+		boolean success = false;
+		if (!SystemUtil.isEmpty(msgIds) && msgThread != null) {
+			SQLiteDatabase db = mChatDBHelper.getWritableDatabase();
+			String sql = null;
+			int len = msgIds.length;
+			if (len == 1) {	//只有一条消息
+				sql = " = ?";
+			} else {
+				sql = " in (" + makePlaceholders(len) + ")";
+			}
+			int count = db.delete(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.MSG_ID + sql, msgIds);
+			if (count > 0) {	//消息删除成功
+				//查询该消息是否是该会话的最后一条消息，如果是最后一条消息，则更新该会话的最后一条消息
+				int threadId = msgThread.getId();
+				String snippetId = getSnippetId(msgThread);
+				if (!TextUtils.isEmpty(snippetId)) {	//该会话有最后一条消息的id
+					boolean hasSnipppet = SystemUtil.hasObjInArray(msgIds, snippetId);
+					if (hasSnipppet) {	//更新该会话最后一条消息的信息
+						//获取该会话最后一条消息
+						MsgInfo lastMsg = getLastMsgInThread(threadId);
+						if (lastMsg != null) {	//有最后一条消息
+							//更新会话的最后一条消息
+							msgThread.setLastMsgInfo(lastMsg);
+							msgThread.setSnippetContent(lastMsg.getSnippetContent());
+							if (unReadCount > 0) {	//有未读消息
+								int oldCount = msgThread.getUnReadCount();
+								oldCount = oldCount - unReadCount;
+								oldCount = oldCount < 0 ? 0 : oldCount;
+								msgThread.setUnReadCount(oldCount);
+							}
+							msgThread.setSnippetId(lastMsg.getMsgId());
+						} else {
+							//已经没有最后一条消息了
+							msgThread.setLastMsgInfo(null);
+							msgThread.setSnippetContent(null);
+							msgThread.setUnReadCount(0);
+							msgThread.setSnippetId(null);
+						}
+						updateSnippet(msgThread, true);
+					}
+				}
+				success = true;
+			}
+		}
+		return success;
+	}
+
 	/**
 	 * 根据消息id删除消息的附件，无需删除本地磁盘的文件
 	 * @update 2014年11月12日 下午8:14:14
@@ -1235,7 +1293,47 @@ public class MsgManager extends Observable<Observer> {
 		}
 		return flag;
 	}
-	
+
+	/**
+	 * 获取会话最后一条消息的id
+	 * @param msgThread 会话
+	 * @return 最后一条消息的id，没有没有，则返回null
+	 * @author tiger
+	 * @update 2015/11/7 11:23
+	 * @version 1.0.0
+	 */
+	public String getSnippetId(MsgThread msgThread) {
+		if (msgThread == null) {
+			return null;
+		}
+		String snippetId = msgThread.getSnippetId();
+		//是否从数据库中查询
+		boolean selectDb = false;
+		if (TextUtils.isEmpty(snippetId)) {	//没有则从缓存查询
+			MsgThread tThread = mThreadCache.get(msgThread.getId());
+			if (tThread != null) {
+				snippetId = tThread.getSnippetId();
+				if (TextUtils.isEmpty(snippetId)) {
+					selectDb = true;
+				}
+			} else {
+				selectDb = true;
+			}
+			if (selectDb) {	//从数据库中查询
+				SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
+				Cursor cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, new String[]{Provider.MsgThreadColumns.SNIPPET_ID}, Provider.MsgThreadColumns._ID + " = ?", new String[]{String.valueOf(msgThread.getId())}, null, null, null);
+				if (cursor != null && cursor.moveToFirst()) {
+					snippetId = cursor.getString(0);
+				}
+				if (cursor != null) {
+					cursor.close();
+				}
+			}
+		}
+		return snippetId;
+	}
+
+
 	/**
 	 * 根据会话id获取该会话中最后的一条消息
 	 * @update 2015年2月27日 上午10:14:33
@@ -1249,7 +1347,7 @@ public class MsgManager extends Observable<Observer> {
 		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.DEFAULT_PROJECTION, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[]{String.valueOf(threadId)}, null, null, Provider.MsgInfoColumns.DEFAULT_SORT_ORDER, "1");
 		MsgInfo msg = null;
 		if (cursor != null && cursor.moveToFirst()) {
-			msg = initMsgInfoByCursor(cursor, false, threadId, null);
+			msg = initMsgInfoByCursor(cursor, true, threadId, null);
 		}
 		if (cursor != null) {
 			cursor.close();
@@ -1596,7 +1694,7 @@ public class MsgManager extends Observable<Observer> {
 		String snippetContent = null;
 		switch (msgType) {
 		case TEXT:
-			snippetContent = msgInfo.getContent();
+			snippetContent = msgInfo.getSnippetContent();
 			break;
 		case IMAGE:
 			snippetContent = mContext.getString(R.string.msg_thread_snippet_content_image);
@@ -1620,7 +1718,7 @@ public class MsgManager extends Observable<Observer> {
 			snippetContent = mContext.getString(R.string.msg_thread_snippet_content_voice, msgInfo.getContent());
 			break;
 		default:
-			snippetContent = msgInfo.getContent();
+			snippetContent = msgInfo.getSnippetContent();
 			break;
 		}
 		return snippetContent;
@@ -1632,6 +1730,7 @@ public class MsgManager extends Observable<Observer> {
 	 * @param msgInfo 消息实体
 	 * @return
 	 */
+	@Deprecated
 	public String getSnippetContentByMsgType(MsgInfo msgInfo) {
 		if (msgInfo == null) {
 			return null;

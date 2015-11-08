@@ -180,7 +180,7 @@ public class SystemUtil {
 	 * 显示短时间的toast
 	 * @author Administrator
 	 * @update 2014年10月7日 上午9:49:18
-	 * @param text
+	 * @param resId
 	 */
 	public static void makeShortToast(int resId) {
 		Toast toast = Toast.makeText(ChatApplication.getInstance(), resId, Toast.LENGTH_SHORT);
@@ -204,7 +204,7 @@ public class SystemUtil {
 	 * 显示长时间的toast
 	 * @author Administrator
 	 * @update 2014年10月7日 上午9:50:02
-	 * @param text
+	 * @param resId
 	 */
 	public static void makeLongToast(int resId) {
 		Toast toast = Toast.makeText(ChatApplication.getInstance(), resId, Toast.LENGTH_LONG);
@@ -451,7 +451,7 @@ public class SystemUtil {
 	 * 保存文件，根据用户名动态生成文件夹，该用户名为当前登录的用户名
 	 * @update 2014年10月23日 下午5:06:50
 	 * @param photoVal 图片的Base64位编码字符串
-	 * @param saveFile 保存文件的路径，不含文件名
+	 * @param savePath 保存文件的路径，不含文件名
 	 * @return
 	 */
 	public static File saveFile(String photoVal, String savePath) {
@@ -696,7 +696,6 @@ public class SystemUtil {
 	/**
 	 * 获取头像默认的存放路径，格式为/mnt/sdcard/ChatApp/currentuser/head_icon/
 	 * @update 2014年10月23日 下午6:09:27
-	 * @param username
 	 * @return
 	 */
 	public static String getDefaultIconPath() {
@@ -747,8 +746,8 @@ public class SystemUtil {
 	
 	/**
 	 * 根据用户名创建图像的全路径
+	 * @param username 头像的文件名称
 	 * @param fileType 头像的类型，主要是缩略图：1,原始图片：2
-	 * @param iconName 头像的文件名称
 	 * @return
 	 * @update 2015年7月27日 下午9:35:19
 	 */
@@ -1539,7 +1538,7 @@ public class SystemUtil {
 	/**
 	 * 根据会话id生成文件保存文件的路径，如:/mnt/sdcard/ChatApp/admin/attachment/12
 	 * @update 2014年11月17日 下午9:51:15
-	 * @param msgThread 当前会话
+	 * @param threadId 当前会话id
 	 * @return
 	 */
 	public static String generateChatAttachPath(int threadId) {
@@ -1578,7 +1577,6 @@ public class SystemUtil {
 	 * 根据附件的发起者账号、当前时间戳来生成对应的文件目录，如：/mnt/sdcard/ChatApp/admin/attachment/12/434324324
 	 * @update 2014年11月17日 下午10:06:38
 	 * @param msgThread
-	 * @param fromUser
 	 * @param filename	文件名，可以包含完整目录，也可以不包含
 	 * @return
 	 */
@@ -1589,8 +1587,8 @@ public class SystemUtil {
 	/**
 	 * 根据附件的发起者账号、当前时间戳来生成对应的文件目录，如：/mnt/sdcard/ChatApp/admin/attachment/12/54564657657868768
 	 * @update 2014年11月17日 下午10:06:38
+	 * @param threadId
 	 * @param filename
-	 * @param msgThread
 	 * @return
 	 */
 	public static String generateChatAttachFilePath(int threadId, String filename) {
@@ -2268,7 +2266,7 @@ public class SystemUtil {
 	 * 复制文本内容到剪切板
 	 * @update 2015年2月26日 上午10:54:06
 	 * @param text 要复制的文本内容
-	 * @param lable 文本内容映射到剪切板的lable
+	 * @param label 文本内容映射到剪切板的lable
 	 */
 	public static void copyText(String text, String label) {
 		ClipboardManager clipboard = (ClipboardManager) ChatApplication.getInstance().getSystemService(Context.CLIPBOARD_SERVICE);
@@ -2463,7 +2461,7 @@ public class SystemUtil {
 	/**
 	 * 扫描指定的文件
 	 * @update 2015年3月13日 上午11:22:00
-	 * @param ctx
+	 * @param context
 	 * @param filePath
 	 */
 	public static void scanFileAsync(Context context, String filePath) {
@@ -2473,7 +2471,7 @@ public class SystemUtil {
 	/**
 	 * 扫描指定的文件
 	 * @update 2015年3月13日 上午11:22:53
-	 * @param ctx
+	 * @param context
 	 * @param file
 	 */
 	public static void scanFileAsync(Context context, File file) {
@@ -2670,7 +2668,7 @@ public class SystemUtil {
 	}
 	
 	/**
-	 * Generate a value suitable for use in {@link #setId(int)}.
+	 * Generate a value suitable for use in {@link #View.setId(int)}.
 	 * This value will not collide with ID values generated at build time by aapt for R.id.
 	 *
 	 * @return a generated ID value
@@ -2825,5 +2823,31 @@ public class SystemUtil {
 	 */
 	public static String generateUUID() {
 		return UUID.randomUUID().toString();
+	}
+
+	/***
+	 * 判断该数据中是否有该对象，注：没有采用二分法查找，只是普通的遍历
+	 * @param array 对象数组
+	 * @param obj 要查找的对象
+	 * @param <T> 对象泛型
+	 * @return 返回是否包含该对象
+	 * @author tiger
+	 * @update 2015/11/7 11:33
+	 * @version 1.0.0
+	 */
+	public static <T> boolean hasObjInArray(T[] array, T obj) {
+		if (isEmpty(array) || obj == null) {
+			return false;
+		} else {
+			int len = array.length;
+			boolean has = false;
+			for (int i = 0; i < len; i++) {
+				if (obj.equals(array[i])) {
+					has = true;
+					break;
+				}
+			}
+			return has;
+		}
 	}
 }

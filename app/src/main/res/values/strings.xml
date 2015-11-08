@@ -134,7 +134,7 @@
     
     <string name="contact_list_content_menu_set_nickname">设置备注</string>
     <string name="contact_list_content_delete_prompt">确定删除“%1$s”吗？</string>
-    
+
     <string name="contact_friend_add_request">对方请求添加你为朋友</string>
     <string name="contact_friend_add_target_request">请求添加对方为好友</string>
     
@@ -211,7 +211,8 @@
     <string name="chat_record_btn_done">松开手指&#160;完成录音</string>
     <string name="chat_record_disable_tip">获取录音权限失败，请确认是否授予该引用录音权限</string>
     <string name="chat_record_short_tip">录音时间太短,请重新录音</string>
-    
+    <string name="chat_delte_msg_prompt">确定删除所选项？</string>
+
     <string name="prompt_account">账号：%1$s</string>
     
     <string name="item_setting">系统设置</string>

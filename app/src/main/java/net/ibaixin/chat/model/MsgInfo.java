@@ -2,6 +2,7 @@ package net.ibaixin.chat.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.SystemUtil;
@@ -191,7 +192,7 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 	 * @return
 	 * @update 2015年9月18日 下午6:21:51
 	 */
-	public String getSnippetContent(){
+	public String getShortContent(){
 		if (content == null) {
 			return null;
 		}
@@ -200,6 +201,24 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 		} else {	//直接返回整句
 			return content;
 		}
+	}
+
+	/**
+	 * 获取会话的摘要
+	 * @return 范湖会话的摘要
+	 * @author tiger
+	 * @update 2015/11/8 9:39
+	 * @version 1.0.0
+	 */
+	public String getSnippetContent() {
+		String snippetContent = getShortContent()/*msgManager.getSnippetContentByMsgType(msgInfo.getMsgType(), msgInfo)*/;
+		if (TextUtils.isEmpty(snippetContent)) {
+			MsgPart msgPart = getMsgPart();
+			if (msgPart != null) {
+				snippetContent = msgPart.getFileName();
+			}
+		}
+		return snippetContent;
 	}
 
 	@Override

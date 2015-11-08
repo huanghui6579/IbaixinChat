@@ -749,12 +749,6 @@ public class CoreService extends Service {
 			senderInfo.msgThread.setSnippetId(msgInfo.getMsgId());
 //			String snippetContent = msgManager.getSnippetContentByMsgType(msgInfo.getMsgType(), msgInfo);
 			String snippetContent = msgInfo.getSnippetContent();
-			if (TextUtils.isEmpty(snippetContent)) {
-				MsgPart msgPart = msgInfo.getMsgPart();
-				if (msgPart != null) {
-					snippetContent = msgPart.getFileName();
-				}
-			}
 			senderInfo.msgThread.setSnippetContent(snippetContent);
 			senderInfo.msgThread.setLastMsgInfo(msgInfo);
 			senderInfo.msgThread.setModifyDate(System.currentTimeMillis());
@@ -999,12 +993,6 @@ public class CoreService extends Service {
 					msgThread.setModifyDate(msgInfo.getCreationDate());
 					msgThread.setSnippetId(msgInfo.getMsgId());
 					String snippetContent = msgInfo.getSnippetContent()/*msgManager.getSnippetContentByMsgType(msgInfo.getMsgType(), msgInfo)*/;
-					if (TextUtils.isEmpty(snippetContent)) {
-						MsgPart msgPart = msgInfo.getMsgPart();
-						if (msgPart != null) {
-							snippetContent = msgPart.getFileName();
-						}
-					}
 					msgThread.setSnippetContent(snippetContent);
 					msgThread.setLastMsgInfo(msgInfo);
 					int unReadCount = msgThread.getUnReadCount();

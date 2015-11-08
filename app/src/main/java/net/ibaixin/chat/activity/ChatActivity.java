@@ -18,6 +18,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -122,6 +123,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 聊天界面
@@ -414,7 +416,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * 是否是批量模式
 	 */
 	private boolean mIsBatchMode;
-	
+
 	private Handler mHandler = new Handler() {
 
 		@Override
@@ -425,6 +427,10 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				scrollMyListViewToBottom(lvMsgs);
 				break;
 			case Constants.MSG_SUCCESS:	//删除成功
+				int arg = msg.arg1;
+				if (arg == 1) {	//隐藏actionMode
+					finishActionMode(mActionMode);
+				}
 				msgAdapter.notifyDataSetChanged();
 				break;
 			case Constants.MSG_FAILED:	//删除失败
@@ -502,7 +508,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		} else {
 			layoutEdit.setBackgroundDrawable(drawable);
 		}
-//		etContent.setBackgroundResource(0);
+//		etcontent.setbackgroundresource(0);
 		
 		getSupportFragmentManager().beginTransaction()
 			.replace(R.id.layout_emoji, EmojiTypeFragment.instantiate(mContext, EmojiTypeFragment.class.getCanonicalName()), "emojiFragment")
@@ -576,9 +582,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			mSelectMap.clear();
 			mSelectMap = null;
 		}
-		if (mActionMode != null) {
-			mActionMode.finish();
-		}
+		finishActionMode(mActionMode);
 		if (msgAdapter != null) {
 			msgAdapter.notifyDataSetChanged();
 		}
@@ -598,6 +602,19 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			} else {
 				layoutContent.setVisibility(View.VISIBLE);
 			}
+		}
+	}
+	
+	/**
+	 * 隐藏ActionMode
+	 * @param actionMode actionMode
+	 * @author tiger
+	 * @update 2015/11/8 10:56
+	 * @version 1.0.0
+	 */
+	private void finishActionMode(ActionMode actionMode) {
+		if (actionMode != null) {
+			actionMode.finish();
 		}
 	}
 
@@ -692,12 +709,23 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
     	 */
 		super.onNewIntent(intent);
 		setIntent(intent);
+
+		resetState();
 		
 		outMoreMode(false);
 		
 		resetData();
 		
 		initData();
+	}
+
+	/**
+	 * 重置一些控件、数据的状态
+	 */
+	private void resetState() {
+		if (pDialog != null && pDialog.isShowing()) {
+			pDialog.dismiss();
+		}
 	}
 	
 	/**
@@ -2408,10 +2436,29 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 					mSelectSize = mSelectSize < 0 ? 0 : mSelectSize;
 				}
 				if (mActionMode != null) {
+					Menu actionMenu = mActionMode.getMenu();
+					MenuItem forwardMenu = null;
+					MenuItem deleteMenu = null;
+					if (actionMenu != null) {
+						forwardMenu = actionMenu.findItem(R.id.action_forward);	//转发
+						deleteMenu = actionMenu.findItem(R.id.action_delete);	//删除
+					}
 					if (mSelectSize > 0) {
 						mActionMode.setTitle(String.valueOf(mSelectSize));
+						if (forwardMenu != null) {
+							forwardMenu.setEnabled(true);
+						}
+						if (deleteMenu != null) {
+							deleteMenu.setEnabled(true);
+						}
 					} else {
 						mActionMode.setTitle(null);
+						if (forwardMenu != null) {
+							forwardMenu.setEnabled(false);
+						}
+						if (deleteMenu != null) {
+							deleteMenu.setEnabled(false);
+						}
 					}
 				}
 			}
@@ -2606,13 +2653,64 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 											}
 
 											@Override
-											public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-												return super.onPrepareActionMode(mode, menu);
-											}
-
-											@Override
 											public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-												mActionMode.finish();
+												switch (item.getItemId()) {
+													case R.id.action_forward:	//转发
+														mActionMode.finish();
+														break;
+													case R.id.action_delete:	//删除
+														MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
+														builder.title(R.string.prompt)
+																.content(R.string.chat_delte_msg_prompt)
+																.positiveText(android.R.string.ok)
+																.negativeText(android.R.string.cancel)
+																.callback(new MaterialDialog.ButtonCallback() {
+																	@Override
+																	public void onPositive(MaterialDialog dialog) {
+																		pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading), true);
+																		SystemUtil.getCachedThreadPool().execute(new Runnable() {
+																			@Override
+																			public void run() {
+																				Set<String> keys = mSelectMap.keySet();
+																				List<String> msgIdList = new ArrayList<>();
+																				List<MsgInfo> deleteList = new ArrayList<>();
+																				int unreadCount = 0;
+																				for (String key : keys) {
+																					Boolean value = mSelectMap.get(key);
+																					if (value != null && value) {	//选中
+																						MsgInfo tmpInfo = new MsgInfo();
+																						tmpInfo.setThreadID(mThreadId);
+																						tmpInfo.setMsgId(key);
+																						int index = mMsgInfos.indexOf(tmpInfo);
+																						if (index != -1) {
+																							msgIdList.add(key);
+																							tmpInfo = mMsgInfos.get(index);
+																							deleteList.add(tmpInfo);
+																							if (!tmpInfo.isRead()) {
+																								unreadCount ++;
+																							}
+																						}
+																					}
+																				}
+																				String[] msgIdArray = new String[msgIdList.size()];
+																				msgIdList.toArray(msgIdArray);
+																				boolean success = msgManager.deleteMsgsByIds(msgIdArray, unreadCount, msgThread);
+																				Message msg = mHandler.obtainMessage();
+																				if (success) {
+																					mMsgInfos.removeAll(deleteList);
+																					msg.arg1 = 1;	//要隐藏actionMode
+																					msg.what = Constants.MSG_SUCCESS;
+																				} else {
+																					msg.what = Constants.MSG_FAILED;
+																				}
+																				mHandler.sendMessage(msg);
+																				pDialog.dismiss();
+																			}
+																		});
+																	}
+																}).show();
+														break;
+												}
 												return super.onActionItemClicked(mode, item);
 											}
 
@@ -3308,7 +3406,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	/**
 	 * 局部更新adapter
 	 * @param position 要更新的索引位置
-	 * @param user 要更新的实体对象
+	 * @param msgInfo 要更新的实体对象
 	 * @update 2015年8月20日 下午2:54:22
 	 */
 	private void updateView(int position, MsgInfo msgInfo) {
