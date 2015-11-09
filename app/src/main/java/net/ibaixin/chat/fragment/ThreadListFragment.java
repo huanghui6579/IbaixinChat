@@ -1,16 +1,5 @@
 package net.ibaixin.chat.fragment;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -21,7 +10,6 @@ import android.os.Message;
 import android.provider.Settings;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +17,12 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.activity.ChatActivity;
 import net.ibaixin.chat.activity.CommonAdapter;
@@ -49,6 +43,12 @@ import net.ibaixin.chat.util.Observable;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.view.ProgressDialog;
 import net.ibaixin.chat.view.ProgressWheel;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 聊天会话列表
@@ -471,7 +471,6 @@ public class ThreadListFragment extends BaseFragment implements LoaderCallbacks<
 		 * 显示用户头像
 		 * @param userVcard
 		 * @param imageView
-		 * @param clearCache 是否需要清除头像缓存
 		 * @update 2015年8月20日 下午3:01:42
 		 */
 		private void showIcon(UserVcard userVcard, ImageView imageView) {

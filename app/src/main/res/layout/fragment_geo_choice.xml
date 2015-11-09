@@ -7,7 +7,7 @@
 	<include layout="@layout/com_toolbar"/>
 	
 	<ListView
-        android:id="@+id/lv_data"
+        android:id="@id/lv_data"
         style="@style/CommonListViewStyle"
         android:listSelector="@android:color/transparent"
         android:animateLayoutChanges="false"

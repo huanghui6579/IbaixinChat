@@ -492,6 +492,21 @@ public class MsgManager extends Observable<Observer> {
 	 * @return 所有的会话列表
 	 */
 	public List<MsgThread> getMsgThreadList() {
+		return getMsgThreadList(true);
+	}
+	
+	/**
+	 * 加载会话列表
+	 * @param loadLastMsg 是否加载该会话最后一条信息
+	 * @return 返回会话列表                
+	 * 创建人：huanghui1
+	 * 创建时间： 2015/11/9 19:34
+	 * 修改人：huanghui1
+	 * 修改时间：2015/11/9 19:34
+	 * 修改备注：
+	 * @version: 0.0.1
+	 */
+	public List<MsgThread> getMsgThreadList(boolean loadLastMsg) {
 		List<MsgThread> list = null;
 //		Cursor cursor = mContext.getContentResolver().query(Provider.MsgThreadColumns.CONTENT_URI, null, null, null, null);
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
@@ -513,13 +528,14 @@ public class MsgManager extends Observable<Observer> {
 				
 				String snippetId = cursor.getString(cursor.getColumnIndex(Provider.MsgThreadColumns.SNIPPET_ID));
 				msgThread.setSnippetId(snippetId);
-				//查询该会话最后一条消息
-				MsgInfo msgInfo = getMsgInfoById(snippetId);
-				msgThread.setLastMsgInfo(msgInfo);
-				
+				if (loadLastMsg) {
+					//查询该会话最后一条消息
+					MsgInfo msgInfo = getMsgInfoById(snippetId);
+					msgThread.setLastMsgInfo(msgInfo);
+					mThreadCache.put(msgThread.getId(), msgThread);
+				}
 				list.add(msgThread);
 				
-				mThreadCache.put(msgThread.getId(), msgThread);
 			}
 			cursor.close();
 		}

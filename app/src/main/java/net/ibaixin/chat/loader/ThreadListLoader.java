@@ -1,11 +1,13 @@
 package net.ibaixin.chat.loader;
 
-import java.util.List;
+import android.content.Context;
+import android.os.Bundle;
+import android.support.v4.content.AsyncTaskLoader;
 
 import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.model.MsgThread;
-import android.content.Context;
-import android.support.v4.content.AsyncTaskLoader;
+
+import java.util.List;
 
 /**
  * 会话列表加载的后台任务
@@ -16,9 +18,16 @@ public class ThreadListLoader extends AsyncTaskLoader<List<MsgThread>> {
 	private MsgManager msgManager = MsgManager.getInstance();
 	
 	private List<MsgThread> list = null;
+	
+	private Bundle mBundle;
 
 	public ThreadListLoader(Context context) {
 		super(context);
+	}
+
+	public ThreadListLoader(Context context, Bundle args) {
+		super(context);
+		this.mBundle = args;
 	}
 	
 	@Override
