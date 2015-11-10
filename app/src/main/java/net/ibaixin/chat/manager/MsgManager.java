@@ -23,6 +23,7 @@ import net.ibaixin.chat.R;
 import net.ibaixin.chat.db.ChatDatabaseHelper;
 import net.ibaixin.chat.model.Album;
 import net.ibaixin.chat.model.AudioItem;
+import net.ibaixin.chat.model.ChatChoseItem;
 import net.ibaixin.chat.model.FileItem;
 import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.MsgInfo.SendState;
@@ -538,6 +539,57 @@ public class MsgManager extends Observable<Observer> {
 				
 			}
 			cursor.close();
+		}
+		return list;
+	}
+	
+	/**
+	 * 获取转发、分享等选择会话的列表
+	 * @param itemType 要加载的类型，主要是会话和联系人两类，0：{@code ChatChoseItem.TYPE_THREAD }表示会话，1:{@code ChatChoseItem.TYPE_CONTACT }表示好友
+	 * 创建人：huanghui1
+	 * 创建时间： 2015/11/10 17:24
+	 * 修改人：huanghui1
+	 * 修改时间：2015/11/10 17:24
+	 * 修改备注：
+	 * @version: 0.0.1
+	 */
+	public List<ChatChoseItem> getChatChoseItems(int itemType) {
+		List<ChatChoseItem> list = null;
+		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
+		Cursor cursor = null;
+		switch (itemType) {
+			case ChatChoseItem.TYPE_THREAD:	//加载会话
+				cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, Provider.MsgThreadColumns.DEFAULT_PROJECTION, null, null, null, null, Provider.MsgThreadColumns.DEFAULT_SORT_ORDER);
+				if (cursor != null) {
+					list = new ArrayList<>();
+					while (cursor.moveToNext()) {
+						MsgThread msgThread = new MsgThread();
+						msgThread.setId(cursor.getInt(cursor.getColumnIndex(Provider.MsgThreadColumns._ID)));
+						msgThread.setModifyDate(cursor.getLong(cursor.getColumnIndex(Provider.MsgThreadColumns.MODIFY_DATE)));
+						msgThread.setMsgThreadName(cursor.getString(cursor.getColumnIndex(Provider.MsgThreadColumns.MSG_THREAD_NAME)));
+						msgThread.setSnippetContent(cursor.getString(cursor.getColumnIndex(Provider.MsgThreadColumns.SNIPPET_CONTENT)));
+						msgThread.setUnReadCount(cursor.getInt(cursor.getColumnIndex(Provider.MsgThreadColumns.UNREAD_COUNT)));
+						String memberIds = cursor.getString(cursor.getColumnIndex(Provider.MsgThreadColumns.MEMBER_IDS));
+
+						List<User> members = getMemebersByMemberIds(memberIds);
+						msgThread.setMembers(members);
+						msgThread.setTop(cursor.getInt(cursor.getColumnIndex(Provider.MsgThreadColumns.IS_TOP)) == 0 ? false : true);
+
+						String snippetId = cursor.getString(cursor.getColumnIndex(Provider.MsgThreadColumns.SNIPPET_ID));
+						msgThread.setSnippetId(snippetId);
+
+						ChatChoseItem choseItem = new ChatChoseItem();
+						choseItem.setItemType(itemType);
+						choseItem.setMsgThread(msgThread);
+						list.add(choseItem);
+
+					}
+					cursor.close();
+				}
+				break;
+			case ChatChoseItem.TYPE_CONTACT:	//加载好友
+				
+				break;
 		}
 		return list;
 	}

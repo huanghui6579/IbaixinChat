@@ -5,7 +5,7 @@
     
     <TextView
         android:id="@+id/tv_catalog"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/index_text_bg_color"
         android:textColor="@color/index_text_color"

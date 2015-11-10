@@ -3418,12 +3418,14 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			if (relativePosition >= 0) {
 				//得到要更新的item的view  
 				View view = lvMsgs.getChildAt(relativePosition);
-				//从view中取得holder  
-				Object tag = view.getTag();
-				if (tag != null && tag instanceof MsgViewHolder) {
-					MsgViewHolder holder = (MsgViewHolder) tag;
-					
-					msgAdapter.displayImage(msgInfo, holder.ivContentImg);
+				if (view != null) {
+					//从view中取得holder  
+					Object tag = view.getTag();
+					if (tag != null && tag instanceof MsgViewHolder) {
+						MsgViewHolder holder = (MsgViewHolder) tag;
+
+						msgAdapter.displayImage(msgInfo, holder.ivContentImg);
+					}
 				}
 			}
 		}

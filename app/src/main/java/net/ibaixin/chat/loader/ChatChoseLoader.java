@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.v4.content.AsyncTaskLoader;
 
 import net.ibaixin.chat.manager.MsgManager;
-import net.ibaixin.chat.model.MsgThread;
+import net.ibaixin.chat.model.ChatChoseItem;
 
 import java.util.List;
 
@@ -14,20 +14,21 @@ import java.util.List;
  * @author huanghui1
  * @update 2014年10月31日 下午8:59:03
  */
-public class ThreadListLoader extends AsyncTaskLoader<List<MsgThread>> {
+public class ChatChoseLoader extends AsyncTaskLoader<List<ChatChoseItem>> {
 	private MsgManager msgManager = MsgManager.getInstance();
 	
 	public static final String ARG_LOAG_LASTMSG = "arg_loag_lastmsg";
+	public static final String ARG_LOAG_TYPE = "arg_loag_type";
 	
-	private List<MsgThread> list = null;
+	private List<ChatChoseItem> list = null;
 	
 	private Bundle mBundle;
 
-	public ThreadListLoader(Context context) {
+	public ChatChoseLoader(Context context) {
 		super(context);
 	}
 
-	public ThreadListLoader(Context context, Bundle args) {
+	public ChatChoseLoader(Context context, Bundle args) {
 		super(context);
 		this.mBundle = args;
 	}
@@ -54,12 +55,14 @@ public class ThreadListLoader extends AsyncTaskLoader<List<MsgThread>> {
 	}
 
 	@Override
-	public List<MsgThread> loadInBackground() {
+	public List<ChatChoseItem> loadInBackground() {
 		boolean loadLastMsg = true;
+		int itemType = ChatChoseItem.TYPE_THREAD;
 		if (mBundle != null) {
 			loadLastMsg = mBundle.getBoolean(ARG_LOAG_LASTMSG, true);
+			itemType = mBundle.getInt(ARG_LOAG_TYPE, ChatChoseItem.TYPE_THREAD);
 		}
-		list = msgManager.getMsgThreadList(loadLastMsg);
+//		list = msgManager.getMsgThreadList(loadLastMsg);
 		return list;
 	}
 }
