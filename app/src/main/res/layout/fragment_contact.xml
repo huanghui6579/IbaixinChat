@@ -6,8 +6,7 @@
     <ListView
         android:id="@+id/lv_contact"
         style="@style/CommonListViewStyle"
-        android:divider="@drawable/contact_list_divider"
-        android:dividerHeight="0.5dp" />
+        android:divider="@drawable/contact_list_divider"/>
 
     <TextView
         android:id="@+id/tv_text_dialog"

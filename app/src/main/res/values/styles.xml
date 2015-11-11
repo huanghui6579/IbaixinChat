@@ -279,6 +279,8 @@
         <item name="android:cacheColorHint">@android:color/transparent</item>
         <item name="android:listSelector">@drawable/common_list_selector</item>
         <item name="android:animateLayoutChanges">false</item>
+        <item name="android:dividerHeight">@dimen/common_divider_height</item>
+        <item name="android:divider">@drawable/common_list_divider</item>
         <item name="android:fastScrollEnabled">true</item>
     </style>
     

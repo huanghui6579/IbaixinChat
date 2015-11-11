@@ -4,18 +4,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     tools:context="net.ibaixin.chat.activity.ChatChoseActivity">
 
-    <include layout="@layout/com_toolbar"/>
+    <include
+        android:id="@+id/toolbar_layout"
+        layout="@layout/com_toolbar"/>
 
     <ListView
         android:id="@id/lv_data"
+        android:layout_below="@id/toolbar_layout"
         style="@style/CommonListViewStyle" />
 
     <ViewStub
+        android:id="@+id/empty_stub"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         layout="@layout/layout_empty"
-        android:layout_centerInParent="true"/>
+        android:layout_centerInParent="true"
+        android:visibility="visible"/>
 
 </RelativeLayout>

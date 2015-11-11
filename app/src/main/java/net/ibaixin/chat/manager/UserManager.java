@@ -77,9 +77,26 @@ public class UserManager extends Observable<Observer> {
 	 * @return 好友列表
 	 */
 	public List<User> getFriends() {
+		return getFriends(null);
+	}
+	
+	/**
+	 * 获取所有好友列表
+	 * @param db 数据库
+	 * @return 返回好友列表             
+	 * 创建人：huanghui1
+	 * 创建时间： 2015/11/11 10:31
+	 * 修改人：huanghui1
+	 * 修改时间：2015/11/11 10:31
+	 * 修改备注：
+	 * @version: 0.0.1
+	 */
+	public List<User> getFriends(SQLiteDatabase db) {
 		List<User> users = null;
 //		Cursor cursor = mContext.getContentResolver().query(Provider.UserColumns.CONTENT_URI, null, null, null, null);
-		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
+		if (db == null) {
+			db = mChatDBHelper.getReadableDatabase();
+		}
 		Cursor cursor = db.query(Provider.UserColumns.TABLE_NAME, Provider.UserColumns.DEFAULT_PROJECTION, null, null, null, null, Provider.UserColumns.DEFAULT_SORT_ORDER);
 		if (cursor != null) {
 			users = new ArrayList<User>();

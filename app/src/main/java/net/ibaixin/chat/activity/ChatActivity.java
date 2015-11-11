@@ -2596,11 +2596,14 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 						@Override
 						public void onItemClick(AdapterView<?> parent, View view,
 												final int position, long id) {
+							Intent intent = null;
 							switch ((int) id) {
 								case MENU_COPY:	//复制
 									SystemUtil.copyText(msgInfo.getContent());
 									break;
 								case MENU_FORWARD:	//转发
+									intent = new Intent(mContext, ChatChoseActivity.class);
+									startActivity(intent);
 									break;
 								case MENU_DELETE:	//删除
 									pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading), true);
@@ -2632,7 +2635,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 											SystemUtil.makeShortToast(R.string.file_not_exists);
 										}
 									} else {
-										Intent intent=new Intent(Intent.ACTION_SEND);
+										intent=new Intent(Intent.ACTION_SEND);
 										intent.setType("text/plain");
 //					             intent.setType("image/*");
 //								intent.putExtra(Intent.EXTRA_SUBJECT, "百信趣味阅读");
@@ -2656,6 +2659,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 											public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
 												switch (item.getItemId()) {
 													case R.id.action_forward:	//转发
+														Intent intent = new Intent(mContext, ChatChoseActivity.class);
+														startActivity(intent);
 														mActionMode.finish();
 														break;
 													case R.id.action_delete:	//删除
@@ -3404,7 +3409,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	}
 
 	/**
-	 * 局部更新adapter
+	 * 局部更新adaptero
 	 * @param position 要更新的索引位置
 	 * @param msgInfo 要更新的实体对象
 	 * @update 2015年8月20日 下午2:54:22

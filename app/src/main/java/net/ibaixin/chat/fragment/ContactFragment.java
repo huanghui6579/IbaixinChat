@@ -1,24 +1,8 @@
 package net.ibaixin.chat.fragment;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jivesoftware.smack.AbstractXMPPConnection;
-
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
-import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +15,12 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
+
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.activity.CommonAdapter;
 import net.ibaixin.chat.activity.MainActivity.LazyLoadCallBack;
@@ -51,6 +41,14 @@ import net.ibaixin.chat.view.ProgressDialog;
 import net.ibaixin.chat.view.ProgressWheel;
 import net.ibaixin.chat.view.SideBar;
 import net.ibaixin.chat.view.SideBar.OnTouchingLetterChangedListener;
+
+import org.jivesoftware.smack.AbstractXMPPConnection;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 好友列表界面
@@ -440,16 +438,7 @@ public class ContactFragment extends BaseFragment implements LazyLoadCallBack {
 		
 		private ImageLoader imageLoader = ImageLoader.getInstance();
 		
-		DisplayImageOptions options = new DisplayImageOptions.Builder()
-				.showImageOnLoading(R.drawable.contact_head_icon_default)
-				.showImageForEmptyUri(R.drawable.contact_head_icon_default)
-				.showImageOnFail(R.drawable.contact_head_icon_default)
-				.cacheInMemory(true)
-				.cacheOnDisk(false)
-				.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
-				.bitmapConfig(Bitmap.Config.RGB_565)	//防止内存溢出
-				.displayer(new FadeInBitmapDisplayer(200))
-				.build();
+		DisplayImageOptions options = SystemUtil.getGeneralImageOptions();
 
 		public ContactAdapter(List<User> list, Context context) {
 			super(list, context);
@@ -527,7 +516,6 @@ public class ContactFragment extends BaseFragment implements LazyLoadCallBack {
 		 * 显示用户头像
 		 * @param userVcard
 		 * @param imageView
-		 * @param clearCache 是否需要清除头像缓存
 		 * @update 2015年8月20日 下午3:01:42
 		 */
 		private void showIcon(UserVcard userVcard, ImageView imageView) {

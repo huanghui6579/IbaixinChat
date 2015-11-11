@@ -545,7 +545,7 @@ public class MsgManager extends Observable<Observer> {
 	
 	/**
 	 * 获取转发、分享等选择会话的列表
-	 * @param itemType 要加载的类型，主要是会话和联系人两类，0：{@code ChatChoseItem.TYPE_THREAD }表示会话，1:{@code ChatChoseItem.TYPE_CONTACT }表示好友
+	 * @param dataType 要加载的类型，主要是会话和联系人两类，0：{@code ChatChoseItem.TYPE_THREAD }表示会话，1:{@code ChatChoseItem.TYPE_CONTACT }表示好友
 	 * 创建人：huanghui1
 	 * 创建时间： 2015/11/10 17:24
 	 * 修改人：huanghui1
@@ -553,13 +553,12 @@ public class MsgManager extends Observable<Observer> {
 	 * 修改备注：
 	 * @version: 0.0.1
 	 */
-	public List<ChatChoseItem> getChatChoseItems(int itemType) {
+	public List<ChatChoseItem> getChatChoseItems(int dataType) {
 		List<ChatChoseItem> list = null;
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
-		Cursor cursor = null;
-		switch (itemType) {
-			case ChatChoseItem.TYPE_THREAD:	//加载会话
-				cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, Provider.MsgThreadColumns.DEFAULT_PROJECTION, null, null, null, null, Provider.MsgThreadColumns.DEFAULT_SORT_ORDER);
+		switch (dataType) {
+			case ChatChoseItem.DATA_THREAD:	//加载会话
+				Cursor cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, Provider.MsgThreadColumns.DEFAULT_PROJECTION, null, null, null, null, Provider.MsgThreadColumns.DEFAULT_SORT_ORDER);
 				if (cursor != null) {
 					list = new ArrayList<>();
 					while (cursor.moveToNext()) {
@@ -579,16 +578,29 @@ public class MsgManager extends Observable<Observer> {
 						msgThread.setSnippetId(snippetId);
 
 						ChatChoseItem choseItem = new ChatChoseItem();
-						choseItem.setItemType(itemType);
+						choseItem.setDataType(dataType);
 						choseItem.setMsgThread(msgThread);
+						choseItem.setItemType(ChatChoseItem.TYPE_ITEM);
 						list.add(choseItem);
 
 					}
 					cursor.close();
 				}
 				break;
-			case ChatChoseItem.TYPE_CONTACT:	//加载好友
-				
+			case ChatChoseItem.DATA_CONTACT:	//加载好友
+				List<User> users = UserManager.getInstance().getFriends(db);
+				if (!SystemUtil.isEmpty(users)) {
+					list = new ArrayList<>();
+					//将排好顺序的users添加到
+					for (User user : users) {
+						ChatChoseItem choseItem = new ChatChoseItem();
+						choseItem.setDataType(dataType);
+						choseItem.setItemType(ChatChoseItem.TYPE_ITEM);
+						choseItem.setUser(user);
+
+						list.add(choseItem);
+					}
+				}
 				break;
 		}
 		return list;

@@ -12,18 +12,31 @@ package net.ibaixin.chat.model;
  */
 public class ChatChoseItem {
     /**
+     * 组标题类型
+     */
+    public static final int TYPE_GROUP = 0;
+    /**
+     * 列表项类型
+     */
+    public static final int TYPE_ITEM = 1;
+    /**
      * 会话的类型
      */
-    public static final int TYPE_THREAD = 0;
+    public static final int DATA_THREAD = 0;
     /**
      * 联系人的类型
      */
-    public static final int TYPE_CONTACT = 1;
+    public static final int DATA_CONTACT = 1;
+
+    /**
+     * 默认是组标题的类型
+     */
+    private int itemType = TYPE_GROUP;
 
     /**
      * 默认是会话的类型
      */
-    private int itemType = TYPE_THREAD;
+    private int dataType = DATA_THREAD;
     
     private MsgThread msgThread;
     
@@ -53,10 +66,19 @@ public class ChatChoseItem {
         this.user = user;
     }
 
+    public int getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(int dataType) {
+        this.dataType = dataType;
+    }
+
     @Override
     public String toString() {
         return "ChatChoseItem{" +
                 "itemType=" + itemType +
+                ", dataType=" + dataType +
                 ", msgThread=" + msgThread +
                 ", user=" + user +
                 '}';

@@ -65,6 +65,7 @@
     <string name="activity_lable_personal_info">个人信息</string>
     <string name="activity_lable_clip_head_icon">头像裁剪</string>
     <string name="activity_lable_nickname">昵称</string>
+    <string name="activity_lable_chose">选择</string>
     
     <string name="email">邮箱：%1$s</string>
     <string name="username">用户名：%1$s</string>
@@ -142,6 +143,8 @@
     <string name="chat_btn_make_voice_start">按住&#160;说话</string>
     <string name="chat_sending_file">正在发送文件&#8230;</string>
     <string name="chat_attach_file_desc">"%1$s\n%2$s"</string>
+    <string name="chat_chose_item_title_thread">最近聊天</string>
+    <string name="chat_chose_item_title_contact">好友</string>
     
     <string name="album_all_video">所有视频</string>
     <string name="album_all_photo">所有图片</string>

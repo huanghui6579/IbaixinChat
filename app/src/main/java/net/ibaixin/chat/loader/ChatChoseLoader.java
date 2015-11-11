@@ -56,13 +56,13 @@ public class ChatChoseLoader extends AsyncTaskLoader<List<ChatChoseItem>> {
 
 	@Override
 	public List<ChatChoseItem> loadInBackground() {
-		boolean loadLastMsg = true;
-		int itemType = ChatChoseItem.TYPE_THREAD;
+//		boolean loadLastMsg = true;
+		int dataType = ChatChoseItem.DATA_THREAD;
 		if (mBundle != null) {
-			loadLastMsg = mBundle.getBoolean(ARG_LOAG_LASTMSG, true);
-			itemType = mBundle.getInt(ARG_LOAG_TYPE, ChatChoseItem.TYPE_THREAD);
+//			loadLastMsg = mBundle.getBoolean(ARG_LOAG_LASTMSG, true);
+			dataType = mBundle.getInt(ARG_LOAG_TYPE, ChatChoseItem.DATA_THREAD);
 		}
-//		list = msgManager.getMsgThreadList(loadLastMsg);
+		list = msgManager.getChatChoseItems(dataType);
 		return list;
 	}
 }

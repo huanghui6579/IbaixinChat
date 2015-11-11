@@ -335,8 +335,9 @@
         -->
         <!-- 阿里妈妈推广配置 结束 -->
 
-        <activity android:name=".activity.ChatChoseActivity" >
-        </activity>
+        <activity android:name=".activity.ChatChoseActivity"
+                  android:configChanges="orientation|screenSize"
+                  android:label="@string/activity_lable_chose"/>
     </application>
 
 </manifest>
