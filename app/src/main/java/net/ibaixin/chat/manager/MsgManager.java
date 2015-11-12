@@ -1028,7 +1028,7 @@ public class MsgManager extends Observable<Observer> {
 	/**
 	 * 根据成员的用户名来获取该会话
 	 * @param autoCreate 若该会话不存在，则是否自动创建
-	 * @param memAccounts
+	 * @param memAccounts 会话成员，好友的账号数组
 	 * @return
 	 * @update 2015年9月16日 下午8:13:51
 	 */

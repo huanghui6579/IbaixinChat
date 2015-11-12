@@ -1002,6 +1002,8 @@ public class CoreService extends Service {
 					
 					//刷新ui
 //					notifyUI(msgInfo, ChatActivity.MsgProcessReceiver.ACTION_PROCESS_MSG);
+				} else {
+					//TODO thread 为空的情况需要做处理
 				}
 				if (notify && msgInfo != null) {
 					if (!isChatActivityOnTop()) {

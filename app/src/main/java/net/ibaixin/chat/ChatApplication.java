@@ -1,22 +1,5 @@
 package net.ibaixin.chat;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import net.ibaixin.chat.model.Emoji;
-import net.ibaixin.chat.model.EmojiType;
-import net.ibaixin.chat.model.Personal;
-import net.ibaixin.chat.model.SystemConfig;
-import net.ibaixin.chat.service.CoreService;
-import net.ibaixin.chat.util.Constants;
-import net.ibaixin.chat.util.Log;
-import net.ibaixin.chat.util.SystemUtil;
-import net.ibaixin.chat.util.XmppConnectionManager;
-import net.ibaixin.chat.volley.toolbox.MultiPartStack;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -29,7 +12,6 @@ import android.text.TextUtils;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.RequestQueue.RequestFinishedListener;
 import com.android.volley.toolbox.Volley;
 import com.baidu.mapapi.SDKInitializer;
 import com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache;
@@ -37,7 +19,24 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
+
+import net.ibaixin.chat.model.Emoji;
+import net.ibaixin.chat.model.EmojiType;
+import net.ibaixin.chat.model.Personal;
+import net.ibaixin.chat.model.SystemConfig;
+import net.ibaixin.chat.service.CoreService;
+import net.ibaixin.chat.util.Constants;
+import net.ibaixin.chat.util.Log;
+import net.ibaixin.chat.util.SystemUtil;
+import net.ibaixin.chat.util.XmppConnectionManager;
+import net.ibaixin.chat.volley.toolbox.MultiPartStack;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 应用程序入口
@@ -186,7 +185,15 @@ public class ChatApplication extends Application {
 	}
 
 	public String getCurrentAccount() {
-		return currentAccount;
+		if (currentAccount != null) {
+			return currentAccount;
+		} else {
+			if (systemConfig != null) {
+				return systemConfig.getAccount();
+			} else {
+				return null;
+			}
+		}
 	}
 
 	public void setCurrentAccount(String currentAccount) {
@@ -396,7 +403,6 @@ public class ChatApplication extends Application {
 	/**
 	 * 保存系统配置信息
 	 * @update 2014年10月9日 上午8:22:30
-	 * @param config
 	 */
 	public void saveSystemConfig() {
 		SharedPreferences preferences = getSharedPreferences(Constants.SETTTING_LOGIN, Context.MODE_PRIVATE);

@@ -1,6 +1,7 @@
 package net.ibaixin.chat.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
@@ -9,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewStub;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -19,10 +21,14 @@ import com.nostra13.universalimageloader.core.download.ImageDownloader;
 
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.loader.ChatChoseLoader;
+import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.model.ChatChoseItem;
+import net.ibaixin.chat.model.MsgInfo;
+import net.ibaixin.chat.model.MsgPart;
 import net.ibaixin.chat.model.MsgThread;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.model.UserVcard;
+import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.SystemUtil;
 
 import java.util.ArrayList;
@@ -38,6 +44,9 @@ import java.util.List;
  * @version: 0.0.1
  */
 public class ChatChoseActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<List<ChatChoseItem>> {
+    public static final String ARG_MSG_INFOS= "arg_msg_infos";
+    public static final String ARG_FORWARD_FLAG = "arg_forward_flag";
+    
     private ListView mLvData;
     private View mEmptyView;
     private View mFooteryView;
@@ -46,6 +55,16 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     private ChatChoseAdapter mChoseAdapter;
     
     private ImageLoader mImageLoader = ImageLoader.getInstance();
+
+    /**
+     * 自身登录的账号
+     */
+    private String mCurrentAccount;
+
+    /**
+     * 传入的消息实体
+     */
+    private ArrayList<MsgInfo> mMsgInfos;
 
     /**
      * 加载数据的类型，默认是会话
@@ -65,12 +84,70 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     @Override
     protected void initData() {
         mChoseItems = new ArrayList<>();
+
+        mCurrentAccount = application.getCurrentAccount();
+        
         getSupportLoaderManager().initLoader(0, null, this);
+        
+        Intent intent = getIntent();
+        if (intent != null) {
+            mMsgInfos = intent.getParcelableArrayListExtra(ARG_MSG_INFOS);
+        }
     }
 
     @Override
     protected void addListener() {
+        mLvData.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ChatChoseItem choseItem = mChoseItems.get(position);
+                if (choseItem.isItemType()) {
+                    MsgManager msgManager = MsgManager.getInstance();
+                    MsgThread msgThread = null;
+                    if (choseItem.getDataType() == ChatChoseItem.DATA_CONTACT) { //点击的是好友
+                        User user = choseItem.getUser();
+                        if (user != null) {
+                            //1、获取会话，如果没有就创建
+                            String username = user.getUsername();
+                            msgThread = msgManager.getThreadByMembers(true, username);
+                        } else {
+                            Log.w("---onItemClick---choseItem---" + choseItem + "--user--is null--");
+                        }
+                    } else {    //点击的是会话
+                        msgThread = choseItem.getMsgThread();
+                    }
+                    if (msgThread != null) {
+                        if (SystemUtil.isNotEmpty(mMsgInfos)) {
+                            //重新设置消息的信息
+                            for (MsgInfo msgInfo : mMsgInfos) {
+                                long time = System.currentTimeMillis();
+                                msgInfo.setThreadID(msgThread.getId());
+                                msgInfo.setMsgId(SystemUtil.generateUUID());
+                                msgInfo.setComming(false);
+                                msgInfo.setCreationDate(time);
+                                msgInfo.setFromUser(mCurrentAccount);
 
+                                MsgPart msgPart = msgInfo.getMsgPart();
+                                if (msgPart != null) {
+                                    msgPart.setMsgId(msgInfo.getMsgId());
+                                    msgPart.setCreationDate(time);
+                                    msgPart.setDownloaded(true);
+                                    msgPart.setId(0);
+                                }
+                                
+                            }
+                        }
+                        Intent intent = new Intent(mContext, ChatActivity.class);
+                        intent.putExtra(ARG_FORWARD_FLAG, true);
+                        intent.putExtra(ChatActivity.ARG_THREAD, msgThread);
+                        intent.putParcelableArrayListExtra(ARG_MSG_INFOS, mMsgInfos);
+                        startActivity(intent);
+                    } else {
+                        Log.w("---onItemClick---choseItem---" + choseItem + "----msgThread-----is null---");
+                    }
+                }
+            }
+        });
     }
 
     @Override

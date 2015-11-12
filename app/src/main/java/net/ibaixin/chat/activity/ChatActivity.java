@@ -137,6 +137,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	public static final String ARG_MSG_INFO = "arg_msg_info";
 	public static final String ARG_MSG_INFO_LIST = "arg_msg_info_list";
 	public static final String ARG_THREAD_ID = "arg_thread_id";
+	
+	private Object lock = new Object();
 
 	/**
 	 * 调用相册的请请求码
@@ -620,6 +622,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 
 	@Override
 	protected void initData() {
+
+		connection = XmppConnectionManager.getInstance().getConnection();
 //		resetVolumeFile();
 		
 		//重置录音的参数
@@ -695,8 +699,6 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		attachPannelAdapter = new AttachPannelAdapter(mAttachItems, mContext);
 		gvAttach.setAdapter(attachPannelAdapter);
 		
-		connection = XmppConnectionManager.getInstance().getConnection();
-		
 		//注册消息观察者
 		registerContentOberver();
 	}
@@ -717,6 +719,35 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		resetData();
 		
 		initData();
+
+	}
+	
+	/**
+	 * 处理转发、分享的消息
+	 * 创建人：huanghui1
+	 * 创建时间： 2015/11/12 17:46
+	 * 修改人：huanghui1
+	 * 修改时间：2015/11/12 17:46
+	 * 修改备注：
+	 * @version: 0.0.1
+	 */
+	private void handleForwarMsg() {
+		Intent intent = getIntent();
+		if (intent != null) {
+			//是否是转发或者分享消息
+			boolean forwardFlag = intent.getBooleanExtra(ChatChoseActivity.ARG_FORWARD_FLAG, false);
+			if (forwardFlag) {
+				List<MsgInfo> argMsgs = intent.getParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS);
+				if (SystemUtil.isNotEmpty(argMsgs)) {
+					for (MsgInfo argMsg : argMsgs) {
+						argMsg.setThreadID(mThreadId);
+						sendMsg(argMsg);
+					}
+				} else {
+					SystemUtil.makeShortToast(R.string.chat_forward_msg_error);
+				}
+			}
+		}
 	}
 
 	/**
@@ -802,6 +833,21 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	private Chat createChat(AbstractXMPPConnection connection) {
 		if (connection == null) {
 			connection = XmppConnectionManager.getInstance().getConnection();
+			if (connection == null) {
+				synchronized (lock) {
+//					connection = XmppConnectionManager.getInstance().init();
+				}
+			}
+		}
+		if (!connection.isConnected()) {
+			try {
+				connection.connect();
+			} catch (Exception e) {
+				Log.e(e.getMessage());
+			}
+		}
+		if (!connection.isAuthenticated()) {	//没有登录
+			
 		}
 		if (connection.isAuthenticated()) {	//是否登录
 			if (chatManager == null) {
@@ -886,14 +932,17 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			if (otherSide != null) {
 				setTitle(otherSide.getName());
 			}
+			mMsgInfos.clear();
 			if (!SystemUtil.isEmpty(result)) {
-				mMsgInfos.clear();
 				mMsgInfos.addAll(result);
-				msgAdapter.notifyDataSetChanged();
 				if (needScroll) {
 					scrollMyListViewToBottom(lvMsgs);
 				}
 			}
+			msgAdapter.notifyDataSetChanged();
+			
+			//处理转发、分享的消息
+			handleForwarMsg();
 		}
 	}
 	
@@ -1791,18 +1840,24 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * @param isReSend 是否是重发该消息
 	 * @return
 	 */
-	private MsgInfo sendMsg(MsgInfo msgInfo, boolean isReSend) {
-		if (chat == null) {
-			chat = createChat(connection);
-		}
+	private MsgInfo sendMsg(final MsgInfo msgInfo, final boolean isReSend) {
 		if(!XmppStringUtils.isBareJid(msgInfo.getFromJid())){
 			msgInfo.setFromUser(mine.getFullJID());
 		}
 		if(!XmppStringUtils.isBareJid(msgInfo.getToJid())){
 			msgInfo.setToUser(otherSide.getFullJid());
 		}
-		MsgSenderInfo msgSenderInfo = new MsgSenderInfo(chat, msgInfo, msgThread, mHandler, isReSend);
-		coreService.sendChatMsg(msgSenderInfo);
+		SystemUtil.getCachedThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				if (chat == null) {
+					chat = createChat(connection);
+				}
+				MsgSenderInfo msgSenderInfo = new MsgSenderInfo(chat, msgInfo, msgThread, mHandler, isReSend);
+				coreService.sendChatMsg(msgSenderInfo);
+			}
+		});
+		
 		return msgInfo;
 	}
 	
@@ -2277,7 +2332,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				
 				holder.ivContentImg.setMaxWidth(Constants.IMAGE_LOCATION_THUMB_WIDTH);
 				holder.ivContentImg.setMaxHeight(Constants.IMAGE_LOCATION_THUMB_HEIGHT);
-				
+				holder.tvContentDesc.setText(msgInfo.getContent());
 				if (type == TYPE_OUT) {	//自己发出去的消息
 					holder.contentImgLayout.setForeground(getResources().getDrawable(R.drawable.chat_msg_out_img_selector));
 				} else {
@@ -2289,10 +2344,10 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 //					ImageSize imageSize = new ImageSize(Constants.IMAGE_LOCATION_THUMB_WIDTH, Constants.IMAGE_LOCATION_THUMB_HEIGHT);
 					if (SystemUtil.isFileExists(filePath)) {
 //						mImageLoader.displayImage(Scheme.FILE.wrap(filePath), new TextViewAware(holder.tvContent, imageSize), chatImageOptions, new MyImageLoaderListener(holder.tvContentDesc, type, msgInfo));
-						mImageLoader.displayImage(Scheme.FILE.wrap(filePath), holder.ivContentImg, chatImageOptions, new MyImageLoaderListener(holder.tvContentDesc, type, msgInfo));
+						mImageLoader.displayImage(Scheme.FILE.wrap(filePath), holder.ivContentImg, chatImageOptions, new MyImageLoaderListener(type, msgInfo));
 					} else {
 //						mImageLoader.displayImage(null, new TextViewAware(holder.tvContent, imageSize), chatImageOptions, new MyImageLoaderListener(holder.tvContentDesc, type, msgInfo));
-						mImageLoader.displayImage(null, holder.ivContentImg, chatImageOptions, new MyImageLoaderListener(holder.tvContentDesc, type, msgInfo));
+						mImageLoader.displayImage(null, holder.ivContentImg, chatImageOptions, new MyImageLoaderListener(type, msgInfo));
 					}
 				}
 				break;
@@ -2660,6 +2715,9 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 												switch (item.getItemId()) {
 													case R.id.action_forward:	//转发
 														Intent intent = new Intent(mContext, ChatChoseActivity.class);
+														ArrayList<MsgInfo> argMsgs = new ArrayList<>(1);
+														argMsgs.add(msgInfo);
+														intent.putParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS, argMsgs);
 														startActivity(intent);
 														mActionMode.finish();
 														break;
@@ -2797,13 +2855,11 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
     }
 	
 	class MyImageLoaderListener implements ImageLoadingListener {
-		private TextView tvDesc;
 		private int itemType;
 		private MsgInfo msgInfo;
 
-		public MyImageLoaderListener(TextView tvDesc, int itemType, MsgInfo msgInfo) {
+		public MyImageLoaderListener(int itemType, MsgInfo msgInfo) {
 			super();
-			this.tvDesc = tvDesc;
 			this.itemType = itemType;
 			this.msgInfo = msgInfo;
 		}
@@ -2836,7 +2892,6 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 					}
 				}
 //				tvDesc.setMaxWidth(loadedImage.getWidth());
-				tvDesc.setText(msgInfo.getContent());
 			}
 		}
 

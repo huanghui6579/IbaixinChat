@@ -145,6 +145,7 @@
     <string name="chat_attach_file_desc">"%1$s\n%2$s"</string>
     <string name="chat_chose_item_title_thread">最近聊天</string>
     <string name="chat_chose_item_title_contact">好友</string>
+    <string name="chat_forward_msg_error">没有消息内容，发送失败</string>
     
     <string name="album_all_video">所有视频</string>
     <string name="album_all_photo">所有图片</string>

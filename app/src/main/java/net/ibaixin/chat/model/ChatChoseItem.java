@@ -73,6 +73,19 @@ public class ChatChoseItem {
     public void setDataType(int dataType) {
         this.dataType = dataType;
     }
+    
+    /**
+     * 是否是列表项
+     * 创建人：huanghui1
+     * 创建时间： 2015/11/12 17:27
+     * 修改人：huanghui1
+     * 修改时间：2015/11/12 17:27
+     * 修改备注：
+     * @version: 0.0.1
+     */
+    public boolean isItemType() {
+        return ChatChoseItem.TYPE_ITEM == itemType;
+    }
 
     @Override
     public String toString() {

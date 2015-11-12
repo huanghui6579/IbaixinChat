@@ -1,13 +1,5 @@
 package net.ibaixin.chat.fragment;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
-
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -29,6 +21,12 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
+
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.activity.JokeReadMainActivity;
@@ -43,6 +41,9 @@ import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.view.listener.OnItemClickListener;
+
+import java.util.ArrayList;
+import java.util.List;
 /**
  * "我"的fragment界面，包含有个人信息，设置等
  * @author huanghui1
@@ -518,6 +519,7 @@ public class MineFragment extends BaseFragment implements OnClickListener {
 						loadPersonalInfo(personal);
 					} catch (Exception e) {
 						Log.e(e.getMessage());
+						onChange(selfChange);
 					}
 				}
 			} else {

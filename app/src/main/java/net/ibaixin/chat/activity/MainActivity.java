@@ -1,17 +1,10 @@
 package net.ibaixin.chat.activity;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.jivesoftware.smack.AbstractXMPPConnection;
-import org.jivesoftware.smack.packet.Presence;
 import android.annotation.TargetApi;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Outline;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
@@ -21,10 +14,9 @@ import android.support.v4.view.ViewPager;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewOutlineProvider;
 import android.view.Window;
+
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.fragment.ContactFragment;
 import net.ibaixin.chat.fragment.MineFragment;
@@ -35,11 +27,17 @@ import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.service.CoreService.MainBinder;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.Log;
-import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.util.XmppUtil;
 import net.ibaixin.chat.view.IconPagerAdapterProvider;
 import net.ibaixin.chat.view.IconTabPageIndicator;
+
+import org.jivesoftware.smack.AbstractXMPPConnection;
+import org.jivesoftware.smack.packet.Presence;
+
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 /**
  * 系统主界面
  * @author huanghui1
@@ -57,7 +55,7 @@ public class MainActivity extends BaseActivity {
 	private ViewPager mViewPager;
 
 	//底部栏分割线
-	private View mDivider;
+//	private View mDivider;
 	
 	private FragmentAdapter adapter;
 	
@@ -177,7 +175,7 @@ public class MainActivity extends BaseActivity {
 	protected void initView() {
 		mPageIndicator = (IconTabPageIndicator) findViewById(R.id.page_indicator);
 		mViewPager = (ViewPager) findViewById(R.id.view_pager);
-		mDivider = findViewById(R.id.divider);
+		/*mDivider = findViewById(R.id.divider);
 		
 		if (SystemUtil.hasSDK21()) {	//Android5.0或者之上
 			mDivider.setOutlineProvider(new ViewOutlineProvider() {
@@ -188,7 +186,7 @@ public class MainActivity extends BaseActivity {
 					outline.setRect(0, 0, view.getWidth(), view.getHeight());
 				}
 			});
-		}
+		}*/
 	}
 	
 	@Override
