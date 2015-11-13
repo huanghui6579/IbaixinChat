@@ -19,6 +19,7 @@
     <string name="opt_failed">操作失败</string>
     <string name="update_success">更新成功</string>
     <string name="update_failed">更新失败</string>
+    <string name="send_success">发送成功</string>
     
     <string name="chat_state_composing">对方正在输入&#8230;</string>
     
@@ -146,6 +147,7 @@
     <string name="chat_chose_item_title_thread">最近聊天</string>
     <string name="chat_chose_item_title_contact">好友</string>
     <string name="chat_forward_msg_error">没有消息内容，发送失败</string>
+    <string name="chat_forward_msg_prompt">确定发送给：</string>
     
     <string name="album_all_video">所有视频</string>
     <string name="album_all_photo">所有图片</string>

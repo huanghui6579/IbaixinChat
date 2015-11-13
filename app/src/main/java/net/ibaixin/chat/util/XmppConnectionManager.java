@@ -1,13 +1,19 @@
 package net.ibaixin.chat.util;
 
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.security.Provider;
+import net.ibaixin.chat.ChatApplication;
+import net.ibaixin.chat.listener.ChatConnectionListener;
+import net.ibaixin.chat.listener.ChatPacketListener;
+import net.ibaixin.chat.model.SystemConfig;
+import net.ibaixin.chat.smack.extension.MessageTypeExtension;
+import net.ibaixin.chat.smack.packet.VcardX;
+import net.ibaixin.chat.smack.provider.MessageTypeProvider;
+import net.ibaixin.chat.smack.provider.VcardXProvider;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
-import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.SmackConfiguration;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.OrFilter;
 import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.filter.StanzaTypeFilter;
@@ -20,13 +26,9 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.debugger.android.AndroidDebugger;
 
-import net.ibaixin.chat.listener.ChatConnectionListener;
-import net.ibaixin.chat.listener.ChatPacketListener;
-import net.ibaixin.chat.model.SystemConfig;
-import net.ibaixin.chat.smack.extension.MessageTypeExtension;
-import net.ibaixin.chat.smack.packet.VcardX;
-import net.ibaixin.chat.smack.provider.MessageTypeProvider;
-import net.ibaixin.chat.smack.provider.VcardXProvider;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 
 /**
  * xmpp服务器的连接管理器
@@ -119,5 +121,52 @@ public class XmppConnectionManager {
 		if(connection != null) {
 			connection.disconnect();
 		}
+	}
+
+	/**
+	 * 权限检查，主要检查有木有登录
+	 * @param connection 连接
+	 * @param  application 应用对象
+	 * @return 是否连接且登录
+	 * 创建人：huanghui1
+	 * 创建时间： 2015/11/13 10:21
+	 * 修改人：huanghui1
+	 * 修改时间：2015/11/13 10:21
+	 * 修改备注：
+	 * @version: 0.0.1
+	 */
+	public synchronized boolean checkAuthority(AbstractXMPPConnection connection, ChatApplication application) {
+		boolean isConnected = false;
+		boolean isLogined = false;
+		if (connection == null) {
+			connection = getConnection();
+			if (connection == null) {
+				connection = init(application.getSystemConfig());
+			}
+		}
+		try {
+			if (!connection.isConnected()) {
+				connection.connect();
+			}
+			isConnected = true;
+			if (!connection.isAuthenticated()) {
+				SystemConfig systemConfig = application.getSystemConfig();
+				String username = systemConfig.getAccount();
+				String password = systemConfig.getPassword();
+				connection.login(username, password, Constants.CLIENT_RESOURCE);
+				application.setCurrentAccount(username);
+			}
+			isLogined = true;
+		} catch (SmackException e) {
+			Log.e(e.getMessage());
+			connection.disconnect();
+		} catch (IOException e) {
+			Log.e(e.getMessage());
+			connection.disconnect();
+		} catch (XMPPException e) {
+			Log.e(e.getMessage());
+			connection.disconnect();
+		}
+		return isConnected && isLogined;
 	}
 }

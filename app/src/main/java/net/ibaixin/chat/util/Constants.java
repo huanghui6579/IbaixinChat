@@ -238,4 +238,8 @@ public class Constants {
 	 * 【17】已添加过了
 	 */
 	public static final int MSG_ALREAD_ADDED = 0x000011;
+	/**
+	 * 【18】消息发送成功
+	 */
+	public static final int MSG_SEND_SUCCESS = 0x000012;
 }

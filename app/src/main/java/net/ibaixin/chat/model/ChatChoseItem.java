@@ -1,5 +1,7 @@
 package net.ibaixin.chat.model;
 
+import android.graphics.drawable.Drawable;
+
 /**
  * 转发、分享选择会话的列表项
  * 创建人：huanghui1
@@ -72,6 +74,50 @@ public class ChatChoseItem {
 
     public void setDataType(int dataType) {
         this.dataType = dataType;
+    }
+    
+    /**
+     * 获取所选项的头像路径和名称
+     * @return 返回所选项的头像路径和名称
+     * 创建人：huanghui1
+     * 创建时间： 2015/11/13 17:00
+     * 修改人：huanghui1
+     * 修改时间：2015/11/13 17:00
+     * 修改备注：
+     * @version: 0.0.1
+     */
+    public ShowInfo getChoseItemInfo() {
+        ShowInfo info = null;
+        if (itemType == TYPE_ITEM) {
+            switch (dataType) {
+                case DATA_CONTACT:  //好友
+                    if (user != null) {
+                        info = new ShowInfo();
+                        info.setName(user.getName());
+                        UserVcard vcard = user.getUserVcard();
+                        if (vcard != null) {
+                            info.setIconPath(vcard.getIconShowPath());
+                        }
+                    }
+                    break;
+                case DATA_THREAD:   //点击的会话
+                    if (msgThread != null) {
+                        info = new ShowInfo();
+                        info.setName(msgThread.getMsgThreadName());
+                        Drawable icon = msgThread.getIcon();
+                        if (icon != null) {
+                            info.setIcon(icon);
+                        }
+                        User user = msgThread.getMembers().get(0);
+                        UserVcard vcard = user.getUserVcard();
+                        if (vcard != null) {
+                            info.setIconPath(vcard.getIconShowPath());
+                        }
+                    }
+                    break;
+            }
+        }
+        return info;
     }
     
     /**

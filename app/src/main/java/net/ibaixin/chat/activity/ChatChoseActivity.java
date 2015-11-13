@@ -4,8 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.download.ImageDownloader;
@@ -26,10 +30,17 @@ import net.ibaixin.chat.model.ChatChoseItem;
 import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.MsgPart;
 import net.ibaixin.chat.model.MsgThread;
+import net.ibaixin.chat.model.ShowInfo;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.model.UserVcard;
+import net.ibaixin.chat.receiver.NetworkReceiver;
+import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.SystemUtil;
+import net.ibaixin.chat.util.XmppConnectionManager;
+import net.ibaixin.chat.view.ProgressDialog;
+
+import org.jivesoftware.smack.AbstractXMPPConnection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +67,8 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     
     private ImageLoader mImageLoader = ImageLoader.getInstance();
 
+    private DisplayImageOptions options = SystemUtil.getGeneralImageOptions();
+
     /**
      * 自身登录的账号
      */
@@ -70,6 +83,24 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
      * 加载数据的类型，默认是会话
      */
     private int mLoadType = ChatChoseItem.DATA_THREAD;
+    
+    private ProgressDialog pDialog;
+    
+    private AbstractXMPPConnection mConnection;
+    
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case Constants.MSG_CONNECTION_UNAVAILABLE:  //无网络连接
+                    SystemUtil.makeShortToast(R.string.network_error);
+                    break;
+                case Constants.MSG_FAILED:  //登录失败
+                    SystemUtil.makeShortToast(R.string.login_failed);
+                    break;
+            }
+        }
+    };
 
     @Override
     protected int getContentView() {
@@ -85,66 +116,115 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     protected void initData() {
         mChoseItems = new ArrayList<>();
 
-        mCurrentAccount = application.getCurrentAccount();
+        mConnection = XmppConnectionManager.getInstance().getConnection();
+
+        pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading));
+        SystemUtil.getCachedThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                boolean hasNetWork = NetworkReceiver.checkNetwork(mContext);
+                if (hasNetWork) {   //有网络
+                    boolean hasAuthority = XmppConnectionManager.getInstance().checkAuthority(mConnection, application);
+                    pDialog.dismiss();
+                    if (hasAuthority) { //有权限或者登录成功
+                        mCurrentAccount = application.getCurrentAccount();
+
+                        getSupportLoaderManager().initLoader(0, null, ChatChoseActivity.this);
+
+                        Intent intent = getIntent();
+                        if (intent != null) {
+                            mMsgInfos = intent.getParcelableArrayListExtra(ARG_MSG_INFOS);
+                        }
+                    } else {    //登录失败
+                        mHandler.sendEmptyMessage(Constants.MSG_FAILED);
+                    }
+                } else {    //无网络
+                    pDialog.dismiss();
+                    mHandler.sendEmptyMessage(Constants.MSG_CONNECTION_UNAVAILABLE);
+                }
+            }
+        });
         
-        getSupportLoaderManager().initLoader(0, null, this);
-        
-        Intent intent = getIntent();
-        if (intent != null) {
-            mMsgInfos = intent.getParcelableArrayListExtra(ARG_MSG_INFOS);
-        }
     }
 
     @Override
     protected void addListener() {
         mLvData.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ChatChoseItem choseItem = mChoseItems.get(position);
-                if (choseItem.isItemType()) {
-                    MsgManager msgManager = MsgManager.getInstance();
-                    MsgThread msgThread = null;
-                    if (choseItem.getDataType() == ChatChoseItem.DATA_CONTACT) { //点击的是好友
-                        User user = choseItem.getUser();
-                        if (user != null) {
-                            //1、获取会话，如果没有就创建
-                            String username = user.getUsername();
-                            msgThread = msgManager.getThreadByMembers(true, username);
-                        } else {
-                            Log.w("---onItemClick---choseItem---" + choseItem + "--user--is null--");
-                        }
-                    } else {    //点击的是会话
-                        msgThread = choseItem.getMsgThread();
-                    }
-                    if (msgThread != null) {
-                        if (SystemUtil.isNotEmpty(mMsgInfos)) {
-                            //重新设置消息的信息
-                            for (MsgInfo msgInfo : mMsgInfos) {
-                                long time = System.currentTimeMillis();
-                                msgInfo.setThreadID(msgThread.getId());
-                                msgInfo.setMsgId(SystemUtil.generateUUID());
-                                msgInfo.setComming(false);
-                                msgInfo.setCreationDate(time);
-                                msgInfo.setFromUser(mCurrentAccount);
-
-                                MsgPart msgPart = msgInfo.getMsgPart();
-                                if (msgPart != null) {
-                                    msgPart.setMsgId(msgInfo.getMsgId());
-                                    msgPart.setCreationDate(time);
-                                    msgPart.setDownloaded(true);
-                                    msgPart.setId(0);
-                                }
-                                
-                            }
-                        }
-                        Intent intent = new Intent(mContext, ChatActivity.class);
-                        intent.putExtra(ARG_FORWARD_FLAG, true);
-                        intent.putExtra(ChatActivity.ARG_THREAD, msgThread);
-                        intent.putParcelableArrayListExtra(ARG_MSG_INFOS, mMsgInfos);
-                        startActivity(intent);
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                final ChatChoseItem choseItem = mChoseItems.get(position);
+                MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
+                View contentView = LayoutInflater.from(mContext).inflate(R.layout.item_chat_chose, null); 
+                ImageView ivIcon = (ImageView) contentView.findViewById(R.id.iv_head_icon);
+                TextView ivName = (TextView) contentView.findViewById(R.id.tv_name);
+                ShowInfo showInfo = choseItem.getChoseItemInfo();
+                if (showInfo != null) {
+                    ivName.setText(showInfo.getName());
+                    Drawable icon = showInfo.getIcon();
+                    if (icon != null) {
+                        ivIcon.setImageDrawable(icon);
                     } else {
-                        Log.w("---onItemClick---choseItem---" + choseItem + "----msgThread-----is null---");
+                        String imageUri = null;
+                        String iconPath = showInfo.getIconPath();
+                        if (!TextUtils.isEmpty(iconPath)) {
+                            imageUri = ImageDownloader.Scheme.FILE.wrap(iconPath);
+                        }
+                        mImageLoader.displayImage(imageUri, ivIcon, options);
                     }
+                    builder.title(R.string.chat_forward_msg_prompt)
+                            .customView(contentView, true)
+                            .positiveText(android.R.string.ok)
+                            .negativeText(android.R.string.cancel)
+                            .callback(new MaterialDialog.ButtonCallback() {
+                                @Override
+                                public void onPositive(MaterialDialog dialog) {
+                                    if (choseItem.isItemType()) {
+                                        MsgManager msgManager = MsgManager.getInstance();
+                                        MsgThread msgThread = null;
+                                        if (choseItem.getDataType() == ChatChoseItem.DATA_CONTACT) { //点击的是好友
+                                            User user = choseItem.getUser();
+                                            if (user != null) {
+                                                //1、获取会话，如果没有就创建
+                                                String username = user.getUsername();
+                                                msgThread = msgManager.getThreadByMembers(true, username);
+                                            } else {
+                                                Log.w("---onItemClick---choseItem---" + choseItem + "--user--is null--");
+                                            }
+                                        } else {    //点击的是会话
+                                            msgThread = choseItem.getMsgThread();
+                                        }
+                                        if (msgThread != null) {
+                                            if (SystemUtil.isNotEmpty(mMsgInfos)) {
+                                                //重新设置消息的信息
+                                                for (MsgInfo msgInfo : mMsgInfos) {
+                                                    long time = System.currentTimeMillis();
+                                                    msgInfo.setThreadID(msgThread.getId());
+                                                    msgInfo.setMsgId(SystemUtil.generateUUID());
+                                                    msgInfo.setComming(false);
+                                                    msgInfo.setCreationDate(time);
+                                                    msgInfo.setFromUser(mCurrentAccount);
+
+                                                    MsgPart msgPart = msgInfo.getMsgPart();
+                                                    if (msgPart != null) {
+                                                        msgPart.setMsgId(msgInfo.getMsgId());
+                                                        msgPart.setCreationDate(time);
+                                                        msgPart.setDownloaded(true);
+                                                        msgPart.setId(0);
+                                                    }
+
+                                                }
+                                            }
+                                            Intent intent = new Intent(mContext, ChatActivity.class);
+                                            intent.putExtra(ARG_FORWARD_FLAG, true);
+                                            intent.putExtra(ChatActivity.ARG_THREAD, msgThread);
+                                            intent.putParcelableArrayListExtra(ARG_MSG_INFOS, mMsgInfos);
+                                            startActivity(intent);
+                                        } else {
+                                            Log.w("---onItemClick---choseItem---" + choseItem + "----msgThread-----is null---");
+                                        }
+                                    }
+                                }
+                            }).show();
                 }
             }
         });
@@ -279,7 +359,6 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
      */
     class ChatChoseAdapter extends CommonAdapter<ChatChoseItem> {
         private int typeCount = 2;
-        private DisplayImageOptions options = SystemUtil.getGeneralImageOptions(); 
         
         public ChatChoseAdapter(List<ChatChoseItem> list, Context context) {
             super(list, context);

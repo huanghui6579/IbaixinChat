@@ -138,8 +138,6 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	public static final String ARG_MSG_INFO_LIST = "arg_msg_info_list";
 	public static final String ARG_THREAD_ID = "arg_thread_id";
 	
-	private Object lock = new Object();
-
 	/**
 	 * 调用相册的请请求码
 	 */
@@ -438,6 +436,9 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			case Constants.MSG_FAILED:	//删除失败
 				SystemUtil.makeShortToast(R.string.delete_failed);
 				break;
+			case Constants.MSG_SEND_SUCCESS:	//消息发送成功
+				SystemUtil.makeShortToast(R.string.send_success);
+				break;
 			default:
 				break;
 			}
@@ -734,20 +735,44 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	private void handleForwarMsg() {
 		Intent intent = getIntent();
 		if (intent != null) {
-			//是否是转发或者分享消息
-			boolean forwardFlag = intent.getBooleanExtra(ChatChoseActivity.ARG_FORWARD_FLAG, false);
-			if (forwardFlag) {
-				List<MsgInfo> argMsgs = intent.getParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS);
-				if (SystemUtil.isNotEmpty(argMsgs)) {
-					for (MsgInfo argMsg : argMsgs) {
-						argMsg.setThreadID(mThreadId);
-						sendMsg(argMsg);
+			final List<MsgInfo> argMsgs = intent.getParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS);
+			if (SystemUtil.isNotEmpty(argMsgs)) {
+				mMsgInfos.addAll(argMsgs);
+				addMsgTotalCount(argMsgs.size());
+				msgAdapter.notifyDataSetChanged();
+				SystemUtil.getCachedThreadPool().execute(new Runnable() {
+					@Override
+					public void run() {
+						for (MsgInfo argMsg : argMsgs) {
+							argMsg.setThreadID(mThreadId);
+							sendMsg(argMsg);
+						}
+						mHandler.sendEmptyMessage(Constants.MSG_SEND_SUCCESS);
 					}
-				} else {
-					SystemUtil.makeShortToast(R.string.chat_forward_msg_error);
-				}
+				});
+			} else {
+				SystemUtil.makeShortToast(R.string.chat_forward_msg_error);
 			}
 		}
+	}
+	
+	/**
+	 * 是否是转发、分享的消息
+	 * @return 是否是转发、分享的消息
+	 * 创建人：huanghui1
+	 * 创建时间： 2015/11/13 14:30
+	 * 修改人：huanghui1
+	 * 修改时间：2015/11/13 14:30
+	 * 修改备注：
+	 * @version: 0.0.1
+	 */
+	private boolean isForwardMsg() {
+		Intent intent = getIntent();
+		boolean forwardFlag = false;
+		if (intent != null) {
+			forwardFlag = intent.getBooleanExtra(ChatChoseActivity.ARG_FORWARD_FLAG, false);
+		}
+		return forwardFlag;
 	}
 
 	/**
@@ -833,21 +858,6 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	private Chat createChat(AbstractXMPPConnection connection) {
 		if (connection == null) {
 			connection = XmppConnectionManager.getInstance().getConnection();
-			if (connection == null) {
-				synchronized (lock) {
-//					connection = XmppConnectionManager.getInstance().init();
-				}
-			}
-		}
-		if (!connection.isConnected()) {
-			try {
-				connection.connect();
-			} catch (Exception e) {
-				Log.e(e.getMessage());
-			}
-		}
-		if (!connection.isAuthenticated()) {	//没有登录
-			
 		}
 		if (connection.isAuthenticated()) {	//是否登录
 			if (chatManager == null) {
@@ -885,9 +895,14 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		 * 是否需要滚动到最底部
 		 */
 		private boolean needScroll = true;
+		/**
+		 * 是否是转发、分享消息
+		 */
+		private boolean isForward = false;
 
 		public LoadDataTask(boolean needScroll) {
 			this.needScroll = needScroll;
+			isForward = isForwardMsg();
 		}
 
 		@Override
@@ -895,6 +910,9 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			//根据参与者查询对应的会话
 			MsgThread mt = null;
 			List<MsgInfo> list = new ArrayList<>();
+			if (isForward) {	//如果是转发的消息，则先清除之前的消息列表
+				mMsgInfos.clear();
+			}
 			if (otherSide != null) {
 				mt = msgManager.getThreadByMember(otherSide);
 				if (mt != null) {	//有该会话，才查询该会话下的消息
@@ -941,8 +959,10 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			}
 			msgAdapter.notifyDataSetChanged();
 			
-			//处理转发、分享的消息
-			handleForwarMsg();
+			if (isForward) {
+				//处理转发、分享的消息
+				handleForwarMsg();
+			}
 		}
 	}
 	
@@ -2658,6 +2678,9 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 									break;
 								case MENU_FORWARD:	//转发
 									intent = new Intent(mContext, ChatChoseActivity.class);
+									ArrayList<MsgInfo> argMsgs = new ArrayList<>(1);
+									argMsgs.add(msgInfo);
+									intent.putParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS, argMsgs);
 									startActivity(intent);
 									break;
 								case MENU_DELETE:	//删除
@@ -2714,12 +2737,24 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 											public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
 												switch (item.getItemId()) {
 													case R.id.action_forward:	//转发
-														Intent intent = new Intent(mContext, ChatChoseActivity.class);
-														ArrayList<MsgInfo> argMsgs = new ArrayList<>(1);
-														argMsgs.add(msgInfo);
-														intent.putParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS, argMsgs);
-														startActivity(intent);
-														mActionMode.finish();
+														SystemUtil.getCachedThreadPool().execute(new Runnable() {
+															@Override
+															public void run() {
+																final ArrayList<MsgInfo> argMsgs = getSelectedMsgs();
+																mHandler.post(new Runnable() {
+																	@Override
+																	public void run() {
+																		if (SystemUtil.isNotEmpty(argMsgs)) {
+																			Intent intent = new Intent(mContext, ChatChoseActivity.class);
+																			intent.putParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS, argMsgs);
+																			startActivity(intent);
+																		}
+																		mActionMode.finish();
+																	}
+																});
+
+															}
+														});
 														break;
 													case R.id.action_delete:	//删除
 														MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
@@ -2802,6 +2837,35 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			}
 		}
 		
+	}
+	
+	/**
+	 * 获取选择的消息列表
+	 * @return 返回选择的消息列表
+	 * 创建人：huanghui1
+	 * 创建时间： 2015/11/13 16:26
+	 * 修改人：huanghui1
+	 * 修改时间：2015/11/13 16:26
+	 * 修改备注：
+	 * @version: 0.0.1
+	 */
+	private ArrayList<MsgInfo> getSelectedMsgs() {
+		Set<String> keys = mSelectMap.keySet();
+		ArrayList<MsgInfo> list = new ArrayList<>();
+		for (String key : keys) {
+			Boolean value = mSelectMap.get(key);
+			if (value != null && value) {	//选中
+				MsgInfo tmpInfo = new MsgInfo();
+				tmpInfo.setThreadID(mThreadId);
+				tmpInfo.setMsgId(key);
+				int index = mMsgInfos.indexOf(tmpInfo);
+				if (index != -1) {
+					tmpInfo = mMsgInfos.get(index);
+					list.add(tmpInfo);
+				}
+			}
+		}
+		return list;
 	}
 	
 	/**
