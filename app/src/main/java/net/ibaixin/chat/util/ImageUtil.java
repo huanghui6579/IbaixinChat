@@ -773,16 +773,16 @@ public class ImageUtil {
      * @update 2015年5月3日 下午1:51:01
      */
     public static boolean generateThumbImage(String imagePath, ImageSize imageSize, String savePath) {
-    	ImageLoader imageLoader = ImageLoader.getInstance();
-    	//清除之前的缓存
-    	Bitmap bitmap = imageLoader.loadImageSync(Scheme.FILE.wrap(imagePath), imageSize, SystemUtil.getAlbumImageOptions());
-    	if (bitmap != null) {
-    		try {
-				return compressImage(bitmap, savePath);
-			} catch (Exception e) {
-				Log.e(e.getMessage());
+		if (imagePath != null) {
+			Bitmap bitmap = loadImageThumbnailsSync(Scheme.FILE.wrap(imagePath), imageSize);
+			if (bitmap != null) {
+				try {
+					return compressImage(bitmap, savePath);
+				} catch (Exception e) {
+					Log.e(e.getMessage());
+				}
 			}
-    	}
+		}
     	return false;
     }
     
@@ -852,7 +852,6 @@ public class ImageUtil {
 	 * @author tiger
 	 * @update 2015年3月7日 下午5:53:46
 	 * @param uri
-	 * @param listener
 	 */
 	public static Bitmap loadImageThumbnailsSync(String uri) {
 		return loadImageThumbnailsSync(uri, null);
@@ -863,19 +862,10 @@ public class ImageUtil {
 	 * @author tiger
 	 * @update 2015年3月7日 下午5:53:46
 	 * @param uri
-	 * @param listener
+	 * @param imageSize
 	 */
 	public static Bitmap loadImageThumbnailsSync(String uri, ImageSize imageSize) {
-		DisplayImageOptions options = new DisplayImageOptions.Builder()
-				.showImageForEmptyUri(R.drawable.ic_default_icon_error)
-				.showImageOnFail(R.drawable.ic_default_icon_error)
-				.cacheInMemory(true)
-				.cacheOnDisk(false)
-				.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
-				.bitmapConfig(Bitmap.Config.RGB_565)	//防止内存溢出
-				.resetViewBeforeLoading(true)
-				.build();
 		ImageLoader imageLoader = ImageLoader.getInstance();
-		return imageLoader.loadImageSync(uri, imageSize, options);
+		return imageLoader.loadImageSync(uri, imageSize, SystemUtil.getAlbumImageOptions());
 	}
 }

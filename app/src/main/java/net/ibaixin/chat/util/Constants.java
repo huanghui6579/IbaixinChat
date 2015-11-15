@@ -242,4 +242,12 @@ public class Constants {
 	 * 【18】消息发送成功
 	 */
 	public static final int MSG_SEND_SUCCESS = 0x000012;
+	/**
+	 * 【19】文件选择超过数量的消息
+	 */
+	public static final int MSG_FILE_MAX_NUM = 0x000013;
+	/**
+	 * 【20】没有内容的消息
+	 */
+	public static final int MSG_NO_DATA = 0x000014;
 }

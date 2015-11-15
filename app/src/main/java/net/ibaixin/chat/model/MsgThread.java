@@ -194,6 +194,22 @@ public class MsgThread implements Parcelable, Comparator<MsgThread> {
 		map.put(KEY_MEMBER_NAMES, nameBuilder.toString());
 		return map;
 	}
+
+	/**
+	 * 获取会话成员的用户名字符串，如果有多个成员时，则用;分割
+	 * @return 返回成员的名称
+	 * @author tiger
+	 * @update 2015/11/15 11:47
+	 * @version 1.0.0
+	 */
+	public String getMemberNames() {
+		Map<String, String> map = getFormatMembers();
+		if (map != null) {
+			return map.get(KEY_MEMBER_NAMES);
+		} else {
+			return null;
+		}
+	}
 	
 	public MsgThread() {
 	}

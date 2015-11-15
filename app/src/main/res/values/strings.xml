@@ -67,7 +67,8 @@
     <string name="activity_lable_clip_head_icon">头像裁剪</string>
     <string name="activity_lable_nickname">昵称</string>
     <string name="activity_lable_chose">选择</string>
-    
+    <string name="activity_lable_action_share">发送给朋友</string>
+
     <string name="email">邮箱：%1$s</string>
     <string name="username">用户名：%1$s</string>
     <string name="nickname">昵称：%1$s</string>
@@ -86,7 +87,13 @@
     <string name="action_plus">添加</string>
     <string name="action_create_group_chat">发起群聊</string>
     <string name="action_add_friend">添加朋友</string>
-    
+
+    <string name="menu_copy">复制</string>
+    <string name="menu_forward">转发</string>
+    <string name="menu_delete">删除</string>
+    <string name="menu_share">分享</string>
+    <string name="menu_more">更多</string>
+
     <!-- 相册选择图片的菜单 -->
     <string name="action_select_complete">发送</string>
     
@@ -148,7 +155,8 @@
     <string name="chat_chose_item_title_contact">好友</string>
     <string name="chat_forward_msg_error">没有消息内容，发送失败</string>
     <string name="chat_forward_msg_prompt">确定发送给：</string>
-    
+    <string name="chat_share_no_files">没有可分享的内容</string>
+
     <string name="album_all_video">所有视频</string>
     <string name="album_all_photo">所有图片</string>
     <string name="album_preview_photo">预览</string>
@@ -158,6 +166,7 @@
     <string name="album_preview_original_image_size">原图(%1$s)</string>
     <string name="album_tip_max_select">只能选择%1$d张图片</string>
     <string name="album_video_tip_max_select">只能选择%1$d个视频</string>
+    <string name="album_file_tip_max_select">只能同时发送%1$d个文件</string>
     <string name="album_item_content">"%1$s\r\n%2$d张"</string>
     <string name="album_item_video_content">"%1$s\r\n%2$d个"</string>
     <string name="album_photo_chose_error">文件选择错误</string>

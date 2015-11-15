@@ -4,12 +4,14 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -21,6 +23,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v7.internal.widget.TintTypedArray;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -1914,14 +1917,35 @@ public class SystemUtil {
 	/**
 	 * 根据原始图片生成本地图片的缓存
 	 * @update 2014年11月19日 下午6:03:58
+	 * @param imageLoader
 	 * @param bitmap
 	 * @param photoItem
 	 * @return
 	 */
 	public static boolean saveBitmap(ImageLoader imageLoader, Bitmap bitmap, PhotoItem photoItem) {
+		if (photoItem != null) {
+			String filePath = photoItem.getFilePath();
+			return saveBitmap(imageLoader, bitmap, filePath);
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * 根据原始图片生成本地图片的缓存
+	 * @update 2014年11月19日 下午6:03:58
+	 * @param imageLoader
+	 * @param bitmap
+	 * @param filePath
+	 * @return
+	 */
+	public static boolean saveBitmap(ImageLoader imageLoader, Bitmap bitmap, String filePath) {
 		try {
+			if (imageLoader == null) {
+				imageLoader = ImageLoader.getInstance();
+			}
 			DiskCache diskCache = imageLoader.getDiskCache();
-			boolean isJpg = SystemUtil.isJpgFile(photoItem.getFilePath());
+			boolean isJpg = SystemUtil.isJpgFile(filePath);
 			Bitmap.CompressFormat compressFormat = Bitmap.CompressFormat.PNG;
 			if (isJpg) {
 				compressFormat = Bitmap.CompressFormat.JPEG;
@@ -1933,13 +1957,39 @@ public class SystemUtil {
 				BaseDiskCache baseDiskCache = (BaseDiskCache) diskCache;
 				baseDiskCache.setCompressFormat(compressFormat);
 			}
-			return imageLoader.getDiskCache().save(Scheme.FILE.wrap(photoItem.getFilePath()), bitmap);
+			return imageLoader.getDiskCache().save(Scheme.FILE.wrap(filePath), bitmap);
 		} catch (IOException e) {
-			e.printStackTrace();
+			Log.e(e.getMessage());
+		} finally {
+			if (bitmap != null && !bitmap.isRecycled()) {
+				bitmap.recycle();
+			}
 		}
 		return false;
 	}
-	
+
+	/**
+	 * 根据原始图片生成本地图片的缓存
+	 * @update 2014年11月19日 下午6:03:58
+	 * @param bitmap
+	 * @param filePath
+	 * @return
+	 */
+	public static boolean saveBitmap(Bitmap bitmap, String filePath) {
+		return saveBitmap(null, bitmap, filePath);
+	}
+
+	/**
+	 * 根据原始图片生成本地图片的缓存
+	 * @update 2014年11月19日 下午6:03:58
+	 * @param bitmap
+	 * @param photoItem
+	 * @return
+	 */
+	public static boolean saveBitmap(Bitmap bitmap, PhotoItem photoItem) {
+		return saveBitmap(null, bitmap, photoItem);
+	}
+
 	/** 采用了新的办法获取APK图标，之前的失败是因为android中存在的一个BUG,通过
 	* appInfo.publicSourceDir = apkPath;来修正这个问题，详情参见:
 	* http://code.google.com/p/android/issues/detail?id=9151
@@ -2849,5 +2899,40 @@ public class SystemUtil {
 			}
 			return has;
 		}
+	}
+
+	/**
+	 * 根据uri获取文件的本地绝对路径
+	 * @param context 上下文
+	 * @param uri 文件的uri,格式一般是“content://或者file://”开头的
+	 * @return 返回文件的本地绝对路径：如/mnt/sdcard/ccc.jpg
+	 * @author tiger
+	 * @update 2015/11/14 20:12
+	 * @version 1.0.0
+	 */
+	public static String getFilePathFromUri(Context context, Uri uri) {
+		String filePath = null;
+		if (uri != null) {
+			String scheme = uri.getScheme();
+			if (scheme != null) {
+				if (ContentResolver.SCHEME_FILE.equalsIgnoreCase(scheme)) {	//以file://开头的
+					filePath = uri.getPath();
+				} else if (ContentResolver.SCHEME_CONTENT.equalsIgnoreCase(scheme)) {	//以content://开头
+					String id = uri.getLastPathSegment();
+					Cursor cursor = context.getContentResolver().query(MediaStore.Files.getContentUri("external"), new String[] {MediaStore.Files.FileColumns.DATA}, MediaStore.Files.FileColumns._ID + " = ?", new String[] {id}, null);
+					if (cursor != null) {
+						if (cursor.moveToFirst()) {
+							filePath = cursor.getString(0);
+						}
+						cursor.close();
+					}
+				} else {
+					filePath = uri.getPath();
+				}
+			} else {
+				filePath = uri.getPath();
+			}
+		}
+		return filePath;
 	}
 }

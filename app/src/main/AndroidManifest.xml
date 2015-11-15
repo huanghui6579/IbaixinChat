@@ -335,9 +335,29 @@
         -->
         <!-- 阿里妈妈推广配置 结束 -->
 
-        <activity android:name=".activity.ChatChoseActivity"
-                  android:configChanges="orientation|screenSize"
-                  android:label="@string/activity_lable_chose"/>
+        <activity
+            android:name=".activity.ChatChoseActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_lable_chose" />
+
+        <activity android:name=".activity.ActionShareActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/activity_lable_action_share">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

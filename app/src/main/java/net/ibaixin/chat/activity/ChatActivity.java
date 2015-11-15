@@ -2652,6 +2652,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			if (SystemUtil.isNotEmpty(menus)) {
 				if (Type.TEXT != msgInfo.getMsgType()) {
 					menus.remove(0);	//除了文本外，其他的消息都不能复制,所以，删除“复制”菜单项
+//					menus.remove(4);	//非文本的，也不能有“分享”菜单
 				}
 				String dialogTitle = null;
 				if (MsgAdapter.TYPE_IN == itemType) {	//接收的消息

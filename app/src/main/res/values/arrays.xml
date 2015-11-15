@@ -32,11 +32,11 @@
     
     <!-- 聊天消息的长按菜单项 -->
     <string-array name="chat_msg_context_menu">
-        <item>复制</item>
-        <item>转发</item>
-        <item>删除</item>
-        <item>分享</item>
-        <item>更多</item>
+        <item>@string/menu_copy</item>
+        <item>@string/menu_forward</item>
+        <item>@string/menu_delete</item>
+        <item>@string/menu_share</item>
+        <item>@string/menu_more</item>
     </string-array>
     
     <!-- 会话列表的长按菜单项 -->
