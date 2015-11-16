@@ -458,6 +458,15 @@ public final class MimeUtils {
 		return (String) extensionToMimeTypeMap.get(extension);
 	}
 
+	public static String guessMimeTypeFromFilename(String fileName) {
+		if (fileName == null) {
+			return null;
+		}
+		String subfix = SystemUtil.getFileSubfix(fileName);
+		String mimeType = guessMimeTypeFromExtension(subfix);
+		return mimeType;
+	}
+
 	public static boolean hasExtension(String extension) {
 		if ((extension == null) || (extension.isEmpty())) {
 			return false;

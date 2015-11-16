@@ -3,6 +3,8 @@ package net.ibaixin.chat.util;
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.listener.ChatConnectionListener;
 import net.ibaixin.chat.listener.ChatPacketListener;
+import net.ibaixin.chat.manager.PersonalManage;
+import net.ibaixin.chat.model.Personal;
 import net.ibaixin.chat.model.SystemConfig;
 import net.ibaixin.chat.smack.extension.MessageTypeExtension;
 import net.ibaixin.chat.smack.packet.VcardX;
@@ -38,6 +40,8 @@ import java.io.PrintWriter;
  */
 public class XmppConnectionManager {
 	private AbstractXMPPConnection connection;
+	
+	private Object lock = new Object();
 	
 	private static XmppConnectionManager instance = null;
 	private static XMPPTCPConnectionConfiguration configuration;
@@ -135,38 +139,68 @@ public class XmppConnectionManager {
 	 * 修改备注：
 	 * @version: 0.0.1
 	 */
-	public synchronized boolean checkAuthority(AbstractXMPPConnection connection, ChatApplication application) {
+	public boolean checkAuthority(AbstractXMPPConnection connection, ChatApplication application) {
 		boolean isConnected = false;
 		boolean isLogined = false;
-		if (connection == null) {
-			connection = getConnection();
+		String username = null;
+		synchronized (lock) {
 			if (connection == null) {
-				connection = init(application.getSystemConfig());
+				connection = getConnection();
+				if (connection == null) {
+					connection = init(application.getSystemConfig());
+				}
+			}
+			try {
+				if (!connection.isConnected()) {
+					connection.connect();
+				}
+				isConnected = true;
+				if (!connection.isAuthenticated()) {
+					SystemConfig systemConfig = application.getSystemConfig();
+					username = systemConfig.getAccount();
+					String password = systemConfig.getPassword();
+					connection.login(username, password, Constants.CLIENT_RESOURCE);
+					application.setCurrentAccount(username);
+				}
+				isLogined = true;
+			} catch (SmackException e) {
+				Log.e(e.getMessage());
+				connection.disconnect();
+			} catch (IOException e) {
+				Log.e(e.getMessage());
+				connection.disconnect();
+			} catch (XMPPException e) {
+				Log.e(e.getMessage());
+				connection.disconnect();
 			}
 		}
-		try {
-			if (!connection.isConnected()) {
-				connection.connect();
+		if (isLogined) {
+			//初始化个人信息
+			Personal currentUser = application.getCurrentUser();
+			if (currentUser.getUsername() == null) {
+				currentUser.setUsername(username);
 			}
-			isConnected = true;
-			if (!connection.isAuthenticated()) {
-				SystemConfig systemConfig = application.getSystemConfig();
-				String username = systemConfig.getAccount();
-				String password = systemConfig.getPassword();
-				connection.login(username, password, Constants.CLIENT_RESOURCE);
-				application.setCurrentAccount(username);
-			}
-			isLogined = true;
-		} catch (SmackException e) {
-			Log.e(e.getMessage());
-			connection.disconnect();
-		} catch (IOException e) {
-			Log.e(e.getMessage());
-			connection.disconnect();
-		} catch (XMPPException e) {
-			Log.e(e.getMessage());
-			connection.disconnect();
+			Personal tmpPerson = PersonalManage.getInstance().getLocalSelfInfoByUsername(currentUser);
+			application.setCurrentUser(tmpPerson);
 		}
 		return isConnected && isLogined;
+	}
+
+	/**
+	 * 后台登录
+	 * @param connection 连接
+	 * @throws IOException
+	 * @throws XMPPException
+	 * @throws SmackException
+	 * @author huanghui1
+	 * @update  2015/11/16 17:27
+	 * @version: 0.0.1
+	 */
+	public void login(AbstractXMPPConnection connection) throws IOException, XMPPException, SmackException {
+		ChatApplication application = ChatApplication.getInstance();
+		SystemConfig systemConfig = application.getSystemConfig();
+		String username = systemConfig.getAccount();
+		String password = systemConfig.getPassword();
+		connection.login(username, password, Constants.CLIENT_RESOURCE);
 	}
 }

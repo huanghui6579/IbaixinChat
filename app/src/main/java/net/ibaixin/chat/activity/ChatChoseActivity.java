@@ -78,11 +78,6 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     private DisplayImageOptions options = SystemUtil.getGeneralImageOptions();
 
     /**
-     * 自身登录的账号
-     */
-    private String mCurrentAccount;
-
-    /**
      * 传入的消息实体
      */
     private ArrayList<MsgInfo> mMsgInfos;
@@ -133,8 +128,6 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     protected void initData() {
         mChoseItems = new ArrayList<>();
 
-        mCurrentAccount = application.getCurrentAccount();
-
         getSupportLoaderManager().initLoader(0, null, ChatChoseActivity.this);
 
         Intent intent = getIntent();
@@ -181,15 +174,16 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
                                         @Override
                                         public void run() {
                                             if (choseItem.isItemType()) {
+                                                String fromUser = application.getCurrentUser().getFullJID();
+                                                String toUser = null;
                                                 MsgManager msgManager = MsgManager.getInstance();
                                                 MsgThread msgThread = null;
-                                                String toUser = null;
                                                 if (choseItem.getDataType() == ChatChoseItem.DATA_CONTACT) { //点击的是好友
                                                     User user = choseItem.getUser();
                                                     if (user != null) {
                                                         //1、获取会话，如果没有就创建
                                                         String username = user.getUsername();
-                                                        toUser = username;
+                                                        toUser = user.getFullJid();
                                                         msgThread = msgManager.getThreadByMembers(true, username);
                                                     } else {
                                                         Log.w("---onItemClick---choseItem---" + choseItem + "--user--is null--");
@@ -198,7 +192,7 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
                                                     msgThread = choseItem.getMsgThread();
                                                 }
                                                 if (msgThread != null) {
-                                                    toUser = msgThread.getMemberNames();
+                                                    toUser = msgThread.getMembers().get(0).getFullJid();
                                                     if (SystemUtil.isNotEmpty(mMsgInfos)) {
                                                         //重新设置消息的信息
                                                         for (MsgInfo msgInfo : mMsgInfos) {
@@ -207,8 +201,8 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
                                                             msgInfo.setMsgId(SystemUtil.generateUUID());
                                                             msgInfo.setComming(false);
                                                             msgInfo.setCreationDate(time);
-                                                            msgInfo.setFromUser(mCurrentAccount);
                                                             msgInfo.setRead(true);
+                                                            msgInfo.setFromUser(fromUser);
                                                             msgInfo.setToUser(toUser);
 
                                                             MsgPart msgPart = msgInfo.getMsgPart();

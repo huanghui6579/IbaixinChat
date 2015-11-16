@@ -1,8 +1,11 @@
 package net.ibaixin.chat.model;
 
-import net.ibaixin.chat.ChatApplication;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
+
+import net.ibaixin.chat.ChatApplication;
+
+import java.util.Comparator;
 
 
 /**
@@ -11,7 +14,7 @@ import android.text.TextUtils;
  * @version 1.0.0
  * @update 2015年2月16日 上午9:36:23
  */
-public class ContextMenuItem {
+public class ContextMenuItem implements Comparator<ContextMenuItem> {
 	/**
 	 * 菜单id
 	 */
@@ -159,5 +162,34 @@ public class ContextMenuItem {
 
 	public void setVisible(boolean visible) {
 		this.visible = visible;
+	}
+
+	@Override
+	public int compare(ContextMenuItem lhs, ContextMenuItem rhs) {
+		int lItemId = lhs.itemId;
+		int rItemId = rhs.itemId;
+		if (lItemId > rItemId) {
+			return 1;
+		} else if (itemId < rItemId) {
+			return -1;
+		} else {
+			return 0;
+		}
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		ContextMenuItem item = (ContextMenuItem) o;
+
+		return itemId == item.itemId;
+
+	}
+
+	@Override
+	public int hashCode() {
+		return itemId;
 	}
 }

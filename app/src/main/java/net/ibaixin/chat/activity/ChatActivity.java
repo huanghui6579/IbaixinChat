@@ -186,27 +186,6 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	public static final String ARG_THREAD = "arg_thread";
 	
 	/**
-	 * 菜单项：复制
-	 */
-	private static final int MENU_COPY = 0x1;
-	/**
-	 * 菜单项：转发
-	 */
-	private static final int MENU_FORWARD = 0x2;
-	/**
-	 * 菜单项：删除
-	 */
-	private static final int MENU_DELETE = 0x3;
-	/**
-	 * 菜单项：分享
-	 */
-	private static final int MENU_SHARE = 0x4;
-	/**
-	 * 菜单项：更多
-	 */
-	private static final int MENU_MORE = 0x5;
-	
-	/**
 	 * 聊天的对方
 	 */
 	private User otherSide = null;
@@ -856,6 +835,16 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * @return
 	 */
 	private Chat createChat(AbstractXMPPConnection connection) {
+		return createChat(connection, true);
+	}
+	
+	/**
+	 * 创建聊天对象
+	 * @param doLogin 如果没有登录，则是否自动登录
+	 * @update 2014年11月6日 下午9:38:50
+	 * @return
+	 */
+	private Chat createChat(AbstractXMPPConnection connection, boolean doLogin) {
 		if (connection == null) {
 			connection = XmppConnectionManager.getInstance().getConnection();
 		}
@@ -868,10 +857,26 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			}
 			return chat;
 		} else {
-			//发送广播，重新登录
-			Intent intent = new Intent(CoreReceiver.ACTION_RELOGIN);
-			sendBroadcast(intent);
-			return null;
+			boolean flag = false;
+			if (doLogin) {
+				flag = XmppConnectionManager.getInstance().checkAuthority(connection, application);
+				if (flag) {
+					if (chatManager == null) {
+						chatManager = ChatManager.getInstanceFor(connection);
+					}
+					if (chat == null) {
+						chat = chatManager.createChat(otherSide.getJID(), null);
+					}
+					return chat;
+				} else {
+					return null;
+				}
+			} else {
+				//发送广播，重新登录
+				Intent intent = new Intent(CoreReceiver.ACTION_RELOGIN);
+				sendBroadcast(intent);
+				return null;
+			}
 		}
 	}
 	
@@ -1497,10 +1502,14 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 								if (chat == null) {
 									chat = createChat(connection);
 								}
-								for (MsgInfo msgInfo : msgList) {
-									MsgSenderInfo senderInfo = new MsgSenderInfo(chat, msgInfo, msgThread, mHandler);
-									senderInfo.originalImage = originalImage;
-									coreService.sendChatMsg(senderInfo);
+								if (chat != null) {
+									for (MsgInfo msgInfo : msgList) {
+										MsgSenderInfo senderInfo = new MsgSenderInfo(chat, msgInfo, msgThread, mHandler);
+										senderInfo.originalImage = originalImage;
+										coreService.sendChatMsg(senderInfo);
+									}
+								} else {
+									Log.d("----chat----is null--");
 								}
 							}
 						});
@@ -1525,8 +1534,12 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 								if (chat == null) {
 									chat = createChat(connection);
 								}
-								MsgSenderInfo senderInfo = new MsgSenderInfo(chat, mi, msgThread, mHandler);
-								coreService.sendChatMsg(senderInfo);
+								if (chat != null) {
+									MsgSenderInfo senderInfo = new MsgSenderInfo(chat, mi, msgThread, mHandler);
+									coreService.sendChatMsg(senderInfo);
+								} else {
+									Log.d("----chat----is null--");
+								}
 							}
 						});
 					}
@@ -1873,8 +1886,12 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				if (chat == null) {
 					chat = createChat(connection);
 				}
-				MsgSenderInfo msgSenderInfo = new MsgSenderInfo(chat, msgInfo, msgThread, mHandler, isReSend);
-				coreService.sendChatMsg(msgSenderInfo);
+				if (chat != null) {
+					MsgSenderInfo msgSenderInfo = new MsgSenderInfo(chat, msgInfo, msgThread, mHandler, isReSend);
+					coreService.sendChatMsg(msgSenderInfo);
+				} else {
+					Log.d("----chat----is null--");
+				}
 			}
 		});
 		
@@ -1888,10 +1905,14 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 */
 	private void sendStateMsg(ChatState state) {
 		if (chat == null) {
-			chat = createChat(connection);
+			chat = createChat(connection, false);
 		}
-		MsgSenderInfo msgSenderInfo = new MsgSenderInfo(chat, null, null, null, false);
-		coreService.sendChatStateMsg(state, msgSenderInfo);
+		if (chat != null) {
+			MsgSenderInfo msgSenderInfo = new MsgSenderInfo(chat, null, null, null, false);
+			coreService.sendChatStateMsg(state, msgSenderInfo);
+		} else {
+			Log.d("----chat----is null--");
+		}
 	}
 	
 	/**
@@ -2257,8 +2278,10 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			switch (msgType) {
 			case TEXT:	//文本消息
 				SpannableString spannableString = SystemUtil.getExpressionString(mContext, msgInfo.getContent());
-				if (spannableString.length() <= context.getResources().getInteger(R.integer.msg_content_min_center_length)) {	//字符太短，居中显示
-					holder.tvContent.setGravity(Gravity.CENTER);
+				if (spannableString != null) {
+					if (spannableString.length() <= context.getResources().getInteger(R.integer.msg_content_min_center_length)) {	//字符太短，居中显示
+						holder.tvContent.setGravity(Gravity.CENTER);
+					}
 				}
 				holder.tvContent.setText(spannableString);
 				break;
@@ -2643,16 +2666,12 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 
 		@Override
 		public boolean onLongClick(View v) {
-			String[] array = getResources().getStringArray(R.array.chat_msg_context_menu);
-			List<ContextMenuItem> menus = new ArrayList<>();
-			for (int i = 0; i < array.length; i++) {
-				ContextMenuItem item = new ContextMenuItem(i + 1, array[i]);
-				menus.add(item);
-			}
+			final List<ContextMenuItem> menus = getMsgContextMenuItems();
 			if (SystemUtil.isNotEmpty(menus)) {
 				if (Type.TEXT != msgInfo.getMsgType()) {
 					menus.remove(0);	//除了文本外，其他的消息都不能复制,所以，删除“复制”菜单项
-//					menus.remove(4);	//非文本的，也不能有“分享”菜单
+					ContextMenuItem shareItem = new ContextMenuItem(R.string.menu_share, R.string.menu_share);
+					menus.remove(shareItem);	//非文本的，也不能有“分享”菜单
 				}
 				String dialogTitle = null;
 				if (MsgAdapter.TYPE_IN == itemType) {	//接收的消息
@@ -2663,28 +2682,23 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
 				final MaterialDialog dialog = builder.title(dialogTitle)
 					.disableDefaultFonts()
-					.adapter(new MenuItemAdapter(menus, mContext))
-					.build();
-				ListView listView = dialog.getListView();
-				if (listView != null) {
-					listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
+					.adapter(new MenuItemAdapter(menus, mContext), new MaterialDialog.ListCallback() {
 						@Override
-						public void onItemClick(AdapterView<?> parent, View view,
-												final int position, long id) {
+						public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+							ContextMenuItem item = menus.get(which);
 							Intent intent = null;
-							switch ((int) id) {
-								case MENU_COPY:	//复制
+							switch (item.getItemId()) {
+								case R.string.menu_copy:	//复制
 									SystemUtil.copyText(msgInfo.getContent());
 									break;
-								case MENU_FORWARD:	//转发
+								case R.string.menu_forward:	//转发
 									intent = new Intent(mContext, ChatChoseActivity.class);
 									ArrayList<MsgInfo> argMsgs = new ArrayList<>(1);
 									argMsgs.add(msgInfo);
 									intent.putParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS, argMsgs);
 									startActivity(intent);
 									break;
-								case MENU_DELETE:	//删除
+								case R.string.menu_delete:	//删除
 									pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading), true);
 									SystemUtil.getCachedThreadPool().execute(new Runnable() {
 
@@ -2701,7 +2715,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 										}
 									});
 									break;
-								case MENU_SHARE:	//分享
+								case R.string.menu_share:	//分享
 									if (Type.TEXT != msgInfo.getMsgType()) {//除了文本外
 										String filepath = msgInfo.getMsgPart().getFilePath();
 										if (SystemUtil.isFileExists(filepath)) {
@@ -2723,14 +2737,14 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 										startActivity(Intent.createChooser(intent, getResources().getString(R.string.share)));
 									}
 									break;
-								case MENU_MORE:	//更多
+								case R.string.menu_more:	//更多
 									if (toolbar != null) {
 										mActionMode = startSupportActionMode(new ActionModeCallback() {
 											@Override
 											public boolean onCreateActionMode(ActionMode mode, Menu menu) {
 												MenuInflater menuInflater = getMenuInflater();
 												menuInflater.inflate(R.menu.menu_chat_opt, menu);
-												
+
 												return true;
 											}
 
@@ -2829,8 +2843,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 							}
 							dialog.dismiss();
 						}
-					});
-				}
+					})
+					.build();
 				dialog.show();
 				return true;
 			} else {
@@ -3428,21 +3442,25 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 						case ADD:	//来了新消息
 							if (data != null) {
 								msgInfo = (MsgInfo) data;
-								resetTitle();
+								if (msgInfo.getThreadID() == mThreadId) {	//属于该会话则更新
+									resetTitle();
 
-								mMsgInfos.add(msgInfo);
-								addMsgTotalCount();
-								msgAdapter.notifyDataSetChanged();
+									mMsgInfos.add(msgInfo);
+									addMsgTotalCount();
+									msgAdapter.notifyDataSetChanged();
+								}
 							}
 							break;
 						case UPDATE:	//更新新消息
 							if (data != null) {
 								msgInfo = (MsgInfo) data;
-								int index = mMsgInfos.indexOf(msgInfo);
-								if (index != -1) {	//存在
-									msgInfo = mMsgInfos.get(index);
-									//局部更新
-									updateView(index, msgInfo);
+								if (msgInfo.getThreadID() == mThreadId) {    //属于该会话则更新
+									int index = mMsgInfos.indexOf(msgInfo);
+									if (index != -1) {	//存在
+										msgInfo = mMsgInfos.get(index);
+										//局部更新
+										updateView(index, msgInfo);
+									}
 								}
 							}
 							break;
@@ -3554,6 +3572,36 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				}
 			}
 		}
+	}
+	
+	/**
+	 * 获取消息的长按菜单
+	 * @author：huanghui1
+	 * @update： 2015/11/16 14:59
+	 * @version: 0.0.1
+	 */
+	private List<ContextMenuItem> getMsgContextMenuItems() {
+		List<ContextMenuItem> list = new ArrayList<>();
+		//复制
+		ContextMenuItem item = new ContextMenuItem(R.string.menu_copy, R.string.menu_copy);
+		list.add(item);
+
+		//转发
+		item = new ContextMenuItem(R.string.menu_forward, R.string.menu_forward);
+		list.add(item);
+
+		//删除
+		item = new ContextMenuItem(R.string.menu_delete, R.string.menu_delete);
+		list.add(item);
+
+		//分享
+		item = new ContextMenuItem(R.string.menu_share, R.string.menu_share);
+		list.add(item);
+
+		//更多
+		item = new ContextMenuItem(R.string.menu_more, R.string.menu_more);
+		list.add(item);
+		return list;
 	}
 
 }

@@ -788,6 +788,9 @@ public class CoreService extends Service {
 		if (!XmppUtil.checkConnected(connection)) {	//连接不可用，则重新登录
 			connection.connect();
 		}
+		if (!XmppUtil.checkAuthenticated(connection)) {
+			XmppConnectionManager.getInstance().login(connection);
+		}
 		senderInfo.chat.sendMessage(message);
 		msgInfo.setSendState(SendState.SUCCESS);
 	}

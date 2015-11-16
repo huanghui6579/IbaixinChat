@@ -221,6 +221,7 @@ public class ActionShareActivity extends BaseActivity {
                     msgPart.setFileName(file.getName());
                     msgPart.setFilePath(filePath);
                     msgPart.setSize(file.length());
+                    msgPart.setMimeType(MimeUtils.guessMimeTypeFromFilename(msgPart.getFileName()));
                     if (msgInfo.getMsgType() == MsgInfo.Type.IMAGE) {   //图片，则需要压缩了再发送
                         Bitmap loadedImage = ImageUtil.loadImageThumbnailsSync(ImageDownloader.Scheme.FILE.wrap(filePath));
                         if (loadedImage != null) {
