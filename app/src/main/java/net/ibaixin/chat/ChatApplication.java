@@ -97,6 +97,11 @@ public class ChatApplication extends Application {
 	 * volley 网络请求的队列
 	 */
 	private RequestQueue mRequestQueue;
+
+	/**
+	 * 是否主动退出该应用，乳沟不是，则连接断开后会自动重连
+	 */
+	private boolean mSureExit = false;
 	
 	@Override
 	public void onCreate() {
@@ -182,6 +187,14 @@ public class ChatApplication extends Application {
 	
 	public boolean isNetWorking() {
 		return isNetWorking;
+	}
+
+	public boolean isSureExit() {
+		return mSureExit;
+	}
+
+	public void setSureExit(boolean sureExit) {
+		this.mSureExit = sureExit;
 	}
 
 	public String getCurrentAccount() {
@@ -457,6 +470,7 @@ public class ChatApplication extends Application {
 	 */
 	public void exit() {
 		removePassword();
+		setSureExit(true);
 		XmppConnectionManager.getInstance().disconnect();
 		Intent intent = new Intent(mInstance, CoreService.class);
 		stopService(intent);

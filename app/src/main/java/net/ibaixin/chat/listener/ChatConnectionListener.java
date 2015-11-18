@@ -1,7 +1,6 @@
 package net.ibaixin.chat.listener;
 
-import java.io.IOException;
-import java.util.Timer;
+import android.content.Intent;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.service.CoreService;
@@ -12,11 +11,11 @@ import net.ibaixin.chat.util.XmppConnectionManager;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.SmackException.AlreadyLoggedInException;
+import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException.StreamErrorException;
 import org.jivesoftware.smack.packet.StreamError;
-import org.jivesoftware.smack.XMPPConnection;
 
-import android.content.Intent;
+import java.util.Timer;
 
 /**
  * 客户端连接监听器
@@ -39,12 +38,15 @@ public class ChatConnectionListener implements ConnectionListener, ReConnectTask
 	@Override
 	public void connectionClosed() {
 		Log.d("----ChatConnectionListener-----connectionClosed------------");
-		/*if (loginTime < ReConnectTask.RECONNECT_TIME) {
-			// TODO Auto-generated method stub
-			mConnection.disconnect();
-			mTimer = new Timer();
-			mTimer.schedule(new ReConnectTask(this), timeDelay);
-		}*/
+		ChatApplication application = ChatApplication.getInstance();
+		if (application.isSureExit()) {	//确定是手动退出的
+			if (loginTime < ReConnectTask.RECONNECT_TIME) {
+				// TODO Auto-generated method stub
+				mConnection.disconnect();
+				mTimer = new Timer();
+				mTimer.schedule(new ReConnectTask(this), timeDelay);
+			}
+		}
 	}
 
 	@Override

@@ -583,16 +583,20 @@ public class ThreadListFragment extends BaseFragment implements LoaderCallbacks<
 				}
 				switch (notifyType) {
 				case ADD:	//添加
-					mMsgThreads.add(0, thread);
-					mThreadAdapter.notifyDataSetChanged();
+					if (mThreadAdapter != null) {
+						mMsgThreads.add(0, thread);
+						mThreadAdapter.notifyDataSetChanged();
+					}
 					break;
 				case UPDATE:	//更新
-					if (mMsgThreads.contains(thread)) {
-						mMsgThreads.remove(thread);
+					if (mThreadAdapter != null) {
+						if (mMsgThreads.contains(thread)) {
+							mMsgThreads.remove(thread);
+						}
+						mMsgThreads.add(0, thread);
+						Log.d("---call----Provider.MsgThreadColumns.NOTIFY_FLAG--UPDATE--thread--" + thread);
+						mThreadAdapter.notifyDataSetChanged();
 					}
-					mMsgThreads.add(0, thread);
-					Log.d("---call----Provider.MsgThreadColumns.NOTIFY_FLAG--UPDATE--thread--" + thread);
-					mThreadAdapter.notifyDataSetChanged();
 					break;
 				default:
 					break;

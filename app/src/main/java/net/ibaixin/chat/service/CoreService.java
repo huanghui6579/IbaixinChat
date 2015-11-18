@@ -88,6 +88,7 @@ import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smackx.chatstates.ChatState;
 import org.jivesoftware.smackx.chatstates.ChatStateManager;
+import org.jivesoftware.smackx.chatstates.packet.ChatStateExtension;
 import org.jivesoftware.smackx.delay.packet.DelayInformation;
 import org.jivesoftware.smackx.filetransfer.FileTransferListener;
 import org.jivesoftware.smackx.filetransfer.FileTransferManager;
@@ -100,6 +101,7 @@ import org.jxmpp.util.XmppStringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -726,8 +728,36 @@ public class CoreService extends Service {
 		@Override
 		public void run() {
 			try {
+//				Message message = new Message();
+//				message.setType(Message.Type.headline);
+//				ChatStateExtension extension = new ChatStateExtension(state);
+//				message.addExtension(extension);
+//
+//				senderInfo.chat.sendMessage(message);
 				if (mChatStateManager != null) {
-					mChatStateManager.setCurrentState(state, senderInfo.chat);
+					if(senderInfo.chat != null && state != null) {
+						Method method = mChatStateManager.getClass().getDeclaredMethod("updateChatState", senderInfo.chat.getClass(), state.getDeclaringClass());
+						if (method != null) {
+							method.setAccessible(true);
+							Boolean value = (Boolean) method.invoke(mChatStateManager, senderInfo.chat, state);
+							if (value != null && value) {
+								Message message = new Message();
+								message.setType(Message.Type.headline);
+								ChatStateExtension extension = new ChatStateExtension(state);
+								message.addExtension(extension);
+
+								senderInfo.chat.sendMessage(message);
+							}
+						}
+						
+						/*if(!updateChatState(chat, newState)) {
+							return;
+						}*/
+						 
+					} else {
+						Log.d("Arguments cannot be null.--------senderInfo.chat----is null---" + senderInfo.chat + " or ----state--is null--state--" + state);
+					}
+//					mChatStateManager.setCurrentState(state, senderInfo.chat);
 				}
 			} catch (Exception e) {
 				Log.e(e.getMessage());

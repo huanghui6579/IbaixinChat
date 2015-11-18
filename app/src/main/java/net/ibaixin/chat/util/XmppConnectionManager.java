@@ -13,6 +13,7 @@ import net.ibaixin.chat.smack.provider.VcardXProvider;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
+import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
@@ -82,7 +83,8 @@ public class XmppConnectionManager {
 		Roster.setDefaultSubscriptionMode(SubscriptionMode.manual);
 		connection = new XMPPTCPConnection(configuration);
 		connection.setPacketReplyTimeout(15000);	//毫秒为单位
-		
+		SASLAuthentication.unBlacklistSASLMechanism("PLAIN");
+		SASLAuthentication.blacklistSASLMechanism("DIGEST-MD5");
 //		ReconnectionManager.setEnabledPerDefault(true);
 //		ReconnectionManager.getInstanceFor(connection);
 		//添加监听器
