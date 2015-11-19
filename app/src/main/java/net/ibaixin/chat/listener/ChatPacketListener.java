@@ -56,15 +56,17 @@ public class ChatPacketListener implements StanzaListener {
 		if (packet != null) {
 			String from = packet.getFrom();
 			if (!TextUtils.isEmpty(from)) {
-				//TODO 其他各种消息处理
-				if (packet instanceof Presence) {
-					Presence presence = (Presence) packet;
-					if (!from.startsWith(ChatApplication.getInstance().getCurrentAccount())) {	//只处理发起消息的不是自己的情况
+				if (!XmppUtil.isOutMessage(from)) {    //只处理发起消息的不是自己的情况
+					//TODO 其他各种消息处理
+					if (packet instanceof Presence) {
+						Presence presence = (Presence) packet;
 						SystemUtil.getCachedThreadPool().execute(new HandlePresenceTask(presence));
+					} else if (packet instanceof IQ) {	//处理iq的消息类型
+						IQ iq = (IQ) packet;
+						SystemUtil.getCachedThreadPool().execute(new HandleIQTask(iq));
 					}
-				} else if (packet instanceof IQ) {	//处理iq的消息类型
-					IQ iq = (IQ) packet;
-					SystemUtil.getCachedThreadPool().execute(new HandleIQTask(iq));
+				} else {
+					Log.d("------ChatPacketListener-----is---self---packet----" + packet);
 				}
 			} else {
 				Log.w("----ChatPacketListener----processPacket----from----is null--" + from);

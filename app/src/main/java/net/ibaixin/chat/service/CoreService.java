@@ -74,16 +74,19 @@ import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.SmackException.NoResponseException;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
+import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.XMPPException.XMPPErrorException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.chat.ChatManagerListener;
-import org.jivesoftware.smack.chat.ChatMessageListener;
+import org.jivesoftware.smack.filter.FlexibleStanzaTypeFilter;
+import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Message.Type;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smackx.chatstates.ChatState;
@@ -101,6 +104,7 @@ import org.jxmpp.util.XmppStringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
@@ -313,6 +317,20 @@ public class CoreService extends Service {
 			if (mChatStateManager == null) {
 				mChatStateManager = ChatStateManager.getInstance(connection);
 			}
+
+			StanzaFilter packetFilter = new FlexibleStanzaTypeFilter<Message>() {
+
+				@Override
+				protected boolean acceptSpecific(Message packet) {
+					if (packet != null) {
+						String jid = packet.getFrom();
+						//只处理发起消息的不是自己的情况
+						return !XmppUtil.isOutMessage(jid);
+					}
+					return false;
+				}
+			};
+			connection.addAsyncStanzaListener(mChatMessageListener, packetFilter);
 			
 			/*if (mDeliveryReceiptManager == null) {
 				mDeliveryReceiptManager = DeliveryReceiptManager.getInstanceFor(connection);
@@ -727,7 +745,6 @@ public class CoreService extends Service {
 
 		@Override
 		public void run() {
-			try {
 //				Message message = new Message();
 //				message.setType(Message.Type.headline);
 //				ChatStateExtension extension = new ChatStateExtension(state);
@@ -736,17 +753,59 @@ public class CoreService extends Service {
 //				senderInfo.chat.sendMessage(message);
 				if (mChatStateManager != null) {
 					if(senderInfo.chat != null && state != null) {
-						Method method = mChatStateManager.getClass().getDeclaredMethod("updateChatState", senderInfo.chat.getClass(), state.getDeclaringClass());
-						if (method != null) {
-							method.setAccessible(true);
-							Boolean value = (Boolean) method.invoke(mChatStateManager, senderInfo.chat, state);
-							if (value != null && value) {
-								Message message = new Message();
-								message.setType(Message.Type.headline);
-								ChatStateExtension extension = new ChatStateExtension(state);
-								message.addExtension(extension);
-
-								senderInfo.chat.sendMessage(message);
+						boolean reflectSuccess = false;
+						try {
+							Method method = mChatStateManager.getClass().getDeclaredMethod("updateChatState", senderInfo.chat.getClass(), state.getDeclaringClass());
+							if (method != null) {
+                                method.setAccessible(true);
+                                Boolean value = (Boolean) method.invoke(mChatStateManager, senderInfo.chat, state);
+                                if (value != null && value) {
+                                    Message message = new Message();
+                                    message.setType(Type.headline);
+                                    ChatStateExtension extension = new ChatStateExtension(state);
+                                    message.addExtension(extension);
+    
+                                    String participant = null;
+                                    String threadId = null;
+                                    Field participantField = senderInfo.chat.getClass().getDeclaredField("participant");
+                                    if (participantField != null) {
+                                        participantField.setAccessible(true);
+                                        participant = (String) participantField.get(senderInfo.chat);
+                                    }
+                                    Field threadIdField = senderInfo.chat.getClass().getDeclaredField("threadID");
+                                    if (threadIdField != null) {
+                                        threadIdField.setAccessible(true);
+                                        threadId = (String) threadIdField.get(senderInfo.chat);
+                                    }
+                                    ChatManager chatManager = null;
+                                    Field chatManagerField = senderInfo.chat.getClass().getDeclaredField("chatManager");
+                                    if (chatManagerField != null) {
+                                        chatManagerField.setAccessible(true);
+                                        chatManager = (ChatManager) chatManagerField.get(senderInfo.chat);
+                                    }
+                                    if (participant != null && threadId != null && chatManager != null) {
+                                        Method sendMessageMethod = chatManager.getClass().getDeclaredMethod("sendMessage", senderInfo.chat.getClass(), message.getClass());
+                                        if (sendMessageMethod != null) {
+                                            sendMessageMethod.setAccessible(true);
+											message.setThread(threadId);
+											message.setTo(participant);
+                                            sendMessageMethod.invoke(chatManager, senderInfo.chat, message);
+											reflectSuccess = true;
+										}
+										//chatManager.sendMessage(senderInfo.chat, message);
+									}
+                                }
+                            }
+						} catch (Exception e) {
+							reflectSuccess = false;
+							Log.e(e.getMessage());
+						}
+						
+						if (!reflectSuccess) {
+							try {
+								mChatStateManager.setCurrentState(state, senderInfo.chat);
+							} catch (Exception e) {
+								Log.e(e.getMessage());
 							}
 						}
 						
@@ -757,11 +816,7 @@ public class CoreService extends Service {
 					} else {
 						Log.d("Arguments cannot be null.--------senderInfo.chat----is null---" + senderInfo.chat + " or ----state--is null--state--" + state);
 					}
-//					mChatStateManager.setCurrentState(state, senderInfo.chat);
 				}
-			} catch (Exception e) {
-				Log.e(e.getMessage());
-			}
 		}
 	}
 	
@@ -993,20 +1048,20 @@ public class CoreService extends Service {
 	 * @update 2014年11月3日 下午10:40:19
 	 */
 	class ProcessMsgTask implements Runnable {
-		Chat chat;
+//		Chat chat;
 		Message message;
 		boolean notify = true;
 
-		public ProcessMsgTask(Chat chat, Message message) {
+		public ProcessMsgTask(/*Chat chat, */Message message) {
 			super();
-			this.chat = chat;
+//			this.chat = chat;
 			this.message = message;
 		}
 
-		public ProcessMsgTask(Chat chat, Message message, boolean notify) {
+		public ProcessMsgTask(/*Chat chat, */Message message, boolean notify) {
 			super();
 			Log.w("------ProcessMsgTask----message-----" + message);
-			this.chat = chat;
+//			this.chat = chat;
 			this.message = message;
 			this.notify = notify;
 		}
@@ -1429,20 +1484,6 @@ public class CoreService extends Service {
 		
 	}
 	
-	//初始化messageListener
-	public void initMessageListener() {
-		if (mChatMessageListener == null) {
-			synchronized (CoreService.class) {
-				if (mChatMessageListener == null) {
-					mChatMessageListener = new MyChatMessageListener();
-					if (mChatManagerListener != null) {
-						mChatManager.addChatListener(mChatManagerListener);
-					}
-				}
-			}
-		}
-	}
-	
 	/**
 	 * 聊天消息管理器
 	 * @author huanghui1
@@ -1452,9 +1493,18 @@ public class CoreService extends Service {
 
 		@Override
 		public void chatCreated(Chat chat, boolean createdLocally) {
-			if (!createdLocally) {
-				chat.addMessageListener(mChatMessageListener);
-			}
+			/*if (!createdLocally) {
+				if (connection != null) {
+					StanzaFilter packetFilter = new FlexibleStanzaTypeFilter<Message>() {
+						@Override
+						protected boolean acceptSpecific(Message packet) {
+							return packet != null;
+						}
+					};
+					connection.addAsyncStanzaListener(new MyChatMessageListener(), packetFilter);
+				}
+//				chat.addMessageListener(mChatMessageListener);
+			}*/
 		}
 	}
 	
@@ -1463,7 +1513,7 @@ public class CoreService extends Service {
 	 * @author huanghui1
 	 * @update 2014年11月20日 下午8:41:17
 	 */
-	public class MyChatMessageListener implements ChatMessageListener {
+	public class MyChatMessageListener implements /*ChatMessageListener*/ StanzaListener {
 		/**
 		 * 是否通知,默认为true
 		 */
@@ -1474,6 +1524,29 @@ public class CoreService extends Service {
 		}
 
 		@Override
+		public void processPacket(Stanza packet) throws NotConnectedException {
+			if (packet != null) {
+				if (packet instanceof Message) {	//消息类型
+					Message message = (Message) packet;
+					ChatState state = getChatState(message);
+					if (state != null && isChatActivityOnTop()) {	//有消息状态的改变，且界面是chat界面
+						if (state == ChatState.active) {
+							SystemUtil.getCachedThreadPool().execute(new ProcessMsgTask(message, notify));
+						} else {
+							SystemUtil.getCachedThreadPool().execute(new ProcessStateMsgTask(state, message));
+						}
+					} else {
+//						if (DeliveryReceipt.from(message) == null) {	//不是回执消息才处理
+						if (state == null || state == ChatState.active) {
+							SystemUtil.getCachedThreadPool().execute(new ProcessMsgTask(message, notify));
+						}
+//						}
+					}
+				}
+			}
+		}
+
+		/*@Override
 		public void processMessage(Chat chat, Message message) {
 			if (message != null) {
 				ChatState state = getChatState(message);
@@ -1491,7 +1564,7 @@ public class CoreService extends Service {
 //				}
 	            }
 			}
-		}
+		}*/
 		
 	}
 	

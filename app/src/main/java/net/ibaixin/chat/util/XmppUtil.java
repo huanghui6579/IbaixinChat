@@ -1,9 +1,16 @@
 package net.ibaixin.chat.util;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.text.TextUtils;
+
+import net.ibaixin.chat.ChatApplication;
+import net.ibaixin.chat.listener.RosterLoadedCallback;
+import net.ibaixin.chat.model.HeadIcon;
+import net.ibaixin.chat.model.Personal;
+import net.ibaixin.chat.model.User;
+import net.ibaixin.chat.model.UserVcard;
+import net.ibaixin.chat.smack.packet.VcardX;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException.NoResponseException;
@@ -16,7 +23,6 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.id.StanzaIdUtil;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
-import org.jivesoftware.smack.roster.RosterLoadedListener;
 import org.jivesoftware.smack.roster.packet.RosterPacket;
 import org.jivesoftware.smackx.search.ReportedData;
 import org.jivesoftware.smackx.search.ReportedData.Row;
@@ -25,15 +31,10 @@ import org.jivesoftware.smackx.vcardtemp.packet.VCard;
 import org.jivesoftware.smackx.xdata.Form;
 import org.jxmpp.util.XmppStringUtils;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.text.TextUtils;
-import net.ibaixin.chat.listener.RosterLoadedCallback;
-import net.ibaixin.chat.model.HeadIcon;
-import net.ibaixin.chat.model.Personal;
-import net.ibaixin.chat.model.User;
-import net.ibaixin.chat.model.UserVcard;
-import net.ibaixin.chat.smack.packet.VcardX;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 
@@ -543,5 +544,27 @@ public class XmppUtil {
         } else {
         	return true;
         }
+	}
+	
+	/**
+	 * 判断是否是自己发出去的消息，true：是自己发出去的消息，false:不是自己发出去的消息
+	 * @author huanghui1
+	 * @update 2015/11/19 15:51
+	 * @version: 0.0.1
+	 * @return true：是自己发出去的消息，false:不是自己发出去的消息
+	 */
+	public static boolean isOutMessage(String jid) {
+		boolean isOut = false;
+		if (jid != null) {
+			try {
+				String localPart = XmppStringUtils.parseLocalpart(jid);
+				if (!TextUtils.isEmpty(localPart)) {
+					isOut = localPart.equals(ChatApplication.getInstance().getCurrentAccount());
+                }
+			} catch (Exception e) {
+				Log.e(e.getMessage());
+			}
+		}
+		return isOut;
 	}
 }

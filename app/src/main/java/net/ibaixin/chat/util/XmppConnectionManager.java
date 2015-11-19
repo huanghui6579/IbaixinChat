@@ -47,6 +47,9 @@ public class XmppConnectionManager {
 	private static XmppConnectionManager instance = null;
 	private static XMPPTCPConnectionConfiguration configuration;
 	
+	private ChatPacketListener mChatPacketListener;
+	private ChatConnectionListener mChatConnectionListener;
+	
 	private XmppConnectionManager() {}
 	
 	public static XmppConnectionManager getInstance() {
@@ -65,7 +68,7 @@ public class XmppConnectionManager {
 	 * @param systemConfig
 	 * @return
 	 */
-	public AbstractXMPPConnection init(SystemConfig systemConfig) {
+	public synchronized AbstractXMPPConnection init(SystemConfig systemConfig) {
 		SmackConfiguration.DEBUG = true;
 //		configuration = new XMPPTCPConnectionConfiguration(Constants.SERVER_HOST, Constants.SERVER_PORT, Constants.SERVER_NAME);
 		configuration = XMPPTCPConnectionConfiguration.builder()
@@ -87,10 +90,19 @@ public class XmppConnectionManager {
 		SASLAuthentication.blacklistSASLMechanism("DIGEST-MD5");
 //		ReconnectionManager.setEnabledPerDefault(true);
 //		ReconnectionManager.getInstanceFor(connection);
+
+		if (mChatPacketListener == null) {
+			mChatPacketListener = new ChatPacketListener();
+		}
+		
+		if (mChatConnectionListener == null) {
+			mChatConnectionListener = new ChatConnectionListener();
+		}
+		
 		//添加监听器
-		connection.addConnectionListener(new ChatConnectionListener());
+		connection.addConnectionListener(mChatConnectionListener);
 		StanzaFilter packetFilter = new OrFilter(new StanzaTypeFilter(IQ.class), new StanzaTypeFilter(Presence.class));
-		connection.addAsyncStanzaListener(new ChatPacketListener(), packetFilter);
+		connection.addAsyncStanzaListener(mChatPacketListener, packetFilter);
 		
 		//初始化额外的扩展提供者
 		initProvider();
