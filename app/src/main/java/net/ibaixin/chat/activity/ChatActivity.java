@@ -3480,7 +3480,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 										tmpInfo.setMsgId(msgId);
 										tmpInfo.setThreadID(mThreadId);
 										int index = mMsgInfos.indexOf(tmpInfo);
-										if (index != -1) {	//存在
+					 					if (index != -1) {	//存在
 											MsgInfo msgInfo = mMsgInfos.get(index);
 											MsgPart part = msgInfo.getMsgPart();
 											if (part != null) {	//更新消息附件的下载状态，不需要刷新界面

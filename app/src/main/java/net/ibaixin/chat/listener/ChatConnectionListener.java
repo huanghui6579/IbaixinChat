@@ -39,7 +39,7 @@ public class ChatConnectionListener implements ConnectionListener, ReConnectTask
 	public void connectionClosed() {
 		Log.d("----ChatConnectionListener-----connectionClosed------------");
 		ChatApplication application = ChatApplication.getInstance();
-		if (application.isSureExit()) {	//确定是手动退出的
+		if (!application.isSureExit()) {	//确定是手动退出的
 			if (loginTime < ReConnectTask.RECONNECT_TIME) {
 				// TODO Auto-generated method stub
 				mConnection.disconnect();
