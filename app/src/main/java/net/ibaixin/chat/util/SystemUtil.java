@@ -2935,4 +2935,24 @@ public class SystemUtil {
 		}
 		return filePath;
 	}
+
+	/**
+	 * 用?占位
+	 * @update 2014年11月13日 下午7:25:34
+	 * @param len
+	 * @return
+	 */
+	public static String makePlaceholders(int len) {
+		if (len < 1) {
+			// It will lead to an invalid query anyway ..
+			throw new RuntimeException("No placeholders");
+		} else {
+			StringBuilder sb = new StringBuilder(len * 2 - 1);
+			sb.append("?");
+			for (int i = 1; i < len; i++) {
+				sb.append(",?");
+			}
+			return sb.toString();
+		}
+	}
 }

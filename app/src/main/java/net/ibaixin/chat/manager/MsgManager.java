@@ -250,6 +250,47 @@ public class MsgManager extends Observable<Observer> {
 	}
 	
 	/**
+	 * 根据用户列表来获取该用户对应的会话列表，紧限于单用户的会话，不适用群聊
+	 * @param users 用户列表
+	 * @return 会话的列表                
+	 * @author huanghui1
+	 * @update 2015/11/26 11:01
+	 * @version: 0.0.1
+	 */
+	public List<MsgThread> getMsgThreadIdsByMember(List<User> users, SQLiteDatabase db) {
+		if (SystemUtil.isNotEmpty(users)) {
+			if (db == null) {
+				db = mChatDBHelper.getReadableDatabase();
+			}
+			String selection = null;
+			int lenth = users.size();
+			String[] ids = new String[lenth];
+			for (int i = 0; i < lenth; i++) {
+				ids[i] = String.valueOf(users.get(i).getId());
+			}
+			if (lenth == 1) {	//只有一个用户
+				selection = Provider.MsgThreadColumns.MEMBER_IDS + " = ?";
+			} else {	//多个用户
+				selection = Provider.MsgThreadColumns.MEMBER_IDS + " in (" + SystemUtil.makePlaceholders(lenth) + ")";
+			}
+			String[] projection = {Provider.MsgThreadColumns._ID};
+			Cursor cursor = db.query(Provider.MsgThreadColumns.TABLE_NAME, projection, selection, ids, null, null, null);
+			List<MsgThread> list = null;
+			if (cursor != null) {
+				list = new ArrayList<>();
+				while (cursor.moveToNext()) {
+					MsgThread msgThread = new MsgThread();
+					msgThread.setId(cursor.getInt(0));
+					list.add(msgThread);
+				}
+				cursor.close();
+			}
+			return list;
+		}
+		return null;
+	}
+	
+	/**
 	 * 初始化MsgThread的数据源
 	 * @update 2014年10月31日 下午2:06:34
 	 * @param msgThread
@@ -282,19 +323,31 @@ public class MsgManager extends Observable<Observer> {
 	}
 	
 	/**
-	 * 根据成员列表获取成员id的字符串
+	 * 根据成员列表获取成员id的字符串,用";"分割
 	 * @update 2014年10月31日 下午2:09:36
 	 * @param members
 	 * @return
 	 */
 	private String getMemberIds(List<User> members) {
+		return getMemberIds(members, Constants.SPLITE_SEMICOLON);
+	}
+	
+	/**
+	 * 根据成员列表获取成员id的字符串
+	 * @param users
+	 * @param splite 分隔符
+	 * @author huanghui1
+	 * @update 2015/11/26 11:21
+	 * @version: 0.0.1
+	 */
+	private String getMemberIds(List<User> users, String splite) {
 		String memberIds = null;
-		if (members.size() == 1) {	//只有一个成员
-			memberIds = String.valueOf(members.get(0).getId());
+		if (users.size() == 1) {	//只有一个成员
+			memberIds = String.valueOf(users.get(0).getId());
 		} else {
 			StringBuilder sb = new StringBuilder();
-			for (User user : members) {
-				sb.append(user.getId()).append(";");
+			for (User user : users) {
+				sb.append(user.getId()).append(splite);
 			}
 			//去除最后一个多余的分隔符
 			sb.deleteCharAt(sb.length() - 1);
@@ -317,7 +370,7 @@ public class MsgManager extends Observable<Observer> {
 			} else {
 				StringBuilder sb = new StringBuilder();
 				for (int id : memberIds) {
-					sb.append(id).append(";");
+					sb.append(id).append(Constants.SPLITE_SEMICOLON);
 				}
 				//去除最后一个多余的分隔符
 				sb.deleteCharAt(sb.length() - 1);
@@ -346,7 +399,7 @@ public class MsgManager extends Observable<Observer> {
 			List<Integer> list = userManager.getUserIdsByNames(memAccounts);
 			if (!SystemUtil.isEmpty(list)) {
 				for (int id : list) {
-					sb.append(id).append(";");
+					sb.append(id).append(Constants.SPLITE_SEMICOLON);
 				}
 				sb.deleteCharAt(sb.length() - 1);
 				strIds = sb.toString();
@@ -1274,7 +1327,7 @@ public class MsgManager extends Observable<Observer> {
 			if (len == 1) {	//只有一条消息
 				sql = " = ?";
 			} else {
-				sql = " in (" + makePlaceholders(len) + ")";
+				sql = " in (" + SystemUtil.makePlaceholders(len) + ")";
 			}
 			int count = db.delete(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.MSG_ID + sql, msgIds);
 			if (count > 0) {	//消息删除成功
@@ -1820,26 +1873,6 @@ public class MsgManager extends Observable<Observer> {
 	}
 	
 	/**
-	 * 用?占位
-	 * @update 2014年11月13日 下午7:25:34
-	 * @param len
-	 * @return
-	 */
-	private String makePlaceholders(int len) {
-	    if (len < 1) {
-	        // It will lead to an invalid query anyway ..
-	        throw new RuntimeException("No placeholders");
-	    } else {
-	        StringBuilder sb = new StringBuilder(len * 2 - 1);
-	        sb.append("?");
-	        for (int i = 1; i < len; i++) {
-	            sb.append(",?");
-	        }
-	        return sb.toString();
-	    }
-	}
-	
-	/**
 	 * 根据图片获取其缩略图
 	 * @update 2014年11月21日 下午7:56:39
 	 * @param imagePath
@@ -1962,7 +1995,7 @@ public class MsgManager extends Observable<Observer> {
 				"image/jpeg",
 				"image/png"
 			};
-			Cursor cursor = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, MediaStore.Images.Media.MIME_TYPE + " in (" + makePlaceholders(selectionArgs.length) + ")", selectionArgs, MediaStore.Images.Media.DATE_TAKEN + " DESC");
+			Cursor cursor = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, MediaStore.Images.Media.MIME_TYPE + " in (" + SystemUtil.makePlaceholders(selectionArgs.length) + ")", selectionArgs, MediaStore.Images.Media.DATE_TAKEN + " DESC");
 			if (cursor != null) {
 				album = new Album();
 				List<PhotoItem>  list = new ArrayList<>();

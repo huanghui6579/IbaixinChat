@@ -1,20 +1,15 @@
 package net.ibaixin.chat.task;
 
-import java.io.IOException;
-import java.util.TimerTask;
-
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.model.SystemConfig;
-import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.XmppConnectionManager;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.XMPPException;
 
-import android.content.Intent;
+import java.util.TimerTask;
 
 /**
  * 重新登录任务
@@ -66,10 +61,14 @@ public class ReConnectTask extends TimerTask {
 					}
 				}
 			} catch (Exception e) {
-				if (mCallback != null) {
-					mCallback.onLoginFailed(e);
+				if (! (e instanceof SmackException.AlreadyLoggedInException)) {	//未登录
+					if (mCallback != null) {
+						mCallback.onLoginFailed(e);
+					}
+					Log.e(e == null ? "" : "---e.getName---" + e.getClass().getName() + "-----" + e.getMessage());
+				} else {
+					Log.d("-----alread loginedin-----");
 				}
-				Log.e(e == null ? "" : e.getMessage());
 			}
 		}
 	}

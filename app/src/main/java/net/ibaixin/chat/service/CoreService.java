@@ -89,6 +89,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterListener;
+import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.chatstates.ChatState;
 import org.jivesoftware.smackx.chatstates.ChatStateManager;
 import org.jivesoftware.smackx.chatstates.packet.ChatStateExtension;
@@ -167,7 +168,7 @@ public class CoreService extends Service {
 	private static ChatManager mChatManager;
 	private static OfflineMessageManager mOfflineMessageManager;
 	private static FileTransferManager mFileTransferManager;
-	AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
+	XMPPTCPConnection connection = (XMPPTCPConnection) XmppConnectionManager.getInstance().getConnection();
 	
 	private ImageLoader mImageLoader = ImageLoader.getInstance();
 	
@@ -415,6 +416,7 @@ public class CoreService extends Service {
 			default:
 				break;
 			}
+			Log.d("-------connection.isSmEnabled()------" + connection.isSmEnabled() + "----connection.isSmAvailable()----" + connection.isSmAvailable() + "-----connection.isSmResumptionPossible()-----" + connection.isSmResumptionPossible());
 		}
 		
 		return Service.START_REDELIVER_INTENT;

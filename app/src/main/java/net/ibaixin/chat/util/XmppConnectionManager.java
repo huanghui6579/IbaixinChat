@@ -13,6 +13,7 @@ import net.ibaixin.chat.smack.provider.VcardXProvider;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
+import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
@@ -25,6 +26,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.provider.ProviderManager;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.Roster.SubscriptionMode;
+import org.jivesoftware.smack.sasl.SASLMechanism;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.debugger.android.AndroidDebugger;
@@ -40,7 +42,7 @@ import java.io.PrintWriter;
  *
  */
 public class XmppConnectionManager {
-	private AbstractXMPPConnection connection;
+	private XMPPTCPConnection connection;
 	
 	private Object lock = new Object();
 	
@@ -49,6 +51,8 @@ public class XmppConnectionManager {
 	
 	private ChatPacketListener mChatPacketListener;
 	private ChatConnectionListener mChatConnectionListener;
+	
+	private ReconnectionManager mReconnectionManager;
 	
 	private XmppConnectionManager() {}
 	
@@ -61,6 +65,14 @@ public class XmppConnectionManager {
 			}
 		}
 		return instance;
+	}
+
+	static {
+
+		XMPPTCPConnection.setUseStreamManagementDefault(true);
+
+		XMPPTCPConnection.setUseStreamManagementResumptiodDefault(true);
+
 	}
 	
 	/**
@@ -86,8 +98,8 @@ public class XmppConnectionManager {
 		Roster.setDefaultSubscriptionMode(SubscriptionMode.manual);
 		connection = new XMPPTCPConnection(configuration);
 		connection.setPacketReplyTimeout(15000);	//毫秒为单位
-		SASLAuthentication.unBlacklistSASLMechanism("PLAIN");
-		SASLAuthentication.blacklistSASLMechanism("DIGEST-MD5");
+		SASLAuthentication.unBlacklistSASLMechanism(SASLMechanism.PLAIN);
+		SASLAuthentication.blacklistSASLMechanism(SASLMechanism.DIGESTMD5);
 //		ReconnectionManager.setEnabledPerDefault(true);
 //		ReconnectionManager.getInstanceFor(connection);
 
@@ -98,15 +110,14 @@ public class XmppConnectionManager {
 		if (mChatConnectionListener == null) {
 			mChatConnectionListener = new ChatConnectionListener();
 		}
-		
+		mReconnectionManager = ReconnectionManager.getInstanceFor(connection);
+		mReconnectionManager.enableAutomaticReconnection();
 		//添加监听器
 		connection.addConnectionListener(mChatConnectionListener);
 		StanzaFilter packetFilter = new OrFilter(new StanzaTypeFilter(IQ.class), new StanzaTypeFilter(Presence.class));
 		connection.addAsyncStanzaListener(mChatPacketListener, packetFilter);
-		
 		//初始化额外的扩展提供者
 		initProvider();
-		
 		AndroidDebugger androidDebugger = new AndroidDebugger(connection, new PrintWriter(System.out), new InputStreamReader(System.in));
 		System.setProperty("smack.debuggerClass", androidDebugger.getClass().getCanonicalName());
 		return connection;
@@ -127,6 +138,9 @@ public class XmppConnectionManager {
 	 * @return
 	 */
 	public AbstractXMPPConnection getConnection() {
+		if (connection == null) {
+			init(ChatApplication.getInstance().getSystemConfig());
+		}
 		return connection;
 	}
 	

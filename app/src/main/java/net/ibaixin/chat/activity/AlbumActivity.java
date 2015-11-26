@@ -49,6 +49,7 @@ import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.model.Album;
+import net.ibaixin.chat.model.FileItem;
 import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.util.Constants;
@@ -158,15 +159,20 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 
 		@Override
 		public void handleMessage(Message msg) {
+			if (pDialog != null && pDialog.isShowing()) {
+				pDialog.dismiss();
+			}
 			switch (msg.what) {
 			case Constants.MSG_SUCCESS:
 				Intent data = new Intent();
-				data.putParcelableArrayListExtra(ChatActivity.ARG_MSG_INFO_LIST, (ArrayList<MsgInfo>)msg.obj);
+				data.putParcelableArrayListExtra(ChatActivity.ARG_MSG_INFO_LIST, (ArrayList<MsgInfo>) msg.obj);
 				setResult(RESULT_OK, data);
+				finish();
 				break;
 			case Constants.MSG_FAILED:
 				SystemUtil.makeShortToast(R.string.album_photo_chose_error);
 				setResult(RESULT_CANCELED);
+				finish();
 				break;
 			case Constants.MSG_UPDATE_ONE://局部更新一个文件
 				PhotoItem photoItem = (PhotoItem) msg.obj;
@@ -185,10 +191,6 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			default:
 				break;
 			}
-			if (pDialog != null && pDialog.isShowing()) {
-				pDialog.dismiss();
-			}
-			finish();
 		}
 		
 	};
@@ -277,7 +279,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 						intent.setAction(MediaStore.ACTION_VIDEO_CAPTURE);
 						mFilePath = SystemUtil.generateVideoPath();
 						File file = new File(mFilePath);
-						if(file.exists()){
+						if(file.exists()) {
 							file.delete();
 						}
 						Uri uri = Uri.fromFile(file);
@@ -592,6 +594,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				File file = new File(mFilePath);
 				SystemUtil.scanFileAsync(mContext, file);
 				PhotoItem photoItem = new PhotoItem();
+				photoItem.setFileType(FileItem.FileType.IMAGE);
 				photoItem.setFilePath(mFilePath);
 				photoItem.setSize(file.length());
 				photoItem.setTime(file.lastModified());
@@ -611,33 +614,34 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				intent.putExtra(ClipHeadIconActivity.ARG_IMAGE_PATH, mFilePath);
 				startActivityForResult(intent, REQ_CLIP_PIC);
 				break;
-				case REQ_TAKE_VIDEO:	//录视频
-					if (data != null) {
-						pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading), true);
-						final Uri uri = data.getData();
-						SystemUtil.getCachedThreadPool().execute(new Runnable() {
-							@Override
-							public void run() {
-								String[] pathArray = msgManager.getVideoThumbPath(uri);
-								if (pathArray != null) {
-									//[0]存入的是原始文件的绝对路径
-									mFilePath = pathArray[0];
-									PhotoItem photoItem = new PhotoItem();
-									photoItem.setFilePath(mFilePath);
-									File file = new File(mFilePath);
-									photoItem.setThumbPath(pathArray[1]);
-									photoItem.setSize(file.length());
-									photoItem.setTime(file.lastModified());
-									Log.d("----mFilePath----" + mFilePath);
-									Message msg = mHandler.obtainMessage();
-									msg.obj = photoItem;
-									msg.what = Constants.MSG_UPDATE_ONE;
-									mHandler.sendMessage(msg);
-								}
+			case REQ_TAKE_VIDEO:	//录视频
+				if (data != null) {
+					pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading), true);
+					final Uri uri = data.getData();
+					SystemUtil.getCachedThreadPool().execute(new Runnable() {
+						@Override
+						public void run() {
+							String[] pathArray = msgManager.getVideoThumbPath(uri);
+							if (pathArray != null) {
+								//[0]存入的是原始文件的绝对路径
+								mFilePath = pathArray[0];
+								PhotoItem photoItem = new PhotoItem();
+								photoItem.setFileType(FileItem.FileType.VIDEO);
+								photoItem.setFilePath(mFilePath);
+								File file = new File(mFilePath);
+								photoItem.setThumbPath(pathArray[1]);
+								photoItem.setSize(file.length());
+								photoItem.setTime(file.lastModified());
+								Log.d("----mFilePath----" + mFilePath);
+								Message msg = mHandler.obtainMessage();
+								msg.obj = photoItem;
+								msg.what = Constants.MSG_UPDATE_ONE;
+								mHandler.sendMessage(msg);
 							}
-						});
-					}
-				break;
+						}
+					});
+				}
+			break;
 			default:
 				break;
 			}

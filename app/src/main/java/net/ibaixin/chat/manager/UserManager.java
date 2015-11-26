@@ -1,12 +1,11 @@
 package net.ibaixin.chat.manager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.text.TextUtils;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.db.ChatDatabaseHelper;
@@ -25,14 +24,13 @@ import net.ibaixin.chat.util.SystemUtil;
 import org.jivesoftware.smack.packet.Presence;
 import org.jxmpp.util.XmppStringUtils;
 
-import com.baidu.location.b.m;
-
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
-import android.text.TextUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * 用户操作的业务逻辑层
@@ -155,6 +153,15 @@ public class UserManager extends Observable<Observer> {
 				for (User user : list) {
 					saveOrUpdateFriend(user, db, false);
 				}
+				
+				List<User> allUsers = getLocalFriendSimpleInfo(db);
+				if (SystemUtil.isNotEmpty(allUsers)) {	//全部的本地联系人
+					if (allUsers.removeAll(list)) {	//多出的人，可以删除了
+						MsgManager msgManager = MsgManager.getInstance();
+						//删除多余的本地好友
+						delteUsers(allUsers, db, msgManager, false);
+					}
+				}
 				db.setTransactionSuccessful();
 				notifyObservers(Provider.UserColumns.NOTIFY_FLAG, NotifyType.BATCH_UPDATE, list);
 			} catch (Exception e) {
@@ -169,8 +176,49 @@ public class UserManager extends Observable<Observer> {
 	}
 	
 	/**
+	 * 根据好友的用户名列表来获取对应好友的基本信息列表,紧包含基本的id和vcard的id
+	 * @return 好友的基本信息列表                    
+	 * @author huanghui1
+	 * @update 2015/11/26 9:14
+	 * @version: 0.0.1
+	 */
+	public List<User> getLocalFriendSimpleInfo(SQLiteDatabase db) {
+		if (db == null) {
+			db = mChatDBHelper.getReadableDatabase();
+		}
+		List<User> usersList = new ArrayList<>();
+		String[] projection = {
+				Provider.UserColumns._ID,
+				Provider.UserColumns.USERNAME
+		};
+		Cursor cursor = db.query(Provider.UserColumns.TABLE_NAME, projection, null, null, null, null, null);
+		if (cursor != null) {
+			while (cursor.moveToNext()) {
+				int id = cursor.getInt(0);
+				String username = cursor.getString(1);
+
+				User user = new User();
+				user.setId(id);
+				user.setUsername(username);
+				
+				int vcardId = getUserVcardIdByUserId(db, id);
+				if (vcardId > 0) {	//有电子名片信息
+					UserVcard vcard = new UserVcard();
+					vcard.setId(vcardId);
+					vcard.setUserId(id);
+					user.setUserVcard(vcard);
+				}
+
+				usersList.add(user);
+			}
+			cursor.close();
+		}
+		return usersList;
+	}
+	
+	/**
 	 * 清除本地数据库中所有的好友
-	 * @param 是否成功删除所有的数据
+	 * @return  是否成功删除所有的数据
 	 */
 	public boolean clearFriends() {
 //		int count = mContext.getContentResolver().delete(Provider.UserColumns.CONTENT_URI, null, null);
@@ -214,7 +262,7 @@ public class UserManager extends Observable<Observer> {
 	/**
 	 * 根据用户名来更新用户的在线状态信息
 	 * @update 2014年12月2日 上午11:10:50
-	 * @param username
+	 * @param user
 	 * @param refreshUI 是否刷新界面
 	 * @return
 	 */
@@ -340,10 +388,11 @@ public class UserManager extends Observable<Observer> {
 			}*/
 			long rowId = db.insert(Provider.UserColumns.TABLE_NAME, Provider.UserColumns.DEAULT_NULL_COLUMN, userVaules);
 			if (rowId > 0) {	//插入成功
-				cursor = db.query(Provider.UserColumns.TABLE_NAME, new String[] {Provider.UserColumns._ID}, Provider.UserColumns.USERNAME + " = ?", new String[] {user.getUsername()}, null, null, null);
-				if (cursor != null && cursor.moveToFirst()) {
-					user.setId(cursor.getInt(0));
-				}
+//				cursor = db.query(Provider.UserColumns.TABLE_NAME, new String[] {Provider.UserColumns._ID}, Provider.UserColumns.USERNAME + " = ?", new String[] {user.getUsername()}, null, null, null);
+//				if (cursor != null && cursor.moveToFirst()) {
+//					user.setId(cursor.getInt(0));
+//				}
+				user.setId((int) rowId);
 				Log.d("-----saveOrUpdateFriend---add--user--成功--" + user);
 				if (notifyObserver) {
 					notifyObservers(Provider.UserColumns.NOTIFY_FLAG, NotifyType.ADD, user);
@@ -382,7 +431,7 @@ public class UserManager extends Observable<Observer> {
 		if (user != null) {
 			SQLiteDatabase db = mChatDBHelper.getWritableDatabase();
 			ContentValues userVaules = initUserContentVaules(user);
-			int rowId = db.update(Provider.UserColumns.TABLE_NAME, userVaules, Provider.UserColumns._ID + " = ?", new String[] {String.valueOf(user.getId())});
+			int rowId = db.update(Provider.UserColumns.TABLE_NAME, userVaules, Provider.UserColumns._ID + " = ?", new String[]{String.valueOf(user.getId())});
 			if (rowId > 0) {
 				if (notifyObserver) {
 					//查询有没对应好友的会话
@@ -467,7 +516,7 @@ public class UserManager extends Observable<Observer> {
 //		int ucount = mContext.getContentResolver().delete(ContentUris.withAppendedId(Provider.UserColumns.CONTENT_URI, user.getId()), null, null);
 		SQLiteDatabase db = mChatDBHelper.getWritableDatabase();
 		String uIdStr = String.valueOf(user.getId());
-		int ucount = db.delete(Provider.UserColumns.TABLE_NAME, Provider.UserColumns._ID + " = ?", new String[] {uIdStr});
+		int ucount = db.delete(Provider.UserColumns.TABLE_NAME, Provider.UserColumns._ID + " = ?", new String[]{uIdStr});
 		if (ucount > 0) {	//删除成功
 			
 			if (msgThread != null) {
@@ -497,6 +546,71 @@ public class UserManager extends Observable<Observer> {
 		return flag;
 	}
 	
+	/**
+	 * 批量删除好友
+	 * @param users 好友列表
+	 * @param db 数据库，若为空，则自己创建
+	 * @param refreshUI 是否通知界面更新
+	 * @author huanghui1
+	 * @update 2015/11/26 10:47
+	 * @version: 0.0.1
+	 * @return 返回是否删除成功
+	 */
+	public boolean delteUsers(List<User> users, SQLiteDatabase db, MsgManager msgManager, boolean refreshUI) {
+		boolean flag = false;
+		if (SystemUtil.isNotEmpty(users)) {
+			if (db == null) {
+				db = mChatDBHelper.getWritableDatabase();
+			}
+			if (msgManager == null) {
+				msgManager = MsgManager.getInstance();
+			}
+			int length = users.size();
+			String[] idStrs = new String[length];
+			for (int i = 0; i < length; i++) {
+				idStrs[i] = String.valueOf(users.get(i).getId());
+			}
+			int count = db.delete(Provider.UserColumns.TABLE_NAME, Provider.UserColumns._ID + " in (" + SystemUtil.makePlaceholders(length) + ")", idStrs);
+			if (count > 0) {
+				//查询和自己有没有会话，群聊不算
+				List<MsgThread> msgThreads = msgManager.getMsgThreadIdsByMember(users, db);
+				//删除会话的内存缓存，数据库的数据在删除用户的时候已经有触发器删除了
+				if (SystemUtil.isNotEmpty(msgThreads)) {
+					for (MsgThread msgThread : msgThreads) {
+						msgManager.removeThreadCache(msgThread, true);
+					}
+				}
+
+				for (User user : users) {
+					//删除该用户的缓存
+					mUserCache.remove(user.getUsername());
+					if (refreshUI) {
+						notifyObservers(Provider.UserColumns.NOTIFY_FLAG, NotifyType.DELETE, user);
+					}
+					UserVcard ucard = user.getUserVcard();
+					//删除好友的电子名片
+					if (ucard != null) {	//有电子名片
+//				int vcount = mContext.getContentResolver().delete(ContentUris.withAppendedId(Provider.UserVcardColumns.CONTENT_URI, user.getId()), null, null);
+						//触发器已做了删除处理
+//				int vcount = db.delete(Provider.UserVcardColumns.TABLE_NAME, Provider.UserVcardColumns._ID + " = ?", new String[] {uIdStr});
+						//删除本地头像
+						String iconPath = ucard.getIconPath();
+						if (iconPath != null) {
+							//删除头像文件
+							SystemUtil.deleteFile(iconPath);
+						}
+						if (refreshUI) {
+							notifyObservers(Provider.UserVcardColumns.NOTIFY_FLAG, NotifyType.DELETE, ucard);
+						}
+
+					}
+				}
+				flag = true;
+			}
+		}
+		return flag;
+	}
+
 	/**
 	 * 更新用户信息，只更新nickname、uservcard等基本信息
 	 * @update 2014年11月11日 下午9:51:42
@@ -896,7 +1010,7 @@ public class UserManager extends Observable<Observer> {
 	/**
 	 * 批量更新电子名片信息列表
 	 * @param vcardList
-	 * @param key为username,值为UserVcard的map
+	 * @param map key为username,值为UserVcard的map
 	 * @return 返回需要更新头像的map,username为key, UserVcard为value
 	 * @update 2015年7月31日 下午8:32:14
 	 */
@@ -1377,7 +1491,7 @@ public class UserManager extends Observable<Observer> {
 	/**
 	 * 获取指定用户的名片
 	 * @update 2014年10月24日 下午3:36:39
-	 * @param user
+	 * @param userId
 	 * @return
 	 */
 	public UserVcard getSimpleUserVcardByUserId(int userId) {
@@ -1412,7 +1526,7 @@ public class UserManager extends Observable<Observer> {
 	/**
 	 * 获取指定用户的名片
 	 * @update 2014年10月24日 下午3:36:39
-	 * @param user
+	 * @param cardId
 	 * @return
 	 */
 	public UserVcard getUserVcardById(int cardId) {

@@ -101,7 +101,7 @@ public class XmppUtil {
 			Log.d("-----getFriends----onRosterLoaded----entries-----" + entries + "------isLogin-----" + XmppUtil.checkAuthenticated(connection));
 			List<User> users = null;
 			if (entries != null && entries.size() > 0) {
-				users = new ArrayList<User>();
+				users = new ArrayList<>();
 				for (RosterEntry entry : entries) {
 					if (entry != null) {
 						RosterPacket.ItemType itemType = entry.getType();

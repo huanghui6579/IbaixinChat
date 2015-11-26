@@ -42,7 +42,9 @@ public class ChatConnectionListener implements ConnectionListener, ReConnectTask
 		if (!application.isSureExit()) {	//确定是手动退出的
 			if (loginTime < ReConnectTask.RECONNECT_TIME) {
 				// TODO Auto-generated method stub
-				mConnection.disconnect();
+				if (mConnection.isConnected()) {
+					mConnection.disconnect();
+				}
 				mTimer = new Timer();
 				mTimer.schedule(new ReConnectTask(this), timeDelay);
 			}
@@ -63,7 +65,9 @@ public class ChatConnectionListener implements ConnectionListener, ReConnectTask
                 }
             }
 			if (loginTime < ReConnectTask.RECONNECT_TIME) {
-				mConnection.disconnect();
+				if (mConnection.isConnected()) {
+					mConnection.disconnect();
+				}
 				mTimer = new Timer();
 				mTimer.schedule(new ReConnectTask(this), timeDelay);
 				
@@ -92,7 +96,9 @@ public class ChatConnectionListener implements ConnectionListener, ReConnectTask
 	public void reconnectionFailed(Exception e) {
 		Log.d("----ChatConnectionListener-----reconnectionFailed------------" + e.getMessage());
 		if (loginTime < ReConnectTask.RECONNECT_TIME) {	//重连3次
-			mConnection.disconnect();
+			if (mConnection.isConnected()) {
+				mConnection.disconnect();
+			}
 			mTimer = new Timer();
 			mTimer.schedule(new ReConnectTask(this), timeDelay);
 			

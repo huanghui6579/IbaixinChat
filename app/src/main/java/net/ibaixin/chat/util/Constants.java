@@ -19,14 +19,14 @@ public class Constants {
 //	public static final String SERVER_HOST = "172.16.45.16";
 //	public static final String SERVER_HOST = "10.69.249.59";
 //	public static final String SERVER_HOST = "192.168.42.25";
-//	public static final String SERVER_HOST = "10.100.80.82";
-	public static final String SERVER_HOST = "www.ibaixin.net";
+	public static final String SERVER_HOST = "10.100.80.15";
+//	public static final String SERVER_HOST = "www.ibaixin.net";
 //	public static final String SERVER_HOST = "192.168.0.103";
 //	public static final String SERVER_HOST = "192.168.1.184";
 //	public static final String SERVER_NAME = "tiger.com";
 //	public static final String SERVER_NAME = "huanghui4.com";
-//	public static final String SERVER_NAME = "chuangwei1";
-	public static final String SERVER_NAME = "ibaixin.net";
+	public static final String SERVER_NAME = "chuangwei1";
+//	public static final String SERVER_NAME = "ibaixin.net";
 //	public static final String SERVER_NAME = "localhost-pc.com";
 //	public static final String SERVER_NAME = "home-pc.com";
 	public static final int SERVER_PORT = 5222;
@@ -98,6 +98,15 @@ public class Constants {
 	public static final String MIME_TEXT = "text";
 	public static final String MIME_APK = "apk";
 	public static final String MIME_FILE = "file";
+
+	/**
+	 * 逗号分隔","
+	 */
+	public static final String SPLITE_COMMA = ",";
+	/**
+	 * 分号分割";"
+	 */
+	public static final String SPLITE_SEMICOLON = ";";
 	
 	/**
 	 * 会话的摘要内容长度为100

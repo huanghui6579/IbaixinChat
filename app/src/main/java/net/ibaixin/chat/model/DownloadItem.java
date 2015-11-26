@@ -40,9 +40,9 @@ public abstract class DownloadItem {
     protected int downloadType;
 
     /**
-     * 下载的文件类型
+     * 下载的文件类型，默认为文件
      */
-    protected FileItem.FileType fileType;
+    protected FileItem.FileType fileType = FileItem.FileType.FILE;
 
     public String getFilePath() {
         return filePath;

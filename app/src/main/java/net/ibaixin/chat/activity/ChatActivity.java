@@ -801,8 +801,13 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	
 	@Override
 	protected void onDestroy() {
-		
-		sendStateMsg(ChatState.gone);
+
+		SystemUtil.getCachedThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				sendStateMsg(ChatState.gone);
+			}
+		});
 		
 		//TODO 添加接触服务绑定
 		unbindService(serviceConnection);
