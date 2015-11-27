@@ -1,19 +1,5 @@
 package net.ibaixin.chat.activity;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jivesoftware.smack.AbstractXMPPConnection;
-import org.jivesoftware.smack.SmackException.NoResponseException;
-import org.jivesoftware.smack.SmackException.NotConnectedException;
-import org.jivesoftware.smack.SmackException.NotLoggedInException;
-import org.jivesoftware.smack.XMPPException.XMPPErrorException;
-import org.jivesoftware.smack.packet.Presence;
-
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
@@ -22,32 +8,45 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.loader.NewFriendInfoLoader;
 import net.ibaixin.chat.manager.UserManager;
+import net.ibaixin.chat.model.ContextMenuItem;
 import net.ibaixin.chat.model.NewFriendInfo;
 import net.ibaixin.chat.model.NewFriendInfo.FriendStatus;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.model.UserVcard;
 import net.ibaixin.chat.provider.Provider;
 import net.ibaixin.chat.util.Constants;
+import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.Observable;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.util.XmppUtil;
 import net.ibaixin.chat.view.ProgressDialog;
 import net.ibaixin.chat.view.ProgressWheel;
+import net.ibaixin.chat.view.adapter.MenuItemAdapter;
+
+import org.jivesoftware.smack.AbstractXMPPConnection;
+import org.jivesoftware.smack.SmackException.NoResponseException;
+import org.jivesoftware.smack.SmackException.NotConnectedException;
+import org.jivesoftware.smack.SmackException.NotLoggedInException;
+import org.jivesoftware.smack.XMPPException.XMPPErrorException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 新的朋友信息列表
@@ -79,6 +78,8 @@ public class NewFriendInfoActivity extends BaseActivity implements LoaderCallbac
 	
 	private Handler mHandler = new MyHandler();
 	
+	private MaterialDialog mMaterialDialog;
+	
 	@Override
 	protected int getContentView() {
 		return R.layout.activity_new_friend_info_list;
@@ -96,13 +97,76 @@ public class NewFriendInfoActivity extends BaseActivity implements LoaderCallbac
 		registerContentOberver();
 		getSupportLoaderManager().initLoader(0, null, this);
 		
-		registerForContextMenu(lvNewInfos);
+//		registerForContextMenu(lvNewInfos);
 	}
 
 	@Override
 	protected void addListener() {
-		// TODO Auto-generated method stub
-
+		lvNewInfos.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+				final NewFriendInfo newInfo = mNewInfos.get(position);
+				final String title = newInfo.getTitle();
+				if (mMaterialDialog == null) {
+					final List<ContextMenuItem> menuItems = getContextMenuItems();
+					MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
+					mMaterialDialog = builder.title(title)
+							.adapter(new MenuItemAdapter(menuItems, mContext), new MaterialDialog.ListCallback() {
+								@Override
+								public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+									ContextMenuItem menuItem = menuItems.get(which);
+									switch (menuItem.getItemId()) {
+										case R.string.menu_delete:    //删除
+											delteNewInfo(newInfo);
+											break;
+									}
+									mMaterialDialog.dismiss();
+								}
+							}).build();
+				} else {
+					mMaterialDialog.setTitle(title);
+				}
+				mMaterialDialog.show();
+				return true;
+			}
+		});
+	}
+	
+	/**
+	 * 删除新的好友信息
+	 * @param newInfo 新的好友信息
+	 * @author huanghui1
+	 * @update 2015/11/27 10:55
+	 * @version: 0.0.1
+	 */
+	private void delteNewInfo(final NewFriendInfo newInfo) {
+		SystemUtil.getCachedThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				boolean flag = userManager.deleteNewFriendInfo(newInfo.getId());
+				if (flag) {    //删除成功
+					SystemUtil.deleteFile(newInfo.getIconPath());
+					mNewInfos.remove(newInfo);
+					mHandler.sendEmptyMessage(Constants.MSG_DELETE_SUCCESS);
+				} else {
+					mHandler.sendEmptyMessage(Constants.MSG_DELETE_FAILED);
+				}
+			}
+		});
+	}
+	
+	/**
+	 * 获取新的好友列表的长按菜单
+	 * @author huanghui1
+	 * @update 2015/11/27 10:43
+	 * @version: 0.0.1
+	 * @return 返回列表的长按菜单
+	 */
+	public List<ContextMenuItem> getContextMenuItems() {
+		List<ContextMenuItem> list = new ArrayList<>();
+		ContextMenuItem item = new ContextMenuItem(R.string.menu_delete, R.string.menu_delete);
+		list.add(item);
+		return list;
 	}
 
 	@Override
@@ -145,40 +209,6 @@ public class NewFriendInfoActivity extends BaseActivity implements LoaderCallbac
 	public void onLoaderReset(Loader<List<NewFriendInfo>> loader) {
 		if (mNewFriendAdapter != null) {
 			mNewFriendAdapter.swapData(null);
-		}
-	}
-	
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v,
-			ContextMenuInfo menuInfo) {
-		MenuInflater menuInflater = getMenuInflater();
-		menuInflater.inflate(R.menu.context_new_friend, menu);
-		AdapterContextMenuInfo acmi = (AdapterContextMenuInfo) menuInfo;
-		NewFriendInfo newInfo = mNewInfos.get(acmi.position);
-		menu.setHeaderTitle(newInfo.getTitle());
-		super.onCreateContextMenu(menu, v, menuInfo);
-	}
-	
-	@Override
-	public boolean onContextItemSelected(MenuItem item) {
-		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) item.getMenuInfo();
-		NewFriendInfo newInfo = mNewInfos.get(menuInfo.position);
-		switch (item.getItemId()) {
-		case R.id.action_context_delete:	//删除
-//			autoRefresh = false;
-			boolean flag = userManager.deleteNewFriendInfo(newInfo.getId());
-			if (flag) {	//删除成功
-				SystemUtil.deleteFile(newInfo.getIconPath());
-				mNewInfos.remove(newInfo);
-				mNewFriendAdapter.notifyDataSetChanged();
-			} else {
-				SystemUtil.makeShortToast(R.string.delete_failed);
-			}
-//			autoRefresh = true;
-			return true;
-
-		default:
-			return super.onContextItemSelected(item);
 		}
 	}
 	
@@ -269,56 +299,7 @@ public class NewFriendInfoActivity extends BaseActivity implements LoaderCallbac
 					public void onClick(View v) {
 						//接受对方添加自己为好友,并且也将对方添加为自己的好友
 						pDialog = ProgressDialog.show(context, null, getString(R.string.loading), true);
-						SystemUtil.getCachedThreadPool().execute(new Runnable() {
-							
-							@Override
-							public void run() {
-								Message msg = mHandler.obtainMessage();
-								AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
-								try {
-									String otherJid = SystemUtil.wrapJid(newInfo.getFrom());
-									if(friendStatus == FriendStatus.UNADD) {//update by dudejin
-										XmppUtil.addFriend(connection, otherJid);
-									} else {
-//										XmppUtil.updatePresenceType(connection, Presence.Type.subscribe);
-										XmppUtil.acceptFriend(connection, otherJid);
-										XmppUtil.addEntry(connection, otherJid, newInfo.getNickname(), null);
-									}
-									//添加该好友
-									User user = XmppUtil.getUserEntry(connection, newInfo.getFrom());
-									if (user != null) {
-										UserVcard uCard = new UserVcard();
-										uCard.setThumbPath(newInfo.getIconPath());
-										uCard.setIconHash(newInfo.getIconHash());
-										user.setUserVcard(uCard);
-										if(friendStatus == FriendStatus.ACCEPT) {//接收别人添加我为好友的时候才保存
-											user = userManager.saveOrUpdateFriend(user);
-										}
-										newInfo.setUser(user);
-										if(friendStatus == FriendStatus.ACCEPT) {
-											newInfo.setFriendStatus(FriendStatus.ADDED);
-										} else {
-											newInfo.setFriendStatus(FriendStatus.VERIFYING);
-										}
-										newInfo.setTitle(user.getUsername());
-										newInfo.setContent(user.getName());
-										userManager.updateNewFriendInfoState(newInfo);
-										//通知好友列表更新好友
-//										Intent intent = new Intent(LoadDataBroadcastReceiver.ACTION_USER_LIST);
-//										sendBroadcast(intent);
-										
-										msg.what = Constants.MSG_SUCCESS;
-										//更改状态
-									} else {
-										msg.what = Constants.MSG_FAILED;
-									}
-								} catch (NotConnectedException | NotLoggedInException | NoResponseException | XMPPErrorException e) {
-									msg.what = Constants.MSG_FAILED;
-									e.printStackTrace();
-								}
-								mHandler.sendMessage(msg);
-							}
-						});
+						acceptFriend(newInfo);
 					}
 				});
 				break;
@@ -335,6 +316,67 @@ public class NewFriendInfoActivity extends BaseActivity implements LoaderCallbac
 			return convertView;
 		}
 		
+	}
+	
+	/**
+	 * 接受对方添加自己为好友,并且也将对方添加为自己的好友
+	 * @param newInfo 新的好友信息
+	 * @author huanghui1
+	 * @update 2015/11/27 11:05
+	 * @version: 0.0.1
+	 */
+	private void acceptFriend(final NewFriendInfo newInfo) {
+		SystemUtil.getCachedThreadPool().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				final FriendStatus friendStatus = newInfo.getFriendStatus();
+				Message msg = mHandler.obtainMessage();
+				AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
+				try {
+					String otherJid = SystemUtil.wrapJid(newInfo.getFrom());
+					if(friendStatus == FriendStatus.UNADD) {//update by dudejin
+						XmppUtil.addFriend(connection, otherJid);
+					} else {
+//										XmppUtil.updatePresenceType(connection, Presence.Type.subscribe);
+						XmppUtil.acceptFriend(connection, otherJid);
+						XmppUtil.addEntry(connection, otherJid, newInfo.getNickname(), null);
+					}
+					//添加该好友
+					User user = XmppUtil.getUserEntry(connection, newInfo.getFrom());
+					if (user != null) {
+						UserVcard uCard = new UserVcard();
+						uCard.setThumbPath(newInfo.getIconPath());
+						uCard.setIconHash(newInfo.getIconHash());
+						user.setUserVcard(uCard);
+						if(friendStatus == FriendStatus.ACCEPT) {//接收别人添加我为好友的时候才保存
+							user = userManager.saveOrUpdateFriend(user);
+						}
+						newInfo.setUser(user);
+						if(friendStatus == FriendStatus.ACCEPT) {
+							newInfo.setFriendStatus(FriendStatus.ADDED);
+						} else {
+							newInfo.setFriendStatus(FriendStatus.VERIFYING);
+						}
+						newInfo.setTitle(user.getUsername());
+						newInfo.setContent(user.getName());
+						userManager.updateNewFriendInfoState(newInfo);
+						//通知好友列表更新好友
+//										Intent intent = new Intent(LoadDataBroadcastReceiver.ACTION_USER_LIST);
+//										sendBroadcast(intent);
+
+						msg.what = Constants.MSG_SUCCESS;
+						//更改状态
+					} else {
+						msg.what = Constants.MSG_FAILED;
+					}
+				} catch (NotConnectedException | NotLoggedInException | NoResponseException | XMPPErrorException e) {
+					msg.what = Constants.MSG_FAILED;
+					Log.e(e.getMessage());
+				}
+				mHandler.sendMessage(msg);
+			}
+		});
 	}
 	
 	/**
@@ -412,7 +454,14 @@ public class NewFriendInfoActivity extends BaseActivity implements LoaderCallbac
 			case Constants.MSG_FAILED:	//操作失败
 				SystemUtil.makeShortToast(R.string.add_failed);
 				break;
-
+			case Constants.MSG_DELETE_SUCCESS:	//删除成功
+				if (mNewFriendAdapter != null) {
+					mNewFriendAdapter.notifyDataSetChanged();
+				}
+				break;
+			case Constants.MSG_DELETE_FAILED:	//删除失败
+				SystemUtil.makeShortToast(R.string.delete_failed);
+				break;
 			default:
 				break;
 			}

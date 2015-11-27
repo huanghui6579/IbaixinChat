@@ -1216,6 +1216,23 @@ public class SystemUtil {
 	}
 	
 	/**
+	 * 获得视频加载的选项
+	 * @update 2014年11月15日 上午10:33:44
+	 * @return
+	 */
+	public static DisplayImageOptions getChatVideoOptions() {
+		DisplayImageOptions options = new DisplayImageOptions.Builder()
+			.showImageForEmptyUri(R.drawable.ic_default_icon_error)
+			.showImageOnFail(R.drawable.ic_default_icon_error)
+			.cacheInMemory(true)
+			.cacheOnDisk(true)
+			.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
+			.bitmapConfig(Bitmap.Config.RGB_565)	//防止内存溢出
+			.build();
+		return options;
+	}
+	
+	/**
 	 * 获得通讯录列表的特殊符号的选择器，特殊符号为：“↑”<br />
 	 * <pre>
 	 * String s = "↑";

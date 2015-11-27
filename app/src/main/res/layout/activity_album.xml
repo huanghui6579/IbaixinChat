@@ -18,6 +18,7 @@
 	        android:stretchMode="columnWidth"
 	        android:scrollbarStyle="outsideOverlay"
 	        android:fadingEdge="none"
+			android:fastScrollEnabled="false"
 	        android:numColumns="3"/>
 	    
 	    <TextView 

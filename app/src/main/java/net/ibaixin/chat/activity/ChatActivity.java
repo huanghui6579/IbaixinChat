@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -62,7 +61,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.afollestad.materialdialogs.util.DialogUtils;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
@@ -87,6 +85,7 @@ import net.ibaixin.chat.model.MsgSenderInfo;
 import net.ibaixin.chat.model.MsgThread;
 import net.ibaixin.chat.model.MsgUploadInfo;
 import net.ibaixin.chat.model.Personal;
+import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.model.UserVcard;
 import net.ibaixin.chat.model.emoji.Emojicon;
@@ -106,6 +105,7 @@ import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.view.ProgressDialog;
 import net.ibaixin.chat.view.RecordButton;
 import net.ibaixin.chat.view.TextViewAware;
+import net.ibaixin.chat.view.adapter.MenuItemAdapter;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.chat.Chat;
@@ -2152,6 +2152,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	class MsgAdapter extends CommonAdapter<MsgInfo> {
 		DisplayImageOptions headIconOptions = SystemUtil.getGeneralImageOptions();
 		DisplayImageOptions chatImageOptions = SystemUtil.getChatImageOptions();
+		DisplayImageOptions chatVideoOptions = SystemUtil.getChatVideoOptions();
 		
 		/**
 		 * 发送的消息类型：0
@@ -2206,6 +2207,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				holder.contentImgLayout = (FrameLayout) convertView.findViewById(R.id.content_img_layout);
 				holder.contentLayout = convertView.findViewById(R.id.content_layout);
 				holder.cbChose = (CheckBox) convertView.findViewById(R.id.cb_chose);
+				holder.ivFlag = (ImageView) convertView.findViewById(R.id.iv_flag);
 				
 				convertView.setTag(holder);
 			} else {
@@ -2223,6 +2225,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			holder.tvContent.setVisibility(View.VISIBLE);
 			holder.ivContentImg.setVisibility(View.GONE);
 			holder.tvContentDesc.setVisibility(View.GONE);
+			holder.ivFlag.setVisibility(View.GONE);
 			
 			holder.tvContent.setMaxWidth(maxConentWidth);
 			holder.ivContentImg.setMaxWidth(getResources().getDimensionPixelSize(R.dimen.chat_msg_img_max_width));
@@ -2290,6 +2293,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				}
 				holder.tvContent.setText(spannableString);
 				break;
+			case VIDEO:	//视频
 			case IMAGE:	//图片消息
 //				int extraSpace = Math.abs(paddingLeft - paddingRight) + 3 * extraPad; 
 //				if (type == TYPE_IN) {	//接收的消息
@@ -2297,6 +2301,9 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 //				} else {
 //					holder.tvContent.setPadding(extraPad, extraPad, extraSpace, extraPad);
 //				}
+				if (MsgInfo.Type.VIDEO == msgType) {	//视频
+					holder.ivFlag.setVisibility(View.VISIBLE);
+				}
 				holder.tvContent.setVisibility(View.GONE);
 				holder.ivContentImg.setVisibility(View.VISIBLE);
 				if (type == TYPE_OUT) {	//自己发出去的消息
@@ -2326,7 +2333,6 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				}
 				break;
 			case AUDIO:
-			case VIDEO:
 			case FILE:	//普通文件类型
 //				holder.tvContent.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
 				holder.tvContent.setCompoundDrawablePadding((int) getResources().getDimension(R.dimen.chat_msg_item_drawable_spacing));
@@ -2350,11 +2356,19 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 					
 					if (fileItem != null) {
 						switch (fileItem.getFileType()) {
+							case VIDEO:	//视频
 							case IMAGE:	//图片,则直接加载图片缩略图
+								DisplayImageOptions imageOptions = null;
+								if (FileItem.FileType.VIDEO == fileItem.getFileType()) {	//视频
+									holder.ivFlag.setVisibility(View.VISIBLE);
+									imageOptions = chatVideoOptions;
+								} else {
+									imageOptions = chatImageOptions;
+								}
 								holder.tvContent.setCompoundDrawablePadding(0);
 								holder.tvContent.setText("");
 								if (SystemUtil.isFileExists(partPath)) {
-									mImageLoader.displayImage(Scheme.FILE.wrap(partPath), new TextViewAware(holder.tvContent), chatImageOptions);
+									mImageLoader.displayImage(Scheme.FILE.wrap(partPath), new TextViewAware(holder.tvContent), imageOptions);
 								}
 								break;
 							case APK:	//安装文件
@@ -2510,7 +2524,13 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 					if (!TextUtils.isEmpty(showPath)) {
 						imageUri = Scheme.FILE.wrap(showPath);
 					}
-					mImageLoader.displayImage(imageUri, imageView, chatImageOptions);
+					DisplayImageOptions imageOptions = null;
+					if (msgInfo.getMsgType() == MsgInfo.Type.VIDEO) {	//视频
+						imageOptions = chatVideoOptions;
+					} else {
+						imageOptions = chatImageOptions;
+					}
+					mImageLoader.displayImage(imageUri, imageView, imageOptions);
 				}
 			}
 		}
@@ -2888,56 +2908,6 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		return list;
 	}
 	
-	/**
-	 * 菜单列表的适配器
-	 * @author huanghui1
-	 * @update 2015年2月25日 下午5:55:39
-	 */
-	class MenuItemAdapter extends CommonAdapter<ContextMenuItem> {
-
-        final int itemColor;
-        
-        public MenuItemAdapter(List<ContextMenuItem> list, Context context) {
-			super(list, context);
-			itemColor = DialogUtils.resolveColor(context, R.attr.md_item_color, Color.BLACK);
-		}
-
-        @Override
-        public long getItemId(int position) {
-        	ContextMenuItem item = (ContextMenuItem) getItem(position);
-            return item.getItemId();
-        }
-        
-        @Override
-        public boolean isEnabled(int position) {
-        	ContextMenuItem item = (ContextMenuItem) getItem(position);
-        	return item.isEnable();
-        }
-
-        @Override
-        public View getView(final int position, View convertView, ViewGroup parent) {
-            MenuViewHoler holer = null;
-            if (convertView == null) {
-            	holer = new MenuViewHoler();
-            	convertView = inflater.inflate(R.layout.md_listitem, parent, false);
-            	
-            	holer.textView = (TextView) convertView.findViewById(R.id.title);
-            	convertView.setTag(holer);
-            } else {
-            	holer = (MenuViewHoler) convertView.getTag();
-            }
-            ContextMenuItem item = list.get(position);
-            holer.textView.setText(item.getTitle());
-            holer.textView.setTextColor(itemColor);
-            holer.textView.setTag(item.getItemId() + ":" + item.getTitle());
-            return convertView;
-        }
-        
-        class MenuViewHoler {
-        	TextView textView;
-        }
-    }
-	
 	class MyImageLoaderListener implements ImageLoadingListener {
 		private int itemType;
 		private MsgInfo msgInfo;
@@ -3087,11 +3057,32 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 												if (!SystemUtil.isFileExists(filePath)) {
 													filePath = msgPart.getThumbPath();
 												}
-												intent = new Intent(mContext, ChatImagePreviewActivity.class);
+												
+												PhotoItem photoItem = new PhotoItem();
+												photoItem.setFileType(FileItem.FileType.IMAGE);
+												photoItem.setThumbPath(msgPart.getThumbPath());
+												photoItem.setFilePath(filePath);
+												photoItem.setFileToken(msgPart.getFileToken());
+												photoItem.setDownloadType(Constants.FILE_TYPE_ORIGINAL);
+												photoItem.setMsgId(msgInfo.getMsgId());
+												photoItem.setNeedDownload(download);
+												photoItem.setSize(msgPart.getSize());
+												photoItem.setTime(msgPart.getCreationDate());
+
+												ArrayList<PhotoItem> photoItems = new ArrayList<>(1);
+												photoItems.add(photoItem);
+												
+												intent = new Intent(mContext, PhotoPreviewActivity.class);
+												intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, photoItems);
+												intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_DISPLAY);
+												intent.putExtra(PhotoFragment.ARG_TOUCH_FINISH, true);
+												intent.putExtra(ARG_MSG_INFO, msgInfo);
+												
+												/*intent = new Intent(mContext, ChatImagePreviewActivity.class);
 												intent.putExtra(ChatImagePreviewActivity.ARG_IMAGE_PATH, filePath);
 												intent.putExtra(PhotoFragment.ARG_TOUCH_FINISH, true);
 												intent.putExtra(PhotoFragment.ARG_DOWNLOAD_IMG, download);
-												intent.putExtra(MsgPart.ARG_MSG_PART, msgPart);
+												intent.putExtra(MsgPart.ARG_MSG_PART, msgPart);*/
 												ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
 												ActivityCompat.startActivity(ChatActivity.this, intent, options.toBundle());
 												break;
@@ -3288,6 +3279,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		ImageView ivHeadIcon;
 		TextView tvContent;
 		ImageView ivContentImg;
+		ImageView ivFlag;
 		TextView tvContentDesc;
 		ImageView ivMsgState;
 		FrameLayout contentImgLayout;

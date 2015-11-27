@@ -60,6 +60,10 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	 * 选择模式进入
 	 */
 	public static final int MODE_CHOSE = 2;
+	/**
+	 * 图片查看模式进入,该模式只是查看图片，不提供发送、选额等入口
+	 */
+	public static final int MODE_DISPLAY = 3;
 	
 	private ViewPager mViewPager;
 	private CheckBox cbOrigianlImage;
@@ -152,7 +156,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		Intent intent = getIntent();
 		mPhotos = intent.getParcelableArrayListExtra(ARG_PHOTO_LIST);
 		currentPostion = intent.getIntExtra(ARG_POSITION, 0);
-		showMode = intent.getIntExtra(ARG_SHOW_MODE, MODE_BROWSE);
+		showMode = intent.getIntExtra(ARG_SHOW_MODE, MODE_DISPLAY);
 		msgInfo = intent.getParcelableExtra(ChatActivity.ARG_MSG_INFO);
 		photoAdapter = new PhotoFragmentViewPager(getSupportFragmentManager());
 		mViewPager.setAdapter(photoAdapter);
@@ -168,6 +172,8 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			cbChose.setChecked(true);
 			selectOriginalSize = SystemUtil.getFileListSize(mSelectList);
 			cbOrigianlImage.setText(getString(R.string.album_preview_original_image_size, SystemUtil.sizeToString(selectOriginalSize)));
+		} else if (showMode == MODE_DISPLAY) {	//图片的查看模式
+			layoutBottom.setVisibility(View.GONE);
 		}
 		totalCount = mPhotos.size();
 		setTitle(getString(R.string.album_preview_photo_index, currentPostion + 1, totalCount));
@@ -278,15 +284,17 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater menuInflater = getMenuInflater();
-		menuInflater.inflate(R.menu.menu_save, menu);
-		mMenuDone = menu.findItem(R.id.action_select_complete);
-//		btnOpt = (TextView) MenuItemCompat.getActionView(menuDone);
-		if (showMode == MODE_CHOSE) {	//选择模式，则默认选中的就是所有列表
-			mMenuDone.setEnabled(true);
-			mMenuDone.setTitle(getString(R.string.action_select_complete) + "(" + selectCount + "/" + Constants.ALBUM_SELECT_SIZE + ")");
-		} else {
-			mMenuDone.setEnabled(false);
+		if (showMode != MODE_DISPLAY) {	//图片的查看模式
+			MenuInflater menuInflater = getMenuInflater();
+			menuInflater.inflate(R.menu.menu_save, menu);
+			mMenuDone = menu.findItem(R.id.action_select_complete);
+//			btnOpt = (TextView) MenuItemCompat.getActionView(menuDone);
+			if (showMode == MODE_CHOSE) {	//选择模式，则默认选中的就是所有列表
+				mMenuDone.setEnabled(true);
+				mMenuDone.setTitle(getString(R.string.action_select_complete) + "(" + selectCount + "/" + Constants.ALBUM_SELECT_SIZE + ")");
+			} else {
+				mMenuDone.setEnabled(false);
+			}
 		}
 		return super.onCreateOptionsMenu(menu);
 	}

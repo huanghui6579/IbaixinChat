@@ -74,6 +74,17 @@
                     android:maxHeight="@dimen/chat_msg_img_max_height"
 	                android:contentDescription="@null"
                     app:bubble_arrowLocation="left"/>
+
+                <!-- 视频的图标 -->
+                <ImageView
+                    android:id="@+id/iv_flag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_video_default"
+                    android:contentDescription="@null"
+                    android:visibility="gone"
+                    android:layout_gravity="center"/>
+                
             </FrameLayout>
             
             <TextView 

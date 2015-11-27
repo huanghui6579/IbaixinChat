@@ -503,19 +503,19 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				@Override
 				public void onItemClick(AdapterView<?> parent, View view,
 						int position, long id) {
-				albumAdapter.setCurrentPosition(position);
-				togglewindow(mPopupWindow, author);
-				if (position == 0) {	//加载全部
-					new LoadPhotoTask().execute();
-				} else {
-					AlbumItem albumItem = list.get(position);
-					List<PhotoItem> temp = folderMap.get(albumItem.getAlbumName());
-					mPhotos.clear();
-					mPhotos.addAll(temp);
-					resetActionMenu();
-
-					mPhotoAdapter.clearSelect();
-				}
+					albumAdapter.setCurrentPosition(position);
+					togglewindow(mPopupWindow, author);
+					if (position == 0) {	//加载全部
+						new LoadPhotoTask().execute();
+					} else {
+						AlbumItem albumItem = list.get(position);
+						List<PhotoItem> temp = folderMap.get(albumItem.getAlbumName());
+						mPhotos.clear();
+						mPhotos.addAll(temp);
+						resetActionMenu();
+	
+						mPhotoAdapter.clearSelect();
+					}
 				}
 			});
 			

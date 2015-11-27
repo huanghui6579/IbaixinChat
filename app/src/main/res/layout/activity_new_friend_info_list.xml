@@ -10,7 +10,8 @@
 	    android:background="@android:color/white">
 		<ListView
 		    android:id="@+id/lv_new_friend_info"
-		    style="@style/CommonListViewStyle" />
+		    style="@style/CommonListViewStyle"
+			android:fastScrollEnabled="false"/>
 		
 		<include 
 		    layout="@layout/layout_empty"/>

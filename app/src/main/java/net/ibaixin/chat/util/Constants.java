@@ -19,14 +19,14 @@ public class Constants {
 //	public static final String SERVER_HOST = "172.16.45.16";
 //	public static final String SERVER_HOST = "10.69.249.59";
 //	public static final String SERVER_HOST = "192.168.42.25";
-	public static final String SERVER_HOST = "10.100.80.15";
-//	public static final String SERVER_HOST = "www.ibaixin.net";
+//	public static final String SERVER_HOST = "10.100.80.15";
+	public static final String SERVER_HOST = "www.ibaixin.net";
 //	public static final String SERVER_HOST = "192.168.0.103";
 //	public static final String SERVER_HOST = "192.168.1.184";
 //	public static final String SERVER_NAME = "tiger.com";
 //	public static final String SERVER_NAME = "huanghui4.com";
-	public static final String SERVER_NAME = "chuangwei1";
-//	public static final String SERVER_NAME = "ibaixin.net";
+//	public static final String SERVER_NAME = "chuangwei1";
+	public static final String SERVER_NAME = "ibaixin.net";
 //	public static final String SERVER_NAME = "localhost-pc.com";
 //	public static final String SERVER_NAME = "home-pc.com";
 	public static final int SERVER_PORT = 5222;
@@ -259,4 +259,12 @@ public class Constants {
 	 * 【20】没有内容的消息
 	 */
 	public static final int MSG_NO_DATA = 0x000014;
+	/**
+	 * 【21】删除成功的消息
+	 */
+	public static final int MSG_DELETE_SUCCESS = 0x000015;
+	/**
+	 * 【22】删除失败的消息
+	 */
+	public static final int MSG_DELETE_FAILED = 0x000016;
 }
