@@ -2,11 +2,14 @@ package net.ibaixin.chat.activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.os.AsyncTaskCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPropertyAnimatorCompat;
@@ -16,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.CheckBox;
@@ -36,6 +40,7 @@ import net.ibaixin.chat.util.SystemUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 相片预览容器
@@ -61,7 +66,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	 */
 	public static final int MODE_CHOSE = 2;
 	/**
-	 * 图片查看模式进入,该模式只是查看图片，不提供发送、选额等入口
+	 * 图片查看模式进入,该模式只是查看图片，不提供发送、选择等入口
 	 */
 	public static final int MODE_DISPLAY = 3;
 	
@@ -150,7 +155,12 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	public boolean isSwipeBackEnabled() {
 		return false;
 	}
-	
+
+	@Override
+	protected boolean hasExitAnim() {
+		return false;
+	}
+
 	@Override
 	protected void initData() {
 		Intent intent = getIntent();
@@ -173,10 +183,36 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			selectOriginalSize = SystemUtil.getFileListSize(mSelectList);
 			cbOrigianlImage.setText(getString(R.string.album_preview_original_image_size, SystemUtil.sizeToString(selectOriginalSize)));
 		} else if (showMode == MODE_DISPLAY) {	//图片的查看模式
+			if (msgInfo != null) {
+				AsyncTaskCompat.executeParallel(new LoadImageMsgTask(), msgInfo.getThreadID());
+			}
 			layoutBottom.setVisibility(View.GONE);
+			fullScreen(true);
+			mAppBar.setVisibility(View.GONE);
 		}
 		totalCount = mPhotos.size();
 		setTitle(getString(R.string.album_preview_photo_index, currentPostion + 1, totalCount));
+	}
+
+	/**
+	 * 是否开启全屏模式
+	 * @param enable true:开启全屏模式，false：取消全屏模式
+	 * @author tiger
+	 * @update 2015/11/28 10:12
+	 * @version 1.0.0
+	 */
+	private void fullScreen(boolean enable) {
+		if (enable) {
+			WindowManager.LayoutParams lp = getWindow().getAttributes();
+			lp.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+			getWindow().setAttributes(lp);
+			getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+		} else {
+			WindowManager.LayoutParams attr = getWindow().getAttributes();
+			attr.flags &= (~WindowManager.LayoutParams.FLAG_FULLSCREEN);
+			getWindow().setAttributes(attr);
+			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+		}
 	}
 	
 	/**
@@ -208,19 +244,24 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			cbOrigianlImage.setText(R.string.album_preview_original_image);
 		}
 	}
-	
+
+	@Override
+	public void onBackPressed() {
+		ActivityCompat.finishAfterTransition(this);
+	}
+
 	/**
 	 * 为呃照片复选框添加监听器
 	 * @update 2015年2月12日 下午7:26:31
 	 */
 	private void addCheckImageListener() {
 		cbChose.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-			
+
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				if (isChecked) {
-					selectCount ++;
-					if (selectCount > Constants.ALBUM_SELECT_SIZE) {	//选择的多于9张
+					selectCount++;
+					if (selectCount > Constants.ALBUM_SELECT_SIZE) {    //选择的多于9张
 						selectCount = Constants.ALBUM_SELECT_SIZE;
 						SystemUtil.makeShortToast(getString(R.string.album_tip_max_select, Constants.ALBUM_SELECT_SIZE));
 						cbChose.setChecked(false);
@@ -229,7 +270,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 					mSelectList.add(mPhotos.get(currentPostion));
 				} else {
 					mSelectList.remove(mPhotos.get(currentPostion));
-					selectCount --;
+					selectCount--;
 					selectCount = selectCount < 0 ? 0 : selectCount;
 				}
 				selectOriginalSize = SystemUtil.getFileListSize(mSelectList);
@@ -360,7 +401,16 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		public int getCount() {
 			return mPhotos.size();
 		}
-		
+
+		@Override
+		public int getItemPosition(Object object) {
+			if (showMode == MODE_DISPLAY) {
+				//解决调用adapter.notifyDataSetChanged方法后当前页的左右两边的fragment不刷新数据的问题
+				return POSITION_NONE;
+			} else {
+				return super.getItemPosition(object);
+			}
+		}
 	}
 
 	@Override
@@ -382,26 +432,70 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				}
 			}
 		} else {
-			if (mAppBar != null) {
-				int bottomHeight = layoutBottom.getHeight();
-				if (mShow) {	//hide
-					mShow = false;
-					ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
-					int height = mAppBar.getHeight();
-					ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(mAppBar).translationY(-height).setInterpolator(new AccelerateInterpolator(2));
-					ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(bottomHeight).setInterpolator(new AccelerateInterpolator(2));
-					anim.play(toolBarAnim)
-							.play(bottomAnim);
-					anim.start();
-				} else {
-					mShow = true;
-					ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
-					ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(-bottomHeight).setInterpolator(new AccelerateInterpolator(2));
-					ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(mAppBar).translationY(0).setInterpolator(new DecelerateInterpolator(2));
-					anim.play(toolBarAnim)
-							.play(bottomAnim);
-					anim.start();
+			if (showMode == MODE_DISPLAY) {	//图片查看模式
+
+			} else {
+				if (mAppBar != null) {
+					int bottomHeight = layoutBottom.getHeight();
+					if (mShow) {	//hide
+						mShow = false;
+						ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
+						int height = mAppBar.getHeight();
+						ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(mAppBar).translationY(-height).setInterpolator(new AccelerateInterpolator(2));
+						ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(bottomHeight).setInterpolator(new AccelerateInterpolator(2));
+						anim.play(toolBarAnim)
+								.play(bottomAnim);
+						anim.start();
+					} else {
+						mShow = true;
+						ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
+						ViewPropertyAnimatorCompat bottomAnim = ViewCompat.animate(layoutBottom).translationYBy(-bottomHeight).setInterpolator(new AccelerateInterpolator(2));
+						ViewPropertyAnimatorCompat toolBarAnim = ViewCompat.animate(mAppBar).translationY(0).setInterpolator(new DecelerateInterpolator(2));
+						anim.play(toolBarAnim)
+								.play(bottomAnim);
+						anim.start();
+					}
 				}
+			}
+		}
+	}
+	/**
+	 * 加载消息图片的的后台任务
+	 * @author tiger
+	 * @update 2015/11/28 10:29
+	 * @version 1.0.0
+	 */
+	class LoadImageMsgTask extends AsyncTask<Integer, Void, List<PhotoItem>> {
+
+		@Override
+		protected List<PhotoItem> doInBackground(Integer... params) {
+			List<PhotoItem> photoItems = null;
+			if (SystemUtil.isNotEmpty(params)) {
+				int threadId = params[0];
+				PhotoItem currentItem = mPhotos.get(0);
+				Map<String, Object> map = msgManager.getMsgImagesByThreadId(threadId, currentItem);
+				if (map != null) {
+					photoItems = (List<PhotoItem>) map.get("photoItems");
+					currentPostion = (int) map.get("currentPosition");
+				}
+			}
+			return photoItems;
+		}
+
+		@Override
+		protected void onPostExecute(List<PhotoItem> photoItems) {
+			if (photoItems != null) {
+				mPhotos.clear();
+
+				mPhotos.addAll(photoItems);
+				if (photoAdapter != null) {
+					photoAdapter.notifyDataSetChanged();
+				} else {
+					photoAdapter = new PhotoFragmentViewPager(getSupportFragmentManager());
+					mViewPager.setAdapter(photoAdapter);
+				}
+				mViewPager.setCurrentItem(currentPostion, false);
+
 			}
 		}
 	}

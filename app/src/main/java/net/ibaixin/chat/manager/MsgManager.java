@@ -805,6 +805,80 @@ public class MsgManager extends Observable<Observer> {
 		}
 		return list;
 	}
+
+	/**
+	 * 通过会话id查询该会话下的所有图片消息，包括视频消息
+	 * @param threadId 会话id
+	 * @param currentItem 当前浏览的item
+	 * @author tiger
+	 * @update 2015/11/28 10:38
+	 * @version 1.0.0
+	 * @return 图片消息的map,key中"currentPosition":当前浏览的图片在集合中的索引；"photoItems":图片消息的集合
+	 */
+	public Map<String, Object> getMsgImagesByThreadId(int threadId, PhotoItem currentItem) {
+		Map<String, Object> map = null;
+		List<PhotoItem> list = null;
+		//时间的升序
+		String order = Provider.MsgInfoColumns.REVERSAL_SORT_ORDER;
+		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
+		//_ID, MSG_ID, THREAD_ID, FROM_USER, TO_USER, CONTENT, SUBJECT, CREATIO_NDATE, IS_COMMING, IS_READ, MSG_TYPE, SEND_STATE
+		String[] projection = {
+				Provider.MsgInfoColumns._ID,
+				Provider.MsgInfoColumns.MSG_ID,
+				Provider.MsgInfoColumns.CREATIO_NDATE,
+				Provider.MsgInfoColumns.MSG_TYPE,
+		};
+		int[] msgTypes = {
+				MsgInfo.Type.IMAGE.ordinal(),
+				MsgInfo.Type.VIDEO.ordinal()
+		};
+		int currentPosition = 0;
+		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, projection, Provider.MsgInfoColumns.THREAD_ID + " = ? AND " + Provider.MsgInfoColumns.MSG_TYPE + " in (" + SystemUtil.makePlaceholders(msgTypes.length) + ")", new String[] {String.valueOf(threadId), String.valueOf(MsgInfo.Type.IMAGE.ordinal()), String.valueOf(MsgInfo.Type.VIDEO.ordinal())}, null, null, order, null);
+		if (cursor != null) {
+			map = new HashMap<>();
+			list = new ArrayList<>();
+			int index = 0;
+			while (cursor.moveToNext()) {
+				PhotoItem item = new PhotoItem();
+				String msgId = cursor.getString(cursor.getColumnIndex(Provider.MsgInfoColumns.MSG_ID));
+				long date = cursor.getLong(cursor.getColumnIndex(Provider.MsgInfoColumns.CREATIO_NDATE));
+				MsgInfo.Type msgType = Type.valueOf(cursor.getInt(cursor.getColumnIndex(Provider.MsgInfoColumns.MSG_TYPE)));
+
+				MsgPart msgPart = getMsgPartByMsgId(msgId);
+
+				if (currentItem != null) {
+					if (msgId.equals(currentItem.getMsgId())) {
+						currentPosition = index;
+					}
+				}
+
+				item.setMsgId(msgId);
+				item.setDownloadType(Constants.FILE_TYPE_ORIGINAL);
+				item.setTime(date);
+				if (MsgInfo.Type.VIDEO == msgType) {	//视频文件
+					item.setFileType(FileItem.FileType.VIDEO);
+				} else {	//图片
+					item.setFileType(FileItem.FileType.IMAGE);
+				}
+				if (msgPart != null) {
+					item.setThumbPath(msgPart.getThumbPath());
+					item.setFilePath(msgPart.getFilePath());
+					item.setFileToken(msgPart.getFileToken());
+					item.setNeedDownload(!msgPart.isDownloaded());
+					item.setSize(msgPart.getSize());
+
+				}
+
+				list.add(item);
+				index ++;
+			}
+			cursor.close();
+
+			map.put("currentPosition", currentPosition);
+			map.put("photoItems", list);
+		}
+		return map;
+	}
 	
 	/**
 	 * 根据会话id查询该会的消息数量

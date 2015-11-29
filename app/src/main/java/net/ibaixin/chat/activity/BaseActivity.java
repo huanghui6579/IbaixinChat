@@ -1,7 +1,5 @@
 package net.ibaixin.chat.activity;
 
-import java.lang.reflect.Field;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
@@ -20,16 +18,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
-import me.imid.swipebacklayout.lib.SwipeBackLayout;
-import me.imid.swipebacklayout.lib.Utils;
-import me.imid.swipebacklayout.lib.app.SwipeBackActivityBase;
-import me.imid.swipebacklayout.lib.app.SwipeBackActivityHelper;
+
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.view.ProgressDialog;
+
+import java.lang.reflect.Field;
+
+import me.imid.swipebacklayout.lib.SwipeBackLayout;
+import me.imid.swipebacklayout.lib.Utils;
+import me.imid.swipebacklayout.lib.app.SwipeBackActivityBase;
+import me.imid.swipebacklayout.lib.app.SwipeBackActivityHelper;
 
 /**
  * 所有Activity的父类
@@ -312,10 +314,6 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 	/**
      * 设置滑动从哪边开始，默认是从左边开始
      * @param point 滑动开始的方向
-     * @see SwipeBackLayout.EDGE_LEFT
-     * @see SwipeBackLayout.EDGE_RIGHT
-     * @see SwipeBackLayout.EDGE_BOTTOM
-     * @see SwipeBackLayout.EDGE_ALL
      * @update 2015年8月7日 下午4:01:07
      */
     public void setEdgeTrackingPoint(int point) {

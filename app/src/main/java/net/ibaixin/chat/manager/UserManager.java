@@ -566,11 +566,17 @@ public class UserManager extends Observable<Observer> {
 				msgManager = MsgManager.getInstance();
 			}
 			int length = users.size();
+			String whereClause = null;
+			if (length == 1) {	//只有一个好友
+				whereClause = Provider.UserColumns._ID + " = ?";
+			} else {
+				whereClause = Provider.UserColumns._ID + " in (" + SystemUtil.makePlaceholders(length) + ")";
+			}
 			String[] idStrs = new String[length];
 			for (int i = 0; i < length; i++) {
 				idStrs[i] = String.valueOf(users.get(i).getId());
 			}
-			int count = db.delete(Provider.UserColumns.TABLE_NAME, Provider.UserColumns._ID + " in (" + SystemUtil.makePlaceholders(length) + ")", idStrs);
+			int count = db.delete(Provider.UserColumns.TABLE_NAME, whereClause, idStrs);
 			if (count > 0) {
 				//查询和自己有没有会话，群聊不算
 				List<MsgThread> msgThreads = msgManager.getMsgThreadIdsByMember(users, db);
