@@ -6,7 +6,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.os.AsyncTaskCompat;
@@ -52,6 +51,12 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	public static final String ARG_PHOTO_LIST = "arg_photo_list";
 	public static final String ARG_POSITION = "arg_position";
 	public static final String ARG_SHOW_MODE = "arg_show_mode";
+
+	/**
+	 * 延迟5秒“图片的更多”控件隐藏
+	 */
+	private static final int HIDE_DELAY = 5000;
+	
 	/**
 	 * 是否原图发送
 	 */
@@ -109,6 +114,16 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	PhotoFragmentViewPager photoAdapter;
 	
 	private boolean mShow = true;
+
+	/**
+	 * 是否点击屏幕就退出该界面
+	 */
+	private boolean mOnTouchFinish = false;
+
+	/**
+	 * 更多图片的按钮，进入图片管理
+	 */
+	private View mMoreView;
 	
 	private Handler mHandler = new Handler() {
 
@@ -118,12 +133,19 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			case Constants.MSG_SUCCESS:
 				Intent data = new Intent();
 				data.putExtra(ARG_ORIGINAO_IMAGE, cbOrigianlImage.isChecked());
-				data.putParcelableArrayListExtra(ChatActivity.ARG_MSG_INFO_LIST, (ArrayList<MsgInfo>)msg.obj);
+				data.putParcelableArrayListExtra(ChatActivity.ARG_MSG_INFO_LIST, (ArrayList<MsgInfo>) msg.obj);
 				setResult(RESULT_OK, data);
+				finish();
 				break;
 			case Constants.MSG_FAILED:
 				SystemUtil.makeShortToast(R.string.album_photo_chose_error);
 				setResult(RESULT_CANCELED);
+				finish();
+				break;
+			case Constants.MSG_HIDE_DELAY:	//延迟隐藏
+				if (mMoreView.getVisibility() == View.VISIBLE) {
+					mMoreView.setVisibility(View.GONE);
+				}
 				break;
 			default:
 				break;
@@ -131,7 +153,6 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			if (pDialog != null && pDialog.isShowing()) {
 				pDialog.dismiss();
 			}
-			finish();
 		}
 		
 	};
@@ -149,6 +170,8 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		mTvFileSize = (TextView) findViewById(R.id.tv_file_size);
 		layoutBottom = findViewById(R.id.layout_bottom);
 		layoutBottom.setAlpha(0.8f);
+
+		mMoreView = findViewById(R.id.iv_more);
 	}
 	
 	@Override
@@ -160,7 +183,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	protected boolean hasExitAnim() {
 		return false;
 	}
-
+	
 	@Override
 	protected void initData() {
 		Intent intent = getIntent();
@@ -168,6 +191,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		currentPostion = intent.getIntExtra(ARG_POSITION, 0);
 		showMode = intent.getIntExtra(ARG_SHOW_MODE, MODE_DISPLAY);
 		msgInfo = intent.getParcelableExtra(ChatActivity.ARG_MSG_INFO);
+		mOnTouchFinish = intent.getBooleanExtra(PhotoFragment.ARG_TOUCH_FINISH, false);
 		photoAdapter = new PhotoFragmentViewPager(getSupportFragmentManager());
 		mViewPager.setAdapter(photoAdapter);
 		if (currentPostion != 0) {
@@ -183,11 +207,11 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			selectOriginalSize = SystemUtil.getFileListSize(mSelectList);
 			cbOrigianlImage.setText(getString(R.string.album_preview_original_image_size, SystemUtil.sizeToString(selectOriginalSize)));
 		} else if (showMode == MODE_DISPLAY) {	//图片的查看模式
+			fullScreen(true);
 			if (msgInfo != null) {
 				AsyncTaskCompat.executeParallel(new LoadImageMsgTask(), msgInfo.getThreadID());
 			}
 			layoutBottom.setVisibility(View.GONE);
-			fullScreen(true);
 			mAppBar.setVisibility(View.GONE);
 		}
 		totalCount = mPhotos.size();
@@ -245,11 +269,6 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		}
 	}
 
-	@Override
-	public void onBackPressed() {
-		ActivityCompat.finishAfterTransition(this);
-	}
-
 	/**
 	 * 为呃照片复选框添加监听器
 	 * @update 2015年2月12日 下午7:26:31
@@ -293,7 +312,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		});
 		addCheckImageListener();
 		mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-			
+
 			@Override
 			public void onPageSelected(int position) {
 				// TODO Auto-generated method stub
@@ -306,17 +325,31 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 					updateBtnOpt(selectCount);
 				}
 			}
-			
+
 			@Override
 			public void onPageScrolled(int position, float positionOffset,
-					int positionOffsetPixels) {
+									   int positionOffsetPixels) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void onPageScrollStateChanged(int state) {
 				// TODO Auto-generated method stub
+				mHandler.removeMessages(Constants.MSG_HIDE_DELAY);
+				if (state == ViewPager.SCROLL_STATE_IDLE) {	//闲置状态
+					mHandler.sendEmptyMessageDelayed(Constants.MSG_HIDE_DELAY, HIDE_DELAY);
+				} else {
+					if (mMoreView.getVisibility() != View.VISIBLE) {	//隐藏状态，则立即显示
+						mMoreView.setVisibility(View.VISIBLE);
+					}
+				}
+			}
+		});
+
+		mMoreView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
 				
 			}
 		});
@@ -367,7 +400,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
+
 	/**
 	 * 相片预览适配器
 	 * @author huanghui1
@@ -393,6 +426,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 					mTvFileSize.setText(getString(R.string.album_video_size, SystemUtil.sizeToString(photoItem.getSize())));
 				}
 				args.putParcelable(PhotoFragment.ARG_PHOTO, photoItem);
+				args.putBoolean(PhotoFragment.ARG_TOUCH_FINISH, mOnTouchFinish);
 			}
 			return android.support.v4.app.Fragment.instantiate(mContext, PhotoFragment.class.getCanonicalName(), args);
 		}
@@ -433,7 +467,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			}
 		} else {
 			if (showMode == MODE_DISPLAY) {	//图片查看模式
-
+				finishAfterTransitionCompt();
 			} else {
 				if (mAppBar != null) {
 					int bottomHeight = layoutBottom.getHeight();
@@ -495,7 +529,12 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 					mViewPager.setAdapter(photoAdapter);
 				}
 				mViewPager.setCurrentItem(currentPostion, false);
-
+				
+				if (mMoreView.getVisibility() != View.VISIBLE) {
+					mMoreView.setVisibility(View.VISIBLE);
+					
+					mHandler.sendEmptyMessageDelayed(Constants.MSG_HIDE_DELAY, HIDE_DELAY);
+				}
 			}
 		}
 	}

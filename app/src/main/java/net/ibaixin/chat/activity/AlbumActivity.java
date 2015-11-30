@@ -47,6 +47,8 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
 
 import net.ibaixin.chat.R;
+import net.ibaixin.chat.app.ActivityCompatICS;
+import net.ibaixin.chat.app.ActivityOptionsCompatICS;
 import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.model.Album;
 import net.ibaixin.chat.model.FileItem;
@@ -306,8 +308,10 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 						
 						reqCode = REQ_PREVIEW_IMAGE;
 					}
-					ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
-					ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
+//					ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
+//					ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
+					ActivityOptionsCompatICS options = ActivityOptionsCompatICS.makeScaleUpAnimation(view, 0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+					ActivityCompatICS.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
 					
 				}
 			}

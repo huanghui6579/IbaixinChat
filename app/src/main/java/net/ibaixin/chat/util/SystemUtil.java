@@ -16,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -2970,6 +2971,41 @@ public class SystemUtil {
 				sb.append(",?");
 			}
 			return sb.toString();
+		}
+	}
+
+	/**
+	 * 判断当前屏幕是否是横屏
+	 * @param activity
+	 * @return true:是横屏；false：是竖屏
+	 */
+	public static boolean isVerticalScreen(Activity activity) {
+		int flag = activity.getResources().getConfiguration().orientation;
+		if (flag == 0) {
+			return false;
+		}else {
+			return true;
+		}
+	}
+
+	/**
+	 * view当前是否显示在屏幕上，包括被遮挡，显示不全的状态
+	 * @param activity
+	 * @param view
+	 * @return true:是在屏幕上；false：不在屏幕上
+	 */
+	public static boolean isInScreen(Activity activity, View view) {
+		Rect bounds = new Rect();
+		//只要有一部分显示在屏幕内，就是true，不考虑遮挡情况
+		boolean isInScreen = view.getGlobalVisibleRect(bounds);
+		if (isInScreen) {
+			if (bounds.width() < view.getWidth() * 0.3f || bounds.height() < view.getHeight() * 0.3f) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return false;
 		}
 	}
 }

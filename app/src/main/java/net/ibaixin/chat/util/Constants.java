@@ -267,4 +267,8 @@ public class Constants {
 	 * 【22】删除失败的消息
 	 */
 	public static final int MSG_DELETE_FAILED = 0x000016;
+	/**
+	 * 【23】延迟隐藏的消息
+	 */
+	public static final int MSG_HIDE_DELAY = 0x000017;
 }

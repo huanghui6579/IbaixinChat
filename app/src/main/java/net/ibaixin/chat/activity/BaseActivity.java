@@ -21,6 +21,8 @@ import android.view.WindowManager;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
+import net.ibaixin.chat.app.ActivityOptionsCompatICS;
+import net.ibaixin.chat.app.TransitionCompat;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.SystemUtil;
@@ -83,6 +85,11 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 	 * 退出的动画
 	 */
 	private int mExitAnimRes = R.anim.slide_right_out;
+
+	/**
+	 * 是否有自定义的平移动画
+	 */
+	private boolean hasTransition = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -123,9 +130,33 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 		initData();
 		
 		addListener();
+
+		startTransition(getContentView());
 		
 //		initAlimamaSDK() ;
 //		startSupportActionMode(new ActionModeCallback());
+	}
+	
+	/**
+	 * 有动画的可以在此加入动画
+	 * @param layoutRes view的资源id
+	 * @author huanghui1
+	 * @update 2015/11/30 15:47
+	 * @version: 0.0.1
+	 */
+	protected void startTransition(int layoutRes) {
+		Intent intent = getIntent();
+		if (intent != null) {
+			Bundle bundle = intent.getExtras();
+			if (bundle != null) {
+				int animType = bundle.getInt(ActivityOptionsCompatICS.KEY_ANIM_TYPE, 0);
+				if (animType != ActivityOptionsCompatICS.ANIM_NONE) {	//有动画
+					hasTransition = true;
+					TransitionCompat.startTransition(this, layoutRes);
+				}
+			}
+		}
+		
 	}
 	
 	/**
@@ -181,7 +212,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 			super.startActivity(intent);
 		}
 	}
-	
+
 	/**
 	 * 有返回的跳转界面
 	 * @param intent
@@ -251,6 +282,20 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 		if (hasExitAnim()) {
 //			scrollToFinishActivity();
 			overridePendingTransition(0, mExitAnimRes);
+		}
+	}
+	
+	/**
+	 * 若有动画，则显示动画后退出
+	 * @author huanghui1
+	 * @update 2015/11/30 17:01
+	 * @version: 0.0.1
+	 */
+	protected void finishAfterTransitionCompt() {
+		if (hasTransition) {
+			TransitionCompat.finishAfterTransition(this);
+		} else {
+			finish();
 		}
 	}
 
@@ -483,7 +528,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 				}
 			} else {
 				//全屏模式
-				getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,  WindowManager.LayoutParams.FLAG_FULLSCREEN);
+				getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 			}
 		}
 		/*ActionBar actionBar = getSupportActionBar();
@@ -545,7 +590,7 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 		switch (item.getItemId()) {
 		case android.R.id.home:	//返回
 			beforeBack();
-			finish();
+			onBack();
 			return true;
 
 		default:
@@ -562,6 +607,29 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 		
 	}
 	
+	/**
+	 * 点击返回键后的操作，默认是finish
+	 * @author huanghui1
+	 * @update 2015/11/30 15:29
+	 * @version: 0.0.1
+	 */
+	protected void onBack() {
+		if (hasTransition) {
+			TransitionCompat.finishAfterTransition(this);
+		} else {
+			finish();
+		}
+	}
+
+	@Override
+	public void onBackPressed() {
+		if (hasTransition) {
+			TransitionCompat.finishAfterTransition(this);
+		} else {
+			super.onBackPressed();
+		}
+	}
+
 	/**
 	 * 显示dialog
 	 * @update 2015年3月25日 

@@ -69,6 +69,8 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
+import net.ibaixin.chat.app.ActivityCompatICS;
+import net.ibaixin.chat.app.ActivityOptionsCompatICS;
 import net.ibaixin.chat.fragment.EmojiFragment;
 import net.ibaixin.chat.fragment.EmojiTypeFragment;
 import net.ibaixin.chat.fragment.PhotoFragment;
@@ -3025,8 +3027,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 						if (msgType == Type.TEXT) {	//文本消息
 							intent = new Intent(mContext, MsgShowActivity.class);
 							intent.putExtra(MsgShowActivity.ARG_MSG_CONTENT, msgInfo.getContent());
-							ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
-							ActivityCompat.startActivity(ChatActivity.this, intent, options.toBundle());
+							ActivityOptionsCompatICS options = ActivityOptionsCompatICS.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
+							ActivityCompatICS.startActivity(ChatActivity.this, intent, options.toBundle());
 						} else {
 							MsgPart msgPart = msgInfo.getMsgPart();
 							if (msgPart != null) {
@@ -3083,8 +3085,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 												intent.putExtra(PhotoFragment.ARG_TOUCH_FINISH, true);
 												intent.putExtra(PhotoFragment.ARG_DOWNLOAD_IMG, download);
 												intent.putExtra(MsgPart.ARG_MSG_PART, msgPart);*/
-												ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
-												ActivityCompat.startActivity(ChatActivity.this, intent, options.toBundle());
+												ActivityOptionsCompatICS options = ActivityOptionsCompatICS.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
+												ActivityCompatICS.startActivity(ChatActivity.this, intent, options.toBundle());
 												break;
 											case VOICE:	//语音类型的消息
 												TextView view = (TextView) v.findViewById(R.id.tv_content);

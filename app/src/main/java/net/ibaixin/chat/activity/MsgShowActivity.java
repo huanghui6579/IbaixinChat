@@ -1,12 +1,10 @@
 package net.ibaixin.chat.activity;
 
 import android.text.TextUtils;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ScrollView;
 import android.widget.TextView;
+
 import net.ibaixin.chat.R;
-import net.ibaixin.chat.util.SystemUtil;
 
 /**
  * 文本消息查看界面
@@ -53,7 +51,7 @@ public class MsgShowActivity extends BaseActivity {
 			
 			@Override
 			public void onClick(View v) {
-				finish();
+				finishAfterTransitionCompt();
 			}
 		});
 	}

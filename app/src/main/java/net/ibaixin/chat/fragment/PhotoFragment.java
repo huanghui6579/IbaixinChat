@@ -71,7 +71,6 @@ public class PhotoFragment extends BaseFragment {
 		ivPhoto = (PowerImageView) view.findViewById(R.id.iv_photo);
 		pbLoading = (CircleProgressBar) view.findViewById(R.id.pb_loading);
 		mIvFlag = view.findViewById(R.id.iv_flag);
-//		pbLoading.setVisibility(View.GONE);
 		return view;
 	}
 	

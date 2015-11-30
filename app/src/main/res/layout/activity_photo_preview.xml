@@ -49,4 +49,20 @@
 			android:text="@string/choice"
 			android:button="@drawable/album_checkbox_selector"/>
 	</RelativeLayout>
+	
+
+	<ImageView
+		android:id="@+id/iv_more"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:src="@drawable/album_item_more_selector"
+		android:layout_gravity="end|bottom"
+		android:layout_marginRight="@dimen/activity_horizontal_margin"
+		android:layout_marginEnd="@dimen/activity_horizontal_margin"
+		android:layout_marginBottom="@dimen/activity_vertical_margin"
+		android:clickable="true"
+		android:background="@drawable/album_item_more_background"
+		android:visibility="gone"/>
+		
+	
 </FrameLayout>
