@@ -95,7 +95,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	/**
 	 * 所浏览的图片集合
 	 */
-	private List<PhotoItem> mPhotos;
+	private ArrayList<PhotoItem> mPhotos;
 	private MsgInfo msgInfo;
 	
 	/**
@@ -336,12 +336,14 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			@Override
 			public void onPageScrollStateChanged(int state) {
 				// TODO Auto-generated method stub
-				mHandler.removeMessages(Constants.MSG_HIDE_DELAY);
-				if (state == ViewPager.SCROLL_STATE_IDLE) {	//闲置状态
-					mHandler.sendEmptyMessageDelayed(Constants.MSG_HIDE_DELAY, HIDE_DELAY);
-				} else {
-					if (mMoreView.getVisibility() != View.VISIBLE) {	//隐藏状态，则立即显示
-						mMoreView.setVisibility(View.VISIBLE);
+				if (showMode == MODE_DISPLAY) {	//图片查看模式
+					mHandler.removeMessages(Constants.MSG_HIDE_DELAY);
+					if (state == ViewPager.SCROLL_STATE_IDLE) {	//闲置状态
+						mHandler.sendEmptyMessageDelayed(Constants.MSG_HIDE_DELAY, HIDE_DELAY);
+					} else {
+						if (mMoreView.getVisibility() != View.VISIBLE) {	//隐藏状态，则立即显示
+							mMoreView.setVisibility(View.VISIBLE);
+						}
 					}
 				}
 			}
@@ -350,7 +352,8 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		mMoreView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				
+				Intent intent = new Intent(mContext, AlbumActivity.class);
+				intent.putParcelableArrayListExtra(ARG_PHOTO_LIST, mPhotos);
 			}
 		});
 		

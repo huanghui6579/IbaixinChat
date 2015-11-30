@@ -79,7 +79,6 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	public static final int REQ_PARENT_MAKE_VIDEO_MSG = 301;
 	public static final int REQ_PARENT_CLIP_ICON = 302;
 	
-	
 	public static final int REQ_PREVIEW_IMAGE = 101;
 	public static final int REQ_TAKE_PIC = 102;
 	public static final int REQ_CLIP_PIC = 103;
@@ -89,7 +88,9 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	public static final String ARG_REQ_CODE = "arg_req_code";
 	public static final String ARG_IS_IMAGE = "arg_is_image";
 	public static final String ARG_MAX_SELECT_SIZE = "arg_max_select_size";
-	public static final String ARG_IS_SINGLE_CHOICE = "ARG_is_single_choice";
+	public static final String ARG_IS_SINGLE_CHOICE = "arg_is_single_choice";
+
+//	public static final String arg_
 	
 	
 	private ImageLoader mImageLoader = ImageLoader.getInstance();
