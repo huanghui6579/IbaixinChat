@@ -354,6 +354,8 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			public void onClick(View v) {
 				Intent intent = new Intent(mContext, AlbumActivity.class);
 				intent.putParcelableArrayListExtra(ARG_PHOTO_LIST, mPhotos);
+				intent.putExtra(AlbumActivity.ARG_ALBUM_MANAGER, true);
+				startActivity(intent);
 			}
 		});
 		

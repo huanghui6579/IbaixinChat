@@ -2,9 +2,7 @@ package net.ibaixin.chat.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -12,6 +10,7 @@ import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v7.view.ActionMode;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -90,7 +89,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	public static final String ARG_MAX_SELECT_SIZE = "arg_max_select_size";
 	public static final String ARG_IS_SINGLE_CHOICE = "arg_is_single_choice";
 
-//	public static final String arg_
+	public static final String ARG_ALBUM_MANAGER = "arg_album_manager";
 	
 	
 	private ImageLoader mImageLoader = ImageLoader.getInstance();
@@ -157,6 +156,13 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	 * 拍照后照片存放的地址
 	 */
 	private String mFilePath;
+
+	/**
+	 * 是否管理某条会话中所有的图片消息
+	 */
+	private boolean mIsAlbumManager = false;
+	
+	private ActionMode mActionMode;
 	
 	private Handler mHandler = new Handler() {
 
@@ -181,7 +187,6 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				PhotoItem photoItem = (PhotoItem) msg.obj;
 				if (photoItem != null) {
 					mPhotos.add(0, photoItem);
-
 					Intent intent = new Intent(mContext, PhotoPreviewActivity.class);
 					intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_BROWSE);
 					intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
@@ -229,22 +234,36 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		mMaxSelectSize = intent.getIntExtra(ARG_MAX_SELECT_SIZE, Constants.ALBUM_SELECT_SIZE);
 		mIsSingleChoice = intent.getBooleanExtra(ARG_IS_SINGLE_CHOICE, false);
 		mReqCode = intent.getIntExtra(ARG_REQ_CODE, 0);
+
+		mIsAlbumManager = intent.getBooleanExtra(ARG_ALBUM_MANAGER, false);
 		
-		if (mIsSingleChoice) {
-			tvPreview.setVisibility(View.GONE);
+		if (mIsAlbumManager) {	//相册管理
+			mPhotos = intent.getParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST);
+			mIsSingleChoice = true;
+			if (mPhotos == null) {
+				mPhotos = new ArrayList<>();
+			}
+			layoutBottom.setVisibility(View.GONE);
+			setTitle(R.string.album_image_msg);
+			pbLoading.setVisibility(View.GONE);
 		} else {
-			tvPreview.setVisibility(View.VISIBLE);
+			if (mIsSingleChoice) {
+				tvPreview.setVisibility(View.GONE);
+			} else {
+				tvPreview.setVisibility(View.VISIBLE);
+			}
+
+			if (!isImage) {	//不是图片，则不显示预览选项
+				tvAllPhoto.setText(R.string.album_all_video);
+				setTitle(R.string.activity_lable_video);
+			}
+
+			new LoadPhotoTask().execute();
 		}
-		
-		if (!isImage) {	//不是图片，则不显示预览选项
-			tvAllPhoto.setText(R.string.album_all_video);
-			setTitle(R.string.activity_lable_video);
-		}
-		
+
 		mPhotoAdapter = new PhotoAdapter(mPhotos, mContext, isImage);
 		gvPhoto.setAdapter(mPhotoAdapter);
 		
-		new LoadPhotoTask().execute();
 	}
 
 	@Override
@@ -256,110 +275,136 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				if (position == 0) {	//拍照
-					Intent intent = null;
-					if (isImage) {	//
-						int reqCode = 0;
-						switch (mReqCode) {
-						case REQ_PARENT_CLIP_ICON:	//裁剪图片的拍照
-							reqCode = REQ_TAKE_CLIP_PIC;
-							break;
-						case REQ_PARENT_MAKE_IMG_MSG:	//选择图片的拍照
-							reqCode = REQ_TAKE_PIC;
-							break;
-						default:
-							break;
-						}
-						intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-						mFilePath = SystemUtil.generatePhotoPath();
-						File file = new File(mFilePath);
-						Uri uri = Uri.fromFile(file);
-						intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);	//将照片保存到指定位置
-						ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
-						ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
-					} else {
-						intent = new Intent();
-						intent.setAction(MediaStore.ACTION_VIDEO_CAPTURE);
-						mFilePath = SystemUtil.generateVideoPath();
-						File file = new File(mFilePath);
-						if(file.exists()) {
-							file.delete();
-						}
-						Uri uri = Uri.fromFile(file);
-						intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-						intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
-						ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
-						ActivityCompat.startActivityForResult(AlbumActivity.this, intent, REQ_TAKE_VIDEO, options.toBundle());
+				PhotoItem item = (PhotoItem) mPhotoAdapter.getItem(position);
+				if (item != null) {
+					if (item.isEmpty()) {	//拍照
+						Intent intent = null;
+						if (isImage) {	//
+							int reqCode = 0;
+							switch (mReqCode) {
+								case REQ_PARENT_CLIP_ICON:	//裁剪图片的拍照
+									reqCode = REQ_TAKE_CLIP_PIC;
+									break;
+								case REQ_PARENT_MAKE_IMG_MSG:	//选择图片的拍照
+									reqCode = REQ_TAKE_PIC;
+									break;
+								default:
+									break;
+							}
+							intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+							mFilePath = SystemUtil.generatePhotoPath();
+							File file = new File(mFilePath);
+							Uri uri = Uri.fromFile(file);
+							intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);	//将照片保存到指定位置
+							ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
+							ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
+						} else {
+							intent = new Intent();
+							intent.setAction(MediaStore.ACTION_VIDEO_CAPTURE);
+							mFilePath = SystemUtil.generateVideoPath();
+							File file = new File(mFilePath);
+							if(file.exists()) {
+								file.delete();
+							}
+							Uri uri = Uri.fromFile(file);
+							intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+							intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+							ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
+							ActivityCompat.startActivityForResult(AlbumActivity.this, intent, REQ_TAKE_VIDEO, options.toBundle());
 //						SystemUtil.makeShortToast("录视频");
-					}
-				} else {
-					Intent intent = null;
-					int reqCode = 0;
-					if (mIsSingleChoice) {	//单选模式,裁剪图像
-						reqCode = REQ_CLIP_PIC;
-						PhotoItem item = (PhotoItem) mPhotoAdapter.getItem(position);
-						intent = new Intent(mContext, ClipHeadIconActivity.class);
-						intent.putExtra(ClipHeadIconActivity.ARG_IMAGE_PATH, item.getFilePath());
+						}
 					} else {
-						intent = new Intent(mContext, PhotoPreviewActivity.class);
-						intent.putExtra(PhotoPreviewActivity.ARG_POSITION, position - 1);
-						intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_BROWSE);
-						intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
-						intent.putExtra(ChatActivity.ARG_MSG_INFO, msgInfo);
-						
-						reqCode = REQ_PREVIEW_IMAGE;
-					}
+						Intent intent = null;
+						int reqCode = 0;
+						if (mIsSingleChoice) {	//单选模式,裁剪图像
+							reqCode = REQ_CLIP_PIC;
+							intent = new Intent(mContext, ClipHeadIconActivity.class);
+							intent.putExtra(ClipHeadIconActivity.ARG_IMAGE_PATH, item.getFilePath());
+						} else {
+							int argPosition = position - 1;
+							if (mIsAlbumManager) {	//相册管理模式，没有拍照功能
+								argPosition = position;
+							}
+							intent = new Intent(mContext, PhotoPreviewActivity.class);
+							intent.putExtra(PhotoPreviewActivity.ARG_POSITION, argPosition);
+							intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_BROWSE);
+							intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
+							intent.putExtra(ChatActivity.ARG_MSG_INFO, msgInfo);
+
+							reqCode = REQ_PREVIEW_IMAGE;
+						}
 //					ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
 //					ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
-					ActivityOptionsCompatICS options = ActivityOptionsCompatICS.makeScaleUpAnimation(view, 0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
-					ActivityCompatICS.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
-					
+						ActivityOptionsCompatICS options = ActivityOptionsCompatICS.makeScaleUpAnimation(view, 0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+						ActivityCompatICS.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
+
+					}
 				}
 			}
 		});
 		gvPhoto.setOnScrollListener(new AbsListView.OnScrollListener() {
-			
+
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
-				if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {	//闲置状态，没有滚动，则不显示时间
+				if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {    //闲置状态，没有滚动，则不显示时间
 					AlphaAnimation animation = null;
-					if (tvTime.getVisibility() == View.VISIBLE) {	//隐藏
+					if (tvTime.getVisibility() == View.VISIBLE) {    //隐藏
 						animation = (AlphaAnimation) AnimationUtils.loadAnimation(mContext, R.anim.album_time_fade_out);
 						tvTime.setVisibility(View.GONE);
-					} else {	//显示
+					} else {    //显示
 						animation = (AlphaAnimation) AnimationUtils.loadAnimation(mContext, R.anim.album_time_fade_in);
 						tvTime.setVisibility(View.VISIBLE);
 					}
 					tvTime.startAnimation(animation);
 				} else {
+					int firstVisibleItem = gvPhoto.getFirstVisiblePosition();
+					if (firstVisibleItem == 0) {
+						PhotoItem photo = mPhotos.get(firstVisibleItem);
+						showAlbumTime(photo, tvTime);
+					}
 					if (tvTime.getVisibility() == View.GONE) {
 						tvTime.setVisibility(View.VISIBLE);
 					}
 				}
 			}
-			
+
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem,
-					int visibleItemCount, int totalItemCount) {
+								 int visibleItemCount, int totalItemCount) {
 				if (firstVisibleItem > 0) {
 					PhotoItem photo = (PhotoItem) mPhotoAdapter.getItem(firstVisibleItem);
-					String preTime = tvTime.getText().toString();
-					String curTime = SystemUtil.formatTime(photo.getTime(), Constants.DATEFORMA_TPATTERN_ALBUM_TIP);
-					if (TextUtils.isEmpty(preTime) || !curTime.equals(preTime)) {
-						tvTime.setText(curTime);
-					}
+					showAlbumTime(photo, tvTime);
 				}
 			}
 		});
 	}
 	
+	/**
+	 * 显示相册的分割时间
+	 * @author huanghui1
+	 * @update 2015/12/1 10:56
+	 * @version: 0.0.1
+	 */
+	private void showAlbumTime(PhotoItem item, TextView textView) {
+		String preTime = textView.getText().toString();
+		String curTime = SystemUtil.formatTime(item.getTime(), Constants.DATEFORMA_TPATTERN_ALBUM_TIP);
+		if (TextUtils.isEmpty(preTime) || !curTime.equals(preTime)) {
+			textView.setText(curTime);
+		}
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		if (!mIsSingleChoice) {	//是图片且是多选模式下才加载该菜单
+		if (mIsAlbumManager || !mIsSingleChoice) {	//是图片且是多选模式下或者是会话的图片消息管理才加载该菜单
 			MenuInflater menuInflater = getMenuInflater();
 			menuInflater.inflate(R.menu.menu_save, menu);
 			mMenuDone = menu.findItem(R.id.action_select_complete);
-			mMenuDone.setEnabled(false);
+
+			if (mIsAlbumManager) {
+				mMenuDone.setTitle(R.string.choice);
+			} else {
+				mMenuDone.setEnabled(false);
+			}
 		}
 		
 		/*mHandler.post(new Runnable() {
@@ -374,33 +419,68 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		return super.onCreateOptionsMenu(menu);
 	}
 	
+	/**
+	 * 进入批量选择模式
+	 * @author huanghui1
+	 * @update 2015/12/1 17:56
+	 * @version: 0.0.1
+	 */
+	private void initBatchMode() {
+		mIsSingleChoice = false;
+		if (mPhotoAdapter != null) {
+			mPhotoAdapter.clearSelect();
+		}
+	}
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_select_complete:	//发送
-			final List<PhotoItem> selects = mPhotoAdapter.getSelectList();
-			pDialog = ProgressDialog.show(mContext, null, getString(R.string.chat_sending_file), true);
-			//发送图片
-			SystemUtil.getCachedThreadPool().execute(new Runnable() {
-				
-				@Override
-				public void run() {
-					ArrayList<MsgInfo> msgList = null;
-					if (isImage) {	//图片消息
-						msgList = msgManager.getMsgInfoListByPhotos(msgInfo, selects, false);
-					} else {
-						msgList = msgManager.getMsgInfoListByVideos(msgInfo, selects);
+			if (mIsAlbumManager) {	//会话的聊天图片管理
+				mActionMode = startSupportActionMode(new ActionModeCallback() {
+					@Override
+					public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+						MenuInflater menuInflater = getMenuInflater();
+						menuInflater.inflate(R.menu.menu_album_opt, menu);
+						return true;
 					}
-					Message msg = mHandler.obtainMessage();
-					if (!SystemUtil.isEmpty(msgList)) {	//消息集合
-						msg.what = Constants.MSG_SUCCESS;
-						msg.obj = msgList;
-					} else {
-						msg.what = Constants.MSG_FAILED;
+					
+					@Override
+					public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+						return super.onActionItemClicked(mode, item);
 					}
-					mHandler.sendMessage(msg);
-				}
-			});
+
+					@Override
+					public void onDestroyActionMode(ActionMode mode) {
+						super.onDestroyActionMode(mode);
+					}
+					
+				});
+			} else {
+				final List<PhotoItem> selects = mPhotoAdapter.getSelectList();
+				pDialog = ProgressDialog.show(mContext, null, getString(R.string.chat_sending_file), true);
+				//发送图片
+				SystemUtil.getCachedThreadPool().execute(new Runnable() {
+
+					@Override
+					public void run() {
+						ArrayList<MsgInfo> msgList = null;
+						if (isImage) {	//图片消息
+							msgList = msgManager.getMsgInfoListByPhotos(msgInfo, selects, false);
+						} else {
+							msgList = msgManager.getMsgInfoListByVideos(msgInfo, selects);
+						}
+						Message msg = mHandler.obtainMessage();
+						if (!SystemUtil.isEmpty(msgList)) {	//消息集合
+							msg.what = Constants.MSG_SUCCESS;
+							msg.obj = msgList;
+						} else {
+							msg.what = Constants.MSG_FAILED;
+						}
+						mHandler.sendMessage(msg);
+					}
+				});
+			}
 			break;
 
 		default:
@@ -516,6 +596,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 						AlbumItem albumItem = list.get(position);
 						List<PhotoItem> temp = folderMap.get(albumItem.getAlbumName());
 						mPhotos.clear();
+
 						mPhotos.addAll(temp);
 						resetActionMenu();
 	
@@ -530,7 +611,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			mPopupWindow.setOutsideTouchable(true);
 			mPopupWindow.setFocusable(true);
 			mPopupWindow.update();
-			mPopupWindow.setBackgroundDrawable(new BitmapDrawable(getResources(), (Bitmap)null));
+//			mPopupWindow.setBackgroundDrawable(new BitmapDrawable(getResources(), (Bitmap)null));
 		}
 		togglewindow(mPopupWindow, author);
 	}
@@ -603,7 +684,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				photoItem.setFilePath(mFilePath);
 				photoItem.setSize(file.length());
 				photoItem.setTime(file.lastModified());
-				mPhotos.add(0, photoItem);
+				mPhotos.add(0, photoItem);	//拍照或者录视频占第一位
 				
 				intent = new Intent(mContext, PhotoPreviewActivity.class);
 				intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_BROWSE);
@@ -756,7 +837,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			holder.ivCon.setTag(filePath);
 			mImageLoader.displayImage(Scheme.FILE.wrap(filePath), holder.ivCon, options);
 			
-			if(position == currentPosition) {	//与上次点击的不同
+			if (position == currentPosition) {	//与上次点击的不同
 				holder.tvContent.setChecked(true);
 			} else {
 				holder.tvContent.setChecked(false);
@@ -789,8 +870,6 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		 */
 		private boolean isImage;
 		
-		private int viewTypeCount = 2;
-		
 		public PhotoAdapter(List<PhotoItem> list, Context context, boolean isImage) {
 			super(list, context);
 			this.isImage = isImage;
@@ -807,9 +886,22 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		 * @update 2014年11月14日 下午9:09:06
 		 */
 		public void clearSelect() {
+			clearSelect(true);
+		}
+		
+		/**
+		 * 清除所选项
+		 * @param notify 是否刷新界面
+		 * @author huanghui1
+		 * @update 2015/12/1 18:01
+		 * @version: 0.0.1
+		 */
+		public void clearSelect(boolean notify) {
 			selectArray.clear();
 			selectSize = 0;
-			notifyDataSetChanged();
+			if (notify) {
+				notifyDataSetChanged();
+			}
 		}
 		
 		/**
@@ -824,7 +916,11 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				boolean value = selectArray.valueAt(i);
 				if (value) {
 					int position = selectArray.keyAt(i);
-					selects.add(mPhotos.get(position - 1));
+					if (mIsAlbumManager) {
+						selects.add(mPhotos.get(position));
+					} else {
+						selects.add(mPhotos.get(position - 1));
+					}
 				}
 			}
 			return selects;
@@ -832,29 +928,28 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		
 		@Override
 		public Object getItem(int position) {
-			if (position == 0) {	//拍照
+			if (list == null) {
 				return null;
+			} else {
+				if (mIsAlbumManager) {
+					return list.get(position);
+				} else {
+					if (position == 0) {
+						return null;
+					} else {
+						return list.get(position - 1);
+					}
+				}
 			}
-			return list.get(position - 1);
 		}
 
 		@Override
 		public int getCount() {
-			return list.size() + 1;	//第一个为拍照
-		}
-		
-		@Override
-		public int getItemViewType(int position) {
-			if (position == 0) {
-				return 0;
+			if (mIsAlbumManager) {	//相册管理模式没有拍照功能
+				return list.size();
 			} else {
-				return 1;
+				return list.size() + 1;
 			}
-		}
-		
-		@Override
-		public int getViewTypeCount() {
-			return viewTypeCount;
 		}
 
 		@Override
@@ -883,52 +978,54 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			} else {
 				holder = (PhotoViewHolder) convertView.getTag();
 			}
-			if (position == 0) {	//拍照
+			
+			if (position == 0 && !mIsAlbumManager) {	//拍照
 				holder.viewAplha.setVisibility(View.GONE);
 				holder.cbChose.setVisibility(View.GONE);
 				holder.ivPhoto.setScaleType(ScaleType.CENTER);
 				holder.ivPhoto.setImageResource(R.drawable.album_take_pic_selector);
 				holder.ivPhoto.setBackgroundResource(R.drawable.album_take_pic_bg_normal);
 			} else {
-				holder.ivPhoto.setBackgroundResource(0);
-				PhotoItem photo = (PhotoItem) getItem(position);
+				PhotoItem photoItem = (PhotoItem) getItem(position);
+				if (photoItem != null) {
+					holder.ivPhoto.setBackgroundResource(0);
 //				holder.ivPhoto.setScaleType(ScaleType.FIT_XY);
-				
-				String filePath = null;
-				if (mIsSingleChoice) {
-					holder.cbChose.setVisibility(View.GONE);
-				} else {
-					holder.cbChose.setVisibility(View.VISIBLE);
-				}
-				holder.cbChose.setOnCheckedChangeListener(null);
-				holder.cbChose.setChecked((selectArray.indexOfKey(position) >= 0) ? selectArray.get(position) : false);
-				if(holder.cbChose.isChecked()) {
-					holder.viewAplha.setVisibility(View.VISIBLE);
-				} else {
-					holder.viewAplha.setVisibility(View.GONE);
-				}
-				holder.cbChose.setOnCheckedChangeListener(new OnCheckedChangeListenerImpl(holder, position));
-				if (isImage) {
-					holder.ivFlag.setVisibility(View.GONE);
-					filePath = photo.getFilePath();
-				} else {
-					holder.ivFlag.setVisibility(View.VISIBLE);
-					holder.viewAplha.setVisibility(View.GONE);
-					String thumbPath = photo.getThumbPath();
-					if (!SystemUtil.isFileExists(thumbPath)) {	//文件不存在
-						filePath = photo.getFilePath();
+
+					String filePath = null;
+					if (mIsSingleChoice) {
+						holder.cbChose.setVisibility(View.GONE);
 					} else {
-						filePath = thumbPath;
+						holder.cbChose.setVisibility(View.VISIBLE);
 					}
+					holder.cbChose.setOnCheckedChangeListener(null);
+					holder.cbChose.setChecked((selectArray.indexOfKey(position) >= 0) ? selectArray.get(position) : false);
+					if (holder.cbChose.isChecked()) {
+						holder.viewAplha.setVisibility(View.VISIBLE);
+					} else {
+						holder.viewAplha.setVisibility(View.GONE);
+					}
+					holder.cbChose.setOnCheckedChangeListener(new OnCheckedChangeListenerImpl(holder, position));
+					if (isImage) {
+						holder.ivFlag.setVisibility(View.GONE);
+						filePath = photoItem.getFilePath();
+					} else {
+						holder.ivFlag.setVisibility(View.VISIBLE);
+						holder.viewAplha.setVisibility(View.GONE);
+						String thumbPath = photoItem.getThumbPath();
+						if (!SystemUtil.isFileExists(thumbPath)) {	//文件不存在
+							filePath = photoItem.getFilePath();
+						} else {
+							filePath = thumbPath;
+						}
+					}
+					String uri = null;
+					if (!TextUtils.isEmpty(filePath)) {
+						uri = Scheme.FILE.wrap(filePath);
+					}
+					mImageLoader.displayImage(uri, holder.ivPhoto, options);
 				}
-				String uri = null;
-				if (!TextUtils.isEmpty(filePath)) {
-					uri = Scheme.FILE.wrap(filePath);
-				}
-				mImageLoader.displayImage(uri, holder.ivPhoto, options);
-				
+
 			}
-			
 			return convertView;
 		}
 		

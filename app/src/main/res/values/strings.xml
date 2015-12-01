@@ -8,6 +8,7 @@
     <string name="splash_desc">让沟通更简单</string>
     
     <string name="delete">删除</string>
+    <string name="download">下载</string>
     <string name="forward">转发</string>
     <string name="delete_failed">删除失败</string>
     <string name="delete_success">删除成功</string>
@@ -172,6 +173,8 @@
     <string name="album_photo_chose_error">文件选择错误</string>
     <string name="album_no_data">没有更多记录</string>
     <string name="album_video_size">视频大小：%1$s</string>
+    
+    <string name="album_image_msg">聊天图片</string>
 
     <string name="msg_thread_snippet_content_audio">[音频]%1$s</string>
     <string name="msg_thread_snippet_content_image">[图片]%1$s</string>

@@ -62,6 +62,14 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 
 	public PhotoItem() {
 	}
+
+	/**
+	 * 判断该项是否是空的
+	 * @return true:是空的；false:不是空的
+	 */
+	public boolean isEmpty() {
+		return TextUtils.isEmpty(filePath) && TextUtils.isEmpty(thumbPath);
+	}
 	
 	public PhotoItem(Parcel in) {
 		filePath = in.readString();
