@@ -1037,12 +1037,22 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		class OnCheckedChangeListenerImpl implements CompoundButton.OnCheckedChangeListener {
 			PhotoViewHolder holder;
 			int position;
+			/**
+			 * 上限 
+			 */
+			boolean isLimited = true;
 			
 			public OnCheckedChangeListenerImpl(PhotoViewHolder holder,
 					int position) {
+				this(holder, position, true);
+			}
+			
+			public OnCheckedChangeListenerImpl(PhotoViewHolder holder,
+					int position, boolean isLimited) {
 				super();
 				this.holder = holder;
 				this.position = position;
+				this.isLimited = isLimited;
 			}
 
 			@Override
