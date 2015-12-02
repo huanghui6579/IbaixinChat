@@ -253,7 +253,7 @@
         <activity
             android:name=".activity.EditSignatureActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/geo_choice" />
+            android:label="@string/personal_info_signature" />
         <!--
         <provider android:name="net.ibaixin.chat.provider.UserProvider"
             android:authorities="net.ibaixin.chat.provider.user;net.ibaixin.chat.provider.newFriend"
