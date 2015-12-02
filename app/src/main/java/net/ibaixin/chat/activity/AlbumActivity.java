@@ -418,6 +418,19 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		
 		return super.onCreateOptionsMenu(menu);
 	}
+
+	/**
+	 * 隐藏ActionMode
+	 * @param actionMode actionMode
+	 * @author tiger
+	 * @update 2015/11/8 10:56
+	 * @version 1.0.0
+	 */
+	private void finishActionMode(ActionMode actionMode) {
+		if (actionMode != null) {
+			actionMode.finish();
+		}
+	}
 	
 	/**
 	 * 进入批量选择模式
@@ -432,6 +445,20 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		}
 	}
 	
+	/**
+	 * 退出批量模式
+	 * @author huanghui1
+	 * @update 2015/12/2 14:44
+	 * @version: 0.0.1
+	 */
+	private void outBatchMode() {
+		mIsSingleChoice = true;
+		if (mPhotoAdapter != null) {
+			mPhotoAdapter.clearSelect();
+		}
+		finishActionMode(mActionMode);
+	}
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -442,6 +469,8 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					public boolean onCreateActionMode(ActionMode mode, Menu menu) {
 						MenuInflater menuInflater = getMenuInflater();
 						menuInflater.inflate(R.menu.menu_album_opt, menu);
+						
+						setSubMenuEnabled(menu, false);
 						return true;
 					}
 					
@@ -452,10 +481,13 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 
 					@Override
 					public void onDestroyActionMode(ActionMode mode) {
+						outBatchMode();
 						super.onDestroyActionMode(mode);
 					}
 					
 				});
+				initBatchMode();
+								
 			} else {
 				final List<PhotoItem> selects = mPhotoAdapter.getSelectList();
 				pDialog = ProgressDialog.show(mContext, null, getString(R.string.chat_sending_file), true);
@@ -1004,7 +1036,11 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					} else {
 						holder.viewAplha.setVisibility(View.GONE);
 					}
-					holder.cbChose.setOnCheckedChangeListener(new OnCheckedChangeListenerImpl(holder, position));
+					if (mIsAlbumManager) {
+						holder.cbChose.setOnCheckedChangeListener(new OnCheckedChangeListenerImpl(holder, position, false));
+					} else {
+						holder.cbChose.setOnCheckedChangeListener(new OnCheckedChangeListenerImpl(holder, position));
+					}
 					if (isImage) {
 						holder.ivFlag.setVisibility(View.GONE);
 						filePath = photoItem.getFilePath();
@@ -1063,7 +1099,39 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				} else {
 					selectSize --;
 				}
-				if (selectSize <= mMaxSelectSize) {	//少于9张
+				if (isLimited) {	//对于图片的选择有限制
+					if (selectSize <= mMaxSelectSize) {	//少于9张
+						selectSize = selectSize < 0 ? 0 : selectSize;
+						if (isChecked) {
+							holder.viewAplha.setVisibility(View.VISIBLE);
+						} else {
+							holder.viewAplha.setVisibility(View.GONE);
+						}
+						selectArray.put(position, isChecked);
+						if (selectSize == 0) {	//没有图片选中
+							resetActionMenu();
+						} else {
+							tvPreview.setEnabled(true);
+							tvPreview.setText(getString(R.string.album_preview_photo_num, selectSize));
+							if (mMenuDone != null) {
+								mMenuDone.setEnabled(true);
+								mMenuDone.setTitle(getString(R.string.action_select_complete) + "(" + selectSize + "/" + mMaxSelectSize + ")");
+							}
+
+						}
+					} else {	//多于9张
+						selectSize = selectSize > mMaxSelectSize ? mMaxSelectSize : selectSize;
+						tvPreview.setEnabled(false);
+						holder.cbChose.setChecked(false);
+						int resId = 0;
+						if (isImage) {	//选择的是图片
+							resId = R.string.album_tip_max_select;
+						} else {
+							resId = R.string.album_video_tip_max_select;
+						}
+						SystemUtil.makeShortToast(getString(resId, mMaxSelectSize));
+					}
+				} else {
 					selectSize = selectSize < 0 ? 0 : selectSize;
 					if (isChecked) {
 						holder.viewAplha.setVisibility(View.VISIBLE);
@@ -1072,32 +1140,43 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					}
 					selectArray.put(position, isChecked);
 					if (selectSize == 0) {	//没有图片选中
-						resetActionMenu();
-					} else {
-						tvPreview.setEnabled(true);
-						tvPreview.setText(getString(R.string.album_preview_photo_num, selectSize));
-						if (mMenuDone != null) {
-							mMenuDone.setEnabled(true);
-							mMenuDone.setTitle(getString(R.string.action_select_complete) + "(" + selectSize + "/" + mMaxSelectSize + ")");
+						if (mActionMode != null) {
+							mActionMode.setTitle(null);
+							Menu actionMenu = mActionMode.getMenu();
+							setSubMenuEnabled(actionMenu, false);
 						}
-						
-					}
-				} else {	//多于9张
-					selectSize = selectSize > mMaxSelectSize ? mMaxSelectSize : selectSize;
-					tvPreview.setEnabled(false);
-					holder.cbChose.setChecked(false);
-					int resId = 0;
-					if (isImage) {	//选择的是图片
-						resId = R.string.album_tip_max_select;
 					} else {
-						resId = R.string.album_video_tip_max_select;
+						mActionMode.setTitle(String.valueOf(selectSize));
+						if (mActionMode != null) {
+							Menu actionMenu = mActionMode.getMenu();
+							setSubMenuEnabled(actionMenu, true);
+						}
 					}
-					SystemUtil.makeShortToast(getString(resId, mMaxSelectSize));
 				}
 			}
 			
 		}
 		
+	}
+	
+	/**
+	 * 设置菜单的子菜单是否可用
+	 * @param menu 父菜单
+	 * @param enabled 是否可用 
+	 * @author huanghui1
+	 * @update 2015/12/2 14:38
+	 * @version: 0.0.1
+	 */
+	private void setSubMenuEnabled(Menu menu, boolean enabled) {
+		if (menu != null) {
+			int menuSize = menu.size();
+			for (int i = 0; i < menuSize; i++) {
+				MenuItem menuItem = menu.getItem(i);
+				if (menuItem != null) {
+					menuItem.setEnabled(enabled);
+				}
+			}
+		}
 	}
 	
 	final class PhotoViewHolder {
