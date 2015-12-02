@@ -1,13 +1,5 @@
 package net.ibaixin.chat.fragment;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.baidu.location.BDLocation;
-import com.baidu.location.BDLocationListener;
-import com.baidu.location.LocationClient;
-import com.baidu.location.LocationClientOption;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -20,9 +12,14 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.activity.CommonAdapter;
@@ -31,6 +28,9 @@ import net.ibaixin.chat.manager.GeoInfoManager;
 import net.ibaixin.chat.model.GeoInfo;
 import net.ibaixin.chat.model.Personal;
 import net.ibaixin.chat.util.SystemUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 地区选择的界面,内嵌于{@link GeoChoiceActivity}中

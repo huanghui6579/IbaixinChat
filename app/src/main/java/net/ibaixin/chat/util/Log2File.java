@@ -15,6 +15,9 @@
  */
 package net.ibaixin.chat.util;
 
+import android.text.TextUtils;
+import android.util.Log;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -22,9 +25,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import android.text.TextUtils;
-import android.util.Log;
 
 /**
  * Write the Log to the file
@@ -64,14 +64,17 @@ public class Log2File {
 					PrintWriter out = null;
 					File file = GetFileFromPath(path);
 					try {
-						out = new PrintWriter(new BufferedWriter(
-								new FileWriter(file, true)));
-						out.println(str);
-						out.flush();
+						if (file != null) {
+							out = new PrintWriter(new BufferedWriter(
+									new FileWriter(file, true)));
+							out.println(str);
+							out.flush();
+						}
 					} catch (IOException e) {
 						e.printStackTrace();
 					} finally {
-						out.close();
+						if(out!=null)
+							out.close();
 					}
 				}
 			});
@@ -106,6 +109,10 @@ public class Log2File {
 				Log.e("Error", "The Log file can not be written.");
 			}
 		} else {
+			File parentFile = file.getParentFile();
+			if (parentFile != null && !parentFile.exists()) {
+				parentFile.mkdirs();
+			}
 			// create the log file
 			try {
 				ret = file.createNewFile();

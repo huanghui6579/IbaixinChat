@@ -4,7 +4,6 @@
     <item
         android:id="@+id/action_jokesend"
         android:title="@string/action_joke_send"
-        android:icon="@drawable/jokesend"
         app:showAsAction="always"/>
-
+    <!--android:icon="@drawable/jokesend"-->
 </menu>

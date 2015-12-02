@@ -99,7 +99,7 @@ public class ChatApplication extends Application {
 	private RequestQueue mRequestQueue;
 
 	/**
-	 * 是否主动退出该应用，乳沟不是，则连接断开后会自动重连
+	 * 是否主动退出该应用，如果不是，则连接断开后会自动重连
 	 */
 	private boolean mSureExit = false;
 	

@@ -674,37 +674,41 @@ public class ThreadListFragment extends BaseFragment implements LoaderCallbacks<
 				List<User> members = thread.getMembers();
 				if (members.size() == 1) {	//只有一位成员，除自己外
 					User user = members.get(0);
-					UserVcard vcard = user.getUserVcard();
-					if (vcard == null) {
-						vcard = new UserVcard();
-						vcard.setUserId(user.getId());
-					}
-					if (vcard.equals(userVcard)) {	//找到了对应的用户
-						
-						vcard.setNickname(userVcard.getNickname());
-						String oldHash = vcard.getIconHash();
-						String newHash = userVcard.getIconHash();
-						boolean clearCache = false;
-						if (oldHash != null) {	//之前有头像
-							if (!oldHash.equals(newHash)) {	//头像有改变
-								vcard.setIconHash(newHash);
-								clearCache = true;
+					if (user != null) {
+						UserVcard vcard = user.getUserVcard();
+						if (vcard == null) {
+							vcard = new UserVcard();
+							vcard.setUserId(user.getId());
+						}
+						if (vcard.equals(userVcard)) {	//找到了对应的用户
+
+							vcard.setNickname(userVcard.getNickname());
+							String oldHash = vcard.getIconHash();
+							String newHash = userVcard.getIconHash();
+							boolean clearCache = false;
+							if (oldHash != null) {	//之前有头像
+								if (!oldHash.equals(newHash)) {	//头像有改变
+									vcard.setIconHash(newHash);
+									clearCache = true;
+								}
 							}
+							String iconPath = userVcard.getIconPath();
+							String thumbPath = userVcard.getThumbPath();
+							if (clearCache) {
+								ImageUtil.clearMemoryCache(iconPath);
+								ImageUtil.clearMemoryCache(thumbPath);
+							}
+							vcard.setIconPath(iconPath);
+							vcard.setThumbPath(thumbPath);
+
+							thread.setMsgThreadName(user.getName());
+
+							position = i;
+							targetThread = thread;
+							break;
 						}
-						String iconPath = userVcard.getIconPath();
-						String thumbPath = userVcard.getThumbPath();
-						if (clearCache) {
-							ImageUtil.clearMemoryCache(iconPath);
-							ImageUtil.clearMemoryCache(thumbPath);
-						}
-						vcard.setIconPath(iconPath);
-						vcard.setThumbPath(thumbPath);
-						
-						thread.setMsgThreadName(user.getName());
-						
-						position = i;
-						targetThread = thread;
-						break;
+					} else {
+						Log.d("-----user--is----null-----");
 					}
 				}
 			}

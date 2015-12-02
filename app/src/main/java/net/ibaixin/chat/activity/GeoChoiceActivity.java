@@ -1,10 +1,8 @@
 package net.ibaixin.chat.activity;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.widget.ListView;
+
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.fragment.GeoChoiceFragment;
@@ -57,5 +55,4 @@ public class GeoChoiceActivity extends BaseActivity {
 		// TODO Auto-generated method stub
 
 	}
-
 }
