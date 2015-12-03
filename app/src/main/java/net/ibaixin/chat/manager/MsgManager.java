@@ -38,7 +38,6 @@ import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.ImageUtil;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
-import net.ibaixin.chat.util.NativeUtil;
 import net.ibaixin.chat.util.Observable;
 import net.ibaixin.chat.util.Observer;
 import net.ibaixin.chat.util.Observer.NotifyType;
@@ -2242,6 +2241,7 @@ public class MsgManager extends Observable<Observer> {
 		part.setMsgId(msgInfo.getMsgId());
 		part.setSize(photoItem.getSize());
 		part.setCreationDate(time);
+		part.setDownloaded(true);
 
 		if (isImage) {	//图片消息
 			String thumbName = SystemUtil.generateChatThumbAttachFilename(time);
@@ -2281,6 +2281,7 @@ public class MsgManager extends Observable<Observer> {
 		part.setMsgId(msgInfo.getMsgId());
 		part.setSize(file.length());
 		part.setCreationDate(System.currentTimeMillis());
+		part.setDownloaded(true);
 		
 //		part = msgManager.addMsgPart(part);
 		
@@ -2308,6 +2309,8 @@ public class MsgManager extends Observable<Observer> {
 				}
 				String fileUri = Scheme.FILE.wrap(filePath);
 				final MsgInfo mi = (MsgInfo) msgInfo.clone();
+				//生成消息的id
+				mi.generateMsgId();
 				if (originalImage) {	//原图发送
 					msgList.add(setMsgInfo(mi, photoItem));
 				} else {
@@ -2420,6 +2423,8 @@ public class MsgManager extends Observable<Observer> {
 			}
 			try {
 				final MsgInfo mi = (MsgInfo) msgInfo.clone();
+				//生成消息的id
+				mi.generateMsgId();
 				msgList.add(setMsgInfo(mi, file));
 			} catch (CloneNotSupportedException e) {
 				e.printStackTrace();
@@ -2479,7 +2484,7 @@ public class MsgManager extends Observable<Observer> {
 				 * 注：使用list.listFiles在文件名是乱码的情况下jni底层会报错，如文件名是GBK的中文名，
 				 * 但jni底层处理该字符串默认会按照UTF-8的编码去转换，这样会导致严重报错，程序崩溃。所以，这里不使用次方法来列表文件目录，而是使用自定义的jni来列表文件目录
 				 */
-				String rootPath = dir.getAbsolutePath();
+				/*String rootPath = dir.getAbsolutePath();
 				ArrayList<String> fileNames = NativeUtil.listFileNames(rootPath);
 				if (!SystemUtil.isEmpty(fileNames)) {	//首选自定义的jni获取目录列表
 					list = new ArrayList<>();
@@ -2489,7 +2494,7 @@ public class MsgManager extends Observable<Observer> {
 						list.add(fileItem);
 					}
 					Collections.sort(list, new FileItem());
-				} else {
+				} else {*/
 					File[] files = dir.listFiles();
 					if (!SystemUtil.isEmpty(files)) {
 						list = new ArrayList<>();
@@ -2499,7 +2504,7 @@ public class MsgManager extends Observable<Observer> {
 						}
 						Collections.sort(list, new FileItem());
 					}
-				}
+//				}
 			}
 		} catch (Exception e) {
 			Log.e(e.getMessage());

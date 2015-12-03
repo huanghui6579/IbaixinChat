@@ -7,6 +7,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -124,20 +126,6 @@ public class GeoChoiceFragment extends BaseFragment {
 		mLvData = (ListView) view.findViewById(R.id.lv_data);
 		mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
 		mToolbar.setTitle(getActivity().getTitle());
-		mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-				FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-				fragmentManager.popBackStack();
-				fragmentTransaction.commit();
-				int stackCount = fragmentManager.getBackStackEntryCount();
-				if (stackCount == 0) {	//没有其他的返回栈了，就结束activity
-					getActivity().finish();
-				} 
-			}
-		});
 		
 		/*mLvData.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -181,6 +169,33 @@ public class GeoChoiceFragment extends BaseFragment {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		
+		Activity activity = getActivity();
+		if (activity instanceof AppCompatActivity) {
+			AppCompatActivity compatActivity = (AppCompatActivity) activity;
+			compatActivity.setSupportActionBar(mToolbar);
+			ActionBar actionBar = compatActivity.getSupportActionBar();
+			if (actionBar != null) {
+				actionBar.setDisplayHomeAsUpEnabled(true);
+			}
+		}
+
+		//覆盖导航返回按钮已有的按钮点击事件
+		mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+				FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+				fragmentManager.popBackStack();
+				fragmentTransaction.commit();
+				int stackCount = fragmentManager.getBackStackEntryCount();
+				if (stackCount == 0) {	//没有其他的返回栈了，就结束activity
+					getActivity().finish();
+				}
+			}
+		});
+		
 		if (mGeoLevel == GEO_LEVEL_COUNTRY) {	//只有国家级才定位
 			initLocateSdk();
 		}

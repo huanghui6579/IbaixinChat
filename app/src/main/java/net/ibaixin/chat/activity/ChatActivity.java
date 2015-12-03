@@ -852,38 +852,43 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * @return
 	 */
 	private Chat createChat(AbstractXMPPConnection connection, boolean doLogin) {
-		if (connection == null) {
-			connection = XmppConnectionManager.getInstance().getConnection();
-		}
-		if (connection.isAuthenticated()) {	//是否登录
-			if (chatManager == null) {
-				chatManager = ChatManager.getInstanceFor(connection);
+		try {
+			if (connection == null) {
+                connection = XmppConnectionManager.getInstance().getConnection();
+            }
+			if (connection.isAuthenticated()) {	//是否登录
+                if (chatManager == null) {
+                    chatManager = ChatManager.getInstanceFor(connection);
+                }
+                if (chat == null) {
+                    chat = chatManager.createChat(otherSide.getJID(), null);
+                }
+                return chat;
+            } else {
+                boolean flag = false;
+                if (doLogin) {
+                    flag = XmppConnectionManager.getInstance().checkAuthority(connection, application);
+                    if (flag) {
+                        if (chatManager == null) {
+                            chatManager = ChatManager.getInstanceFor(connection);
+                        }
+                        if (chat == null) {
+                            chat = chatManager.createChat(otherSide.getJID(), null);
+                        }
+                        return chat;
+                    } else {
+                        return null;
+                    }
+                } else {
+                    //发送广播，重新登录
+                    Intent intent = new Intent(CoreReceiver.ACTION_RELOGIN);
+                    sendBroadcast(intent);
+                    return null;
+                }
 			}
-			if (chat == null) {
-				chat = chatManager.createChat(otherSide.getJID(), null);
-			}
-			return chat;
-		} else {
-			boolean flag = false;
-			if (doLogin) {
-				flag = XmppConnectionManager.getInstance().checkAuthority(connection, application);
-				if (flag) {
-					if (chatManager == null) {
-						chatManager = ChatManager.getInstanceFor(connection);
-					}
-					if (chat == null) {
-						chat = chatManager.createChat(otherSide.getJID(), null);
-					}
-					return chat;
-				} else {
-					return null;
-				}
-			} else {
-				//发送广播，重新登录
-				Intent intent = new Intent(CoreReceiver.ACTION_RELOGIN);
-				sendBroadcast(intent);
-				return null;
-			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
 	}
 	
@@ -3053,8 +3058,14 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 												String filePath = msgPart.getFilePath();
 												boolean download = false;	//是否需要下载原始图片
 												if (msgInfo.isComming() && (!msgPart.isDownloaded() || !SystemUtil.isFileExists(filePath))) {	//原始图片不存在或者没有下载原始图片
-													filePath = showPath;
-													download = true;
+													if (!msgPart.isDownloaded() || !SystemUtil.isFileExists(filePath)) {
+														filePath = showPath;
+														download = true;
+													} else {
+														download = false;
+													}
+												} else {
+													download = false;
 												}
 												if (!SystemUtil.isFileExists(filePath)) {
 													filePath = msgPart.getThumbPath();

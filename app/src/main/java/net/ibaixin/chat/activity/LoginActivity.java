@@ -55,6 +55,7 @@ import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.QQUtil;
 import net.ibaixin.chat.util.StreamTool;
 import net.ibaixin.chat.util.SystemUtil;
+import net.ibaixin.chat.util.UpdateManager;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.view.ProgressDialog;
 /**
@@ -183,17 +184,15 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 		Intent action = new Intent(NetworkReceiver.ACTION_CHECK_NETWORK);
 		sendBroadcast(action);
 		
-//		if (!SystemUtil.isNetworkOnline()) {
-//			SystemUtil.makeShortToast(R.string.network_error);
-//		} else {
-//			SystemUtil.getCachedThreadPool().execute(new Runnable() {// 检查软件版本
-//						public void run() {
-//							if (!UpdateManager.checkSoftVersionIsLast()) {
-//								mHandler.sendEmptyMessage(UPDATESOFTVERSION);
-//							}
-//						}
-//					});
-//		}
+		if (application.isNetWorking()) {
+			SystemUtil.getCachedThreadPool().execute(new Runnable() {// 检查软件版本
+				public void run() {
+					if (!UpdateManager.checkSoftVersionIsLast()) {
+						mHandler.sendEmptyMessage(UPDATESOFTVERSION);
+					}
+				}
+			});
+		}
 	}
 
 	@Override
@@ -339,7 +338,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 	}*/
 	/**
 	 * 设置登录按钮状态，true表示可用，false表示不可用
-	 * @param isEnable 使用、否可用
+	 * @param enable 使用、否可用
 	 */
 	private void setLoginBtnState(boolean enable) {
 		btnLogin.setEnabled(enable);

@@ -44,9 +44,9 @@ public class AboutActivity extends BaseActivity {
 //			Commondata.VERSION = info.versionName;
 //			version.setText("软件版本: " + Commondata.VERSION);
 			sysVersion = android.os.Build.VERSION.RELEASE;
-			sversion.setText("系统版本: Android "+info.versionName);
+			sversion.setText("系统版本: 百信 "+info.versionName);
 			TelephonyManager tm = (TelephonyManager) this.getSystemService(TELEPHONY_SERVICE);
-			imei.setText("设备IMEI号: " + tm.getDeviceId());
+//			imei.setText("设备IMEI号: " + tm.getDeviceId());
 		}
 		catch (NameNotFoundException e)
 		{

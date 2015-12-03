@@ -31,7 +31,7 @@ public class Constants {
 //	public static final String SERVER_NAME = "home-pc.com";
 	public static final int SERVER_PORT = 5222;
 	
-	public final static String SOFTVERSION = "2015033101";
+	public final static String SOFTVERSION = "2015120201";
 	
 	public static String TENCENTAPPID = "1104396884";//腾讯APP ID
 	public static String BAIDUAPPID = "0trswTLaGB6hN820M30Brbhx";//百度APP ID

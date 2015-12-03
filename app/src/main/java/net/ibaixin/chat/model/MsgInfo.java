@@ -186,6 +186,17 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 	public void setMsgId(String msgId) {
 		this.msgId = msgId;
 	}
+	
+	/**
+	 * 删除消息的id
+	 * @author huanghui1
+	 * @update 2015/12/3 16:37
+	 * @version: 0.0.1
+	 */
+	public MsgInfo generateMsgId() {
+		this.msgId = SystemUtil.generateUUID();
+		return this;
+	}
 
 	/**
 	 * 获取摘要信息，长度为100
