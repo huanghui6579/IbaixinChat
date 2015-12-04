@@ -27,8 +27,6 @@ import com.tencent.tauth.UiError;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -55,7 +53,7 @@ import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.QQUtil;
 import net.ibaixin.chat.util.StreamTool;
 import net.ibaixin.chat.util.SystemUtil;
-import net.ibaixin.chat.util.UpdateManager;
+import net.ibaixin.chat.update.UpdateManager;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.view.ProgressDialog;
 /**
@@ -92,8 +90,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 	public static boolean isLocalAccountLogin = true ;
 	/** 是否来自QQ注册*/
 	public static boolean isQQAccountRegister = false ;
-	
-	private static final int UPDATESOFTVERSION = 11;
+
 	private static final int RESULT_QQLOGIN_ERROR = 13;
 	private static final int RESULT_QQLOGIN_USERINFO = 14;
 	private static final int RESULT_QQLOGIN_USERAVATAR = 15;
@@ -108,11 +105,11 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 			JSONObject json = null ;
 			hideLoadingDialog(pDialog);
 			switch (msg.what) {
-			case UPDATESOFTVERSION:
+			/*case UPDATESOFTVERSION:
 				Intent service = new Intent(mContext, CoreService.class);
 				service.putExtra(CoreService.FLAG_SYNC, CoreService.FLAG_UPDATESOFT);
 				startService(service);
-				break;
+				break;*/
 			case RESULT_QQLOGIN_USERINFO:
 				json = (JSONObject)msg.obj;
 				try {
@@ -184,7 +181,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 		Intent action = new Intent(NetworkReceiver.ACTION_CHECK_NETWORK);
 		sendBroadcast(action);
 		
-		if (application.isNetWorking()) {
+		/*if (application.isNetWorking()) {
 			SystemUtil.getCachedThreadPool().execute(new Runnable() {// 检查软件版本
 				public void run() {
 					if (!UpdateManager.checkSoftVersionIsLast()) {
@@ -192,7 +189,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 					}
 				}
 			});
-		}
+		}*/
 	}
 
 	@Override

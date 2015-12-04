@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
@@ -47,7 +48,7 @@ import java.util.Map;
  * @version 1.0.0
  * @update 2014年11月15日 上午9:37:58
  */
-public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.OnViewTapListener {
+public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.OnViewTapListener, View.OnClickListener {
 	public static final String ARG_PHOTO_LIST = "arg_photo_list";
 	public static final String ARG_POSITION = "arg_position";
 	public static final String ARG_SHOW_MODE = "arg_show_mode";
@@ -112,7 +113,10 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	private long selectOriginalSize = 0;
 	
 	PhotoFragmentViewPager photoAdapter;
-	
+
+	/**
+	 * 标题栏和底部栏是否显示
+	 */
 	private boolean mShow = true;
 
 	/**
@@ -124,6 +128,11 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	 * 更多图片的按钮，进入图片管理
 	 */
 	private View mMoreView;
+
+	/**
+	 * 下载原始图片的按钮
+	 */
+	private Button mBtnDownload;
 	
 	private Handler mHandler = new Handler() {
 
@@ -171,6 +180,8 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		layoutBottom = findViewById(R.id.layout_bottom);
 		layoutBottom.setAlpha(0.8f);
 
+		mBtnDownload = (Button) findViewById(R.id.downloadOriginal);
+
 		mMoreView = findViewById(R.id.iv_more);
 	}
 	
@@ -216,6 +227,22 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		}
 		totalCount = mPhotos.size();
 		setTitle(getString(R.string.album_preview_photo_index, currentPostion + 1, totalCount));
+	}
+	
+	/**
+	 * 初始化一些数据
+	 * @author huanghui1
+	 * @update 2015/12/4 15:46
+	 * @version: 0.0.1
+	 */
+	private void resetData() {
+		mShow = true;
+		if (pDialog != null && pDialog.isShowing()) {
+			pDialog.dismiss();
+		}
+		if (SystemUtil.isFullScreen(this)) {
+			fullScreen(false);
+		}
 	}
 
 	/**
@@ -316,13 +343,31 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			@Override
 			public void onPageSelected(int position) {
 				// TODO Auto-generated method stub
+				boolean showDownloadBtn = false;
 				currentPostion = position;
 				setTitle(getString(R.string.album_preview_photo_index, currentPostion + 1, totalCount));
-				cbChose.setOnCheckedChangeListener(null);
-				cbChose.setChecked(selectArray.indexOfKey(position) >= 0 ? selectArray.get(position) : false);
-				addCheckImageListener();
-				if (mMenuDone != null) {
-					updateBtnOpt(selectCount);
+				if (isDisplayMode()) {	//查看图片的模式
+					PhotoItem photoItem = mPhotos.get(position);
+					if (photoItem != null) {
+						String filePath = photoItem.getFilePath();
+						if (photoItem.isNeedDownload() || !SystemUtil.isFileExists(filePath)) {	//需要下载原始图片
+							showDownloadBtn = true;
+						}
+					}
+				} else {
+					cbChose.setOnCheckedChangeListener(null);
+					cbChose.setChecked(selectArray.indexOfKey(position) >= 0 ? selectArray.get(position) : false);
+					addCheckImageListener();
+					if (mMenuDone != null) {
+						updateBtnOpt(selectCount);
+					}
+				}
+				if (showDownloadBtn) {	//显示下载按钮
+					mBtnDownload.setVisibility(View.VISIBLE);
+				} else {
+					if (mBtnDownload.getVisibility() == View.VISIBLE) {
+						mBtnDownload.setVisibility(View.GONE);
+					}
 				}
 			}
 
@@ -361,6 +406,37 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		
 	}
 	
+	/**
+	 * 是否是查看图片的模式
+	 * @author huanghui1
+	 * @update 2015/12/4 17:13
+	 * @version: 0.0.1
+	 */
+	private boolean isDisplayMode() {
+		return showMode == MODE_DISPLAY;
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+		/*
+    	 * 主要原因是该activity的android:launchMode="singleTask"
+    	 * 所以第一次会或得到intent里的数据，但第二次或者以后就获取不到了，所以需要获取原来intent中的数据并且重新设置
+    	 */
+		super.onNewIntent(intent);
+		setIntent(intent);
+
+		resetView();
+
+		resetData();
+
+		initData();
+	}
+	
+	private void resetView() {
+		mBtnDownload.setVisibility(View.GONE);
+		
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		if (showMode != MODE_DISPLAY) {	//图片的查看模式
@@ -406,6 +482,17 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		return super.onOptionsItemSelected(item);
 	}
 
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+			case R.id.downloadOriginal:	//下载原始图片
+				if (photoAdapter != null) {
+					mViewPager.getCurrentItem();
+				}
+				break;
+		}
+	}
+
 	/**
 	 * 相片预览适配器
 	 * @author huanghui1
@@ -425,10 +512,18 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				if (msgInfo != null) {
 					photoItem.setMsgId(msgInfo.getMsgId());
 				}
+				boolean showDownloadBtn = false;
 				if (photoItem.getFileType() == FileItem.FileType.VIDEO) {	//视频文件
 					cbOrigianlImage.setVisibility(View.GONE);
 					mTvFileSize.setVisibility(View.VISIBLE);
 					mTvFileSize.setText(getString(R.string.album_video_size, SystemUtil.sizeToString(photoItem.getSize())));
+				} else {	//图片
+					showDownloadBtn = photoItem.isNeedDownload();
+				}
+				if (showDownloadBtn) {
+					mBtnDownload.setVisibility(View.VISIBLE);
+				} else {
+					mBtnDownload.setVisibility(View.GONE);
 				}
 				args.putParcelable(PhotoFragment.ARG_PHOTO, photoItem);
 				args.putBoolean(PhotoFragment.ARG_TOUCH_FINISH, mOnTouchFinish);
@@ -506,6 +601,13 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	 */
 	class LoadImageMsgTask extends AsyncTask<Integer, Void, List<PhotoItem>> {
 
+		@Override
+		protected void onPreExecute() {
+			if (mMoreView.getVisibility() == View.VISIBLE) {
+				mMoreView.setVisibility(View.GONE);
+			}
+		}
+		
 		@Override
 		protected List<PhotoItem> doInBackground(Integer... params) {
 			List<PhotoItem> photoItems = null;

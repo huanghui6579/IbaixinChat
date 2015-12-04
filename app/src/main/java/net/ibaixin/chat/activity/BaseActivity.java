@@ -49,7 +49,9 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 	protected ChatApplication application;
 	
 	private SwipeBackActivityHelper mSwipeBackHelper;
-	
+
+	protected static final int UPDATESOFTVERSION = 11;
+
 	//淘宝联盟，阿里妈妈推广
 //	protected BannerProperties properties;
 //	protected BannerController<?> mController;

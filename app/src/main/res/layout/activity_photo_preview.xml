@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			 xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
 	<include 
@@ -62,6 +63,17 @@
 		android:layout_marginBottom="@dimen/activity_vertical_margin"
 		android:clickable="true"
 		android:background="@drawable/album_item_more_background"
+		android:visibility="gone"/>
+
+	<Button
+		android:id="@+id/downloadOriginal"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/album_download_original_image_size"
+		android:background="@drawable/album_item_download_original_background_selector"
+		android:layout_gravity="center_horizontal|bottom"
+		android:textColor="@android:color/white"
+		android:layout_marginBottom="@dimen/activity_vertical_margin"
 		android:visibility="gone"/>
 		
 	

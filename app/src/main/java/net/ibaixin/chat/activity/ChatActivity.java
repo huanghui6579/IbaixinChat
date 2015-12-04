@@ -770,9 +770,15 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * @update 2015年9月14日 上午9:49:35
 	 */
 	private void resetData() {
-		if (chat != null) {
-			sendStateMsg(ChatState.gone);
-		}
+		SystemUtil.getCachedThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				if (chat != null) {
+					sendStateMsg(ChatState.gone);
+				}
+			}
+		});
+		
 	}
 	
 	@Override

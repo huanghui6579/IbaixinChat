@@ -3,12 +3,17 @@ package net.ibaixin.chat.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.model.SystemConfig;
+import net.ibaixin.chat.service.CoreService;
+import net.ibaixin.chat.update.UpdateManager;
+import net.ibaixin.chat.update.UpdateService;
+import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.util.XmppConnectionManager;
 
 /**
@@ -27,8 +32,21 @@ public class SplashActivity extends BaseActivity implements OnClickListener {
 	
 	private Button btnLogin;
 	private Button btnRegist;
-	
-	private Handler mHandler = new Handler();
+
+	private Handler mHandler = new Handler() {
+
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what){
+				case UPDATESOFTVERSION:
+					Intent service = new Intent(mContext, UpdateService.class);
+					service.putExtra(UpdateService.FLAG_SYNC, UpdateService.FLAG_UPDATESOFT);
+					startService(service);
+					break;
+			}
+		}
+
+	};
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +78,16 @@ public class SplashActivity extends BaseActivity implements OnClickListener {
 				}
 			}, delayTime);
 		}
-		
+
+		if (application.isNetWorking()) {
+			SystemUtil.getCachedThreadPool().execute(new Runnable() {// 检查软件版本
+				public void run() {
+					if (!UpdateManager.checkSoftVersionIsLast()) {
+						mHandler.sendEmptyMessage(UPDATESOFTVERSION);
+					}
+				}
+			});
+		}
 	}
 	
 	@Override

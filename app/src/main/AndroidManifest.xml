@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.ibaixin.chat"
-    android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionCode="2"
+    android:versionName="1.2.1" >
 
     <!--
         <uses-sdk
@@ -169,11 +169,13 @@
         <activity
             android:name=".activity.AlbumActivity"
             android:configChanges="orientation|screenSize"
+            android:launchMode="singleInstance"
             android:label="@string/activity_lable_album"
             android:theme="@style/AppTheme.AlbumActivity" />
         <activity
             android:name=".activity.PhotoPreviewActivity"
             android:configChanges="orientation|screenSize"
+            android:launchMode="singleInstance"
             android:label="@string/activity_lable_album"
             android:theme="@style/AppTheme.ImagePreviewActivity" />
         <activity
@@ -358,6 +360,11 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
+
+        <!-- 更新安装包服务 -->
+        <service
+            android:name=".update.UpdateService" >
+        </service>
     </application>
 
 </manifest>

@@ -48,6 +48,7 @@ import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.app.ActivityCompatICS;
 import net.ibaixin.chat.app.ActivityOptionsCompatICS;
+import net.ibaixin.chat.fragment.PhotoFragment;
 import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.model.Album;
 import net.ibaixin.chat.model.FileItem;
@@ -265,6 +266,36 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		gvPhoto.setAdapter(mPhotoAdapter);
 		
 	}
+	
+	/**
+	 * 重置数据
+	 * @author huanghui1
+	 * @update 2015/12/4 11:39
+	 * @version: 0.0.1
+	 */
+	private void resetData() {
+		mFilePath = null;
+		outBatchMode();
+		mActionMode = null;
+		
+		if (mPopupWindow != null && mPopupWindow.isShowing()) {
+			mPopupWindow.dismiss();
+		}
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+		/*
+    	 * 主要原因是该activity的android:launchMode="singleTask"
+    	 * 所以第一次会或得到intent里的数据，但第二次或者以后就获取不到了，所以需要获取原来intent中的数据并且重新设置
+    	 */
+		super.onNewIntent(intent);
+		setIntent(intent);
+
+		resetData();
+
+		initData();
+	}
 
 	@Override
 	protected void addListener() {
@@ -316,10 +347,21 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					} else {
 						Intent intent = null;
 						int reqCode = 0;
+						boolean startForResult = true;
 						if (mIsSingleChoice) {	//单选模式,裁剪图像
-							reqCode = REQ_CLIP_PIC;
-							intent = new Intent(mContext, ClipHeadIconActivity.class);
-							intent.putExtra(ClipHeadIconActivity.ARG_IMAGE_PATH, item.getFilePath());
+							if (mIsAlbumManager) {//相册管理模式
+								intent = new Intent(mContext, PhotoPreviewActivity.class);
+								intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_DISPLAY);
+								intent.putExtra(PhotoFragment.ARG_TOUCH_FINISH, true);
+								intent.putExtra(PhotoPreviewActivity.ARG_POSITION, position);
+								intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
+								intent.putExtra(ChatActivity.ARG_MSG_INFO, msgInfo);
+								startForResult = false;
+							} else {
+								reqCode = REQ_CLIP_PIC;
+								intent = new Intent(mContext, ClipHeadIconActivity.class);
+								intent.putExtra(ClipHeadIconActivity.ARG_IMAGE_PATH, item.getFilePath());
+							}
 						} else {
 							int argPosition = position - 1;
 							if (mIsAlbumManager) {	//相册管理模式，没有拍照功能
@@ -336,7 +378,11 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 //					ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
 //					ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
 						ActivityOptionsCompatICS options = ActivityOptionsCompatICS.makeScaleUpAnimation(view, 0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
-						ActivityCompatICS.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
+						if (startForResult) {
+							ActivityCompatICS.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
+						} else {
+							ActivityCompatICS.startActivity(AlbumActivity.this, intent, options.toBundle());
+						}
 
 					}
 				}

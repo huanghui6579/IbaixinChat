@@ -2479,24 +2479,28 @@ public class SystemUtil {
 	 * 初始化置顶账号的数据库路径
 	 * @update 2015年3月10日 下午3:39:47
 	 * @param account
+	 * @return 是否创建成功
 	 */
-	public static void initAccountDbDir(String account) {
-		
+	public static boolean initAccountDbDir(String account) {
+		Log.d("------initAccountDbDir---account---" + account);
 		if (TextUtils.isEmpty(account)) {
 			ChatApplication app = ChatApplication.getInstance();
 			SharedPreferences preferences = app.getSharedPreferences(Constants.SETTTING_LOGIN, Context.MODE_PRIVATE);
 			account = preferences.getString(Constants.USER_ACCOUNT, "");
 			app.setCurrentAccount(account);
 		}
-		Log.d("------initAccountDbDir---account---" + account);
 		//如果该账号没有对应的数据库，则根据账号创建对应的数据库，并设置当前的账号数据库
 		String accountMd5 = SystemUtil.encoderByMd5(account);
+		if (accountMd5 == null) {
+			accountMd5 = "";
+		}
 		File dbDir = new File(SystemUtil.getBaseDBDir(), accountMd5);
 		if (!dbDir.exists()) {
 			dbDir.mkdirs();
 		}
 		ChatApplication app = ChatApplication.getInstance();
 		app.setAccountDbDir(dbDir.getAbsolutePath());
+		return true;
 	}
 
 	/**
@@ -3004,6 +3008,21 @@ public class SystemUtil {
 			} else {
 				return true;
 			}
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * 是否全屏
+	 * @param activity
+	 * @return 判断当前手机是否是全屏
+	 */
+	public static boolean isFullScreen(Activity activity) {
+		int flag = activity.getWindow().getAttributes().flags;
+		if((flag & WindowManager.LayoutParams.FLAG_FULLSCREEN)
+				== WindowManager.LayoutParams.FLAG_FULLSCREEN) {
+			return true;
 		} else {
 			return false;
 		}

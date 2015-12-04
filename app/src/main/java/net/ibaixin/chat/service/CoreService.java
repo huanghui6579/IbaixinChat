@@ -64,7 +64,7 @@ import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
 import net.ibaixin.chat.util.Observer;
 import net.ibaixin.chat.util.SystemUtil;
-import net.ibaixin.chat.util.UpdateManager;
+import net.ibaixin.chat.update.UpdateManager;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.util.XmppUtil;
 import net.ibaixin.chat.volley.toolbox.MultiPartStringRequest;
@@ -135,10 +135,7 @@ public class CoreService extends Service {
 	 * 接收离线消息
 	 */
 	public static final int FLAG_RECEIVE_OFFINE = 2;
-	/**
-	 * 软件版本更新
-	 */
-	public static final int FLAG_UPDATESOFT = 3;
+
 	/**
 	 * 重新登录成功
 	 */
@@ -399,10 +396,6 @@ public class CoreService extends Service {
 //				new Thread(new SyncFriendsTask()).start();
 				mHandler.post(new SyncFriendsTask());
 				break;
-			case FLAG_UPDATESOFT://更新软件本
-				UpdateManager um = new UpdateManager(mContext);
-				um.checkUpdateInfo();
-				break ;
 			case FLAG_RELOGIN_OK://重新登录成功
 				initCurrentUser(ChatApplication.getInstance().getCurrentUser());//同步自己的信息
 //				mHandler.post(new SyncFriendsTask());//从服务器上同步所有的好友列表到本地
@@ -630,6 +623,8 @@ public class CoreService extends Service {
 							break;
 						}
 						if (sendFile.exists()) {
+							//先将消息保存到数据库
+							updateSendInfo(senderInfo, msgInfo);
 							String hash = SystemUtil.encoderFileByMd5(sendFile);
 							attachDto.setHash(hash);
 							typeExtension.setHash(hash);
@@ -654,7 +649,6 @@ public class CoreService extends Service {
 													if (!jsonObject.isNull("id")) {
 														String id = jsonObject.getString("id");
 														msgPart.setFileToken(id);
-														updateSendInfo(senderInfo, msgInfo);
 														
 														typeExtension.setFileId(id);
 														
@@ -668,19 +662,21 @@ public class CoreService extends Service {
 											}
 										} catch (JSONException | SmackException | IOException | XMPPException e) {
 											msgInfo.setSendState(SendState.FAILED);
-											e.printStackTrace();
+											Log.e(e.getMessage());
 										}
-										updateSendStatus(senderInfo, msgInfo);
+									} else {
+										Log.d("-----response---is----null---msginfo---" + msgInfo);
+										msgInfo.setSendState(SendState.FAILED);
 									}
+									updateSendStatus(senderInfo, msgInfo);
 								}
 							}, new Response.ErrorListener() {
 
 								@Override
 								public void onErrorResponse(VolleyError error) {
-									Log.e(error.toString());
 									msgInfo.setSendState(SendState.FAILED);
-									
 									updateSendStatus(senderInfo, msgInfo);
+									Log.e(error.toString());
 								}
 							}, null, mHandler);
 							//发送文件
@@ -693,6 +689,7 @@ public class CoreService extends Service {
 							msgManager.deleteMsgInfoById(msgInfo, senderInfo.msgThread);
 							senderInfo.handler.sendEmptyMessage(Constants.MSG_MODIFY_CHAT_MSG_SEND_STATE);
 							Log.d("-------发送失败---文件不存在---");
+							return;
 						}
 						
 					} else {	//文本消息

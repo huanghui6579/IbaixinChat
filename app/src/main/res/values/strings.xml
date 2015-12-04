@@ -173,6 +173,7 @@
     <string name="album_photo_chose_error">文件选择错误</string>
     <string name="album_no_data">没有更多记录</string>
     <string name="album_video_size">视频大小：%1$s</string>
+    <string name="album_download_original_image_size">查看原图(%1$s)</string>
     
     <string name="album_image_msg">聊天图片</string>
 

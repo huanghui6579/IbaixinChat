@@ -33,7 +33,6 @@
         app:mlpb_progress_color="?attr/colorPrimary"
         app:mlpb_enable_circle_background="false"
         app:mlpb_max="100"
-        android:visibility="gone"
-        />
+        android:visibility="gone"/>
 
 </FrameLayout>

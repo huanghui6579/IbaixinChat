@@ -69,8 +69,8 @@ public class PhotoFragment extends BaseFragment {
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_photo_preview, container, false);
 		ivPhoto = (PowerImageView) view.findViewById(R.id.iv_photo);
-		pbLoading = (CircleProgressBar) view.findViewById(R.id.pb_loading);
 		mIvFlag = view.findViewById(R.id.iv_flag);
+		pbLoading = (CircleProgressBar) view.findViewById(R.id.pb_loading);
 		return view;
 	}
 	
@@ -106,24 +106,24 @@ public class PhotoFragment extends BaseFragment {
 			mIsVideo = mPhoto.getFileType() == FileItem.FileType.VIDEO;
 		}
 		ivPhoto.setOnViewTapListener(new PhotoViewAttacher.OnViewTapListener() {
-			
+
 			@Override
 			public void onViewTap(View view, float x, float y) {
 				if (mOnTouchFinish && mFinishCallBackListener != null) {
 					mFinishCallBackListener.onFinish();
 				}
-                if (mOnViewTapListener != null) {
+				if (mOnViewTapListener != null) {
 					FileItem.FileType fileType = null;
 					if (mPhoto != null) {
 						fileType = mPhoto.getFileType();
 					}
-                    mOnViewTapListener.onTap(view, fileType, mPhoto);
-                }
+					mOnViewTapListener.onTap(view, fileType, mPhoto);
+				}
 			}
 		});
 		
 		if (mPhoto != null) {
-			boolean download = mPhoto.isNeedDownload();
+//			boolean download = mPhoto.isNeedDownload();
 			final String showPath = mPhoto.getShowPath();
 			String filePath = mPhoto.getFilePath();
 			if (mIsVideo) {	//视频文件
@@ -133,7 +133,64 @@ public class PhotoFragment extends BaseFragment {
 				mIvFlag.setVisibility(View.GONE);
 				options = SystemUtil.getPhotoPreviewOptions();
 			}
-			if (download) {	//需要下载文件
+
+			if (SystemUtil.isFileExists(showPath)) {
+
+				String displayPath = null;
+				if (!mIsVideo) {	//非视频
+					if (SystemUtil.isFileExists(filePath)) {
+						displayPath = filePath;
+					} else {
+						displayPath = showPath;
+					}
+					ImageUtil.clearMemoryCache(displayPath);
+					ImageUtil.clearDiskCache(displayPath);
+				} else {	//视频
+					String thumbPath = mPhoto.getThumbPath();
+					if (SystemUtil.isFileExists(thumbPath)) {
+						displayPath = thumbPath;
+					} else {
+						displayPath = filePath;
+					}
+				}
+				String imgUri = null;
+				if (!TextUtils.isEmpty(displayPath)) {
+					imgUri = Scheme.FILE.wrap(displayPath);
+				}
+				mImageLoader.displayImage(imgUri, ivPhoto, options, new ImageLoadingListener() {
+
+					@Override
+					public void onLoadingStarted(String imageUri, View view) {
+						if (!SystemUtil.isViewVisible(pbLoading)) {
+							pbLoading.setVisibility(View.VISIBLE);
+						}
+					}
+
+					@Override
+					public void onLoadingFailed(String imageUri, View view,
+												FailReason failReason) {
+						if (SystemUtil.isViewVisible(pbLoading)) {
+							pbLoading.setVisibility(View.GONE);
+						}
+					}
+
+					@Override
+					public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+						if (SystemUtil.isViewVisible(pbLoading)) {
+							pbLoading.setVisibility(View.GONE);
+						}
+					}
+
+					@Override
+					public void onLoadingCancelled(String imageUri, View view) {
+
+					}
+				});
+			} else {
+				ivPhoto.setImageResource(R.drawable.ic_default_icon_error);
+			}
+			
+			/*if (download) {	//需要下载文件
 				mImageLoader.displayImage(Scheme.FILE.wrap(showPath), ivPhoto, options);
 				//开始下载文件
 				final MsgEngine msgEngine = new MsgEngine(getActivity());
@@ -192,65 +249,85 @@ public class PhotoFragment extends BaseFragment {
 					}
 				});
 			} else {	//不需要下载图片，则优先显示原始图片，如果原始图片不存在，则显示缩略图
-				if (SystemUtil.isFileExists(showPath)) {
-
-					String displayPath = null;
-					if (!mIsVideo) {	//非视频
-						if (SystemUtil.isFileExists(filePath)) {
-							displayPath = filePath;
-						} else {
-							displayPath = showPath;
-						}
-						ImageUtil.clearMemoryCache(displayPath);
-						ImageUtil.clearDiskCache(displayPath);
-					} else {	//视频
-						String thumbPath = mPhoto.getThumbPath();
-						if (SystemUtil.isFileExists(thumbPath)) {
-							displayPath = thumbPath;
-						} else {
-							displayPath = filePath;
-						}
-					}
-					String imgUri = null;
-					if (!TextUtils.isEmpty(displayPath)) {
-						imgUri = Scheme.FILE.wrap(displayPath);
-					}
-					mImageLoader.displayImage(imgUri, ivPhoto, options, new ImageLoadingListener() {
-
-						@Override
-						public void onLoadingStarted(String imageUri, View view) {
-							if (!SystemUtil.isViewVisible(pbLoading)) {
-								pbLoading.setVisibility(View.VISIBLE);
-							}
-						}
-
-						@Override
-						public void onLoadingFailed(String imageUri, View view,
-													FailReason failReason) {
-							if (SystemUtil.isViewVisible(pbLoading)) {
-								pbLoading.setVisibility(View.GONE);
-							}
-						}
-
-						@Override
-						public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-							if (SystemUtil.isViewVisible(pbLoading)) {
-								pbLoading.setVisibility(View.GONE);
-							}
-						}
-
-						@Override
-						public void onLoadingCancelled(String imageUri, View view) {
-
-						}
-					});
-				} else {
-					ivPhoto.setImageResource(R.drawable.ic_default_icon_error);
-				}
-			}
+				
+			}*/
 		} else {
 			ivPhoto.setImageResource(R.drawable.ic_default_icon_error);
 		}
+	}
+	
+	/**
+	 * 现在原始图片
+	 * @param photoItem 图片或者视频项
+	 * @author huanghui1
+	 * @update 2015/12/4 17:47
+	 * @version: 0.0.1
+	 */
+	public void downloadPhotoItem(final PhotoItem photoItem, final DownloadCallback downloadCallback) {
+		//开始下载文件
+		final String showPath = photoItem.getShowPath();
+		final MsgEngine msgEngine = new MsgEngine(getActivity());
+		msgEngine.downloadFile(photoItem, new DownloadListener() {
+			
+			@Override
+			public void onStart(int downloadId, long totalBytes) {
+				pbLoading.setVisibility(View.VISIBLE);
+				pbLoading.setCircleBackgroundEnabled(true);
+				pbLoading.setShowProgressText(true);
+				pbLoading.setProgress(0);
+			}
+
+			@Override
+			public void onRetry(int downloadId) {
+
+			}
+
+			@Override
+			public void onProgress(int downloadId, long bytesWritten, long totalBytes) {
+				if (totalBytes > 0) {
+					int progress = (int) (bytesWritten * 100 / totalBytes);
+					pbLoading.setProgress(progress);
+				}
+			}
+
+			@Override
+			public void onSuccess(int downloadId, final String filePath) {
+				pbLoading.setVisibility(View.GONE);
+				if (!TextUtils.isEmpty(filePath)) {
+					if (downloadCallback != null) {
+						downloadCallback.onSuccess(filePath);
+					}
+					if (!mIsVideo) {	//只有图片才清除缓存
+						ImageUtil.clearMemoryCache(showPath);
+						ImageUtil.clearDiskCache(showPath);
+						//显示下载的原始图片
+						mImageLoader.displayImage(Scheme.FILE.wrap(filePath), ivPhoto, options);
+					}
+
+					//更新本地数据库
+					SystemUtil.getCachedThreadPool().execute(new Runnable() {
+						@Override
+						public void run() {
+							String msgId = photoItem.getMsgId();
+							MsgManager msgManager = MsgManager.getInstance();
+							MsgPart msgPart = new MsgPart();
+							msgPart.setMsgId(msgId);
+							msgPart.setDownloaded(true);
+							msgManager.updateMsgPartDownload(msgPart, true);    //更新本地数据库
+						}
+					});
+
+				}
+			}
+
+			@Override
+			public void onFailure(int downloadId, int statusCode, String errMsg) {
+				if (downloadCallback != null) {
+					downloadCallback.onFailed(statusCode, errMsg);
+				}
+				pbLoading.setVisibility(View.GONE);
+			}
+		});
 	}
 
 	/**
@@ -277,5 +354,26 @@ public class PhotoFragment extends BaseFragment {
 		 * @param fileType 文件的类型      
 		 */
 		public void onTap(View view, FileItem.FileType fileType, DownloadItem photoItem);
+	}
+	
+	/**
+	 * 文件下载后的回调,注：回调中的方法都是在非UI线程中执行
+	 * @author huanghui1
+	 * @update 2015/12/4 17:52
+	 * @version: 0.0.1
+	 */
+	public interface DownloadCallback {
+		/**
+		 * 下载成功
+		 * @param filePath
+		 */
+		public void onSuccess(String filePath);
+
+		/**
+		 * 下载失败
+		 * @param statusCode 失败的状态码
+		 * @param errMsg 失败的信息
+		 */
+		public void onFailed(int statusCode, String errMsg);
 	}
 }

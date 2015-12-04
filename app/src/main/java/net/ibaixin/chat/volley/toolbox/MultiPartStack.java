@@ -83,7 +83,7 @@ public class MultiPartStack extends HurlStack {
         int timeoutMs = request.getTimeoutMs();
 
         if(timeoutMs != -1) {
-        	HttpConnectionParams.setSoTimeout(httpParams, timeoutMs * 2);
+//        	HttpConnectionParams.setSoTimeout(httpParams, timeoutMs * 2);
 			HttpConnectionParams.setConnectionTimeout(httpParams, timeoutMs);
         }
         
