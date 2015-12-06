@@ -234,12 +234,12 @@ public class MainActivity extends BaseActivity {
 		//从网络上更新好友列表的数据
 //		Intent intent = new Intent(mContext, CoreService.class);
 		service.putExtra(CoreService.FLAG_INIT_CURRENT_USER, CoreService.FLAG_INIT_PERSONAL_INFO);
-		if (isLogined) {	//非后台登录，通过登录界面或者注册界面已经登录过了
-			service.putExtra(CoreService.FLAG_RECEIVE_OFFINE_MSG, CoreService.FLAG_RECEIVE_OFFINE);
+//		if (isLogined) {	//要等好友信息同步好了后才能接受离线消息
+//			service.putExtra(CoreService.FLAG_RECEIVE_OFFINE_MSG, CoreService.FLAG_RECEIVE_OFFINE);
 			//发送同步个人信息的广播
 //			Intent data = new Intent(CoreService.CoreReceiver.ACTION_SYNC_VCARD);
 //			sendBroadcast(data);
-		}
+//		}
 		service.putExtra(CoreService.FLAG_SYNC, syncFlag);
 		startService(service);
 		

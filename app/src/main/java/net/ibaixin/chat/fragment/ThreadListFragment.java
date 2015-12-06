@@ -451,17 +451,20 @@ public class ThreadListFragment extends BaseFragment implements LoaderCallbacks<
 			
 			holder.tvContent.setText(snippetContent);
 			Drawable icon = msgThread.getIcon();
-			final User member = msgThread.getMembers().get(0);
-			if(member != null) {
-				final UserVcard uCard = member.getUserVcard();
-				if (uCard != null) {
-					if (icon != null) {
-						holder.ivHeadIcon.setImageDrawable(icon);
+			List<User> members = msgThread.getMembers();
+			if (SystemUtil.isNotEmpty(members)) {
+				final User member = members.get(0);
+				if(member != null) {
+					final UserVcard uCard = member.getUserVcard();
+					if (uCard != null) {
+						if (icon != null) {
+							holder.ivHeadIcon.setImageDrawable(icon);
+						} else {
+							showIcon(uCard, holder.ivHeadIcon);
+						}
 					} else {
-						showIcon(uCard, holder.ivHeadIcon);
+						mImageLoader.displayImage(null, holder.ivHeadIcon, options);
 					}
-				} else {
-					mImageLoader.displayImage(null, holder.ivHeadIcon, options);
 				}
 			}
 			return convertView;
@@ -672,43 +675,45 @@ public class ThreadListFragment extends BaseFragment implements LoaderCallbacks<
 			for (int i = 0; i < threadSize; i++) {
 				MsgThread thread = mMsgThreads.get(i);
 				List<User> members = thread.getMembers();
-				if (members.size() == 1) {	//只有一位成员，除自己外
-					User user = members.get(0);
-					if (user != null) {
-						UserVcard vcard = user.getUserVcard();
-						if (vcard == null) {
-							vcard = new UserVcard();
-							vcard.setUserId(user.getId());
-						}
-						if (vcard.equals(userVcard)) {	//找到了对应的用户
+				if (SystemUtil.isNotEmpty(members)) {
+					if (members.size() == 1) {	//只有一位成员，除自己外
+						User user = members.get(0);
+						if (user != null) {
+							UserVcard vcard = user.getUserVcard();
+							if (vcard == null) {
+								vcard = new UserVcard();
+								vcard.setUserId(user.getId());
+							}
+							if (vcard.equals(userVcard)) {	//找到了对应的用户
 
-							vcard.setNickname(userVcard.getNickname());
-							String oldHash = vcard.getIconHash();
-							String newHash = userVcard.getIconHash();
-							boolean clearCache = false;
-							if (oldHash != null) {	//之前有头像
-								if (!oldHash.equals(newHash)) {	//头像有改变
-									vcard.setIconHash(newHash);
-									clearCache = true;
+								vcard.setNickname(userVcard.getNickname());
+								String oldHash = vcard.getIconHash();
+								String newHash = userVcard.getIconHash();
+								boolean clearCache = false;
+								if (oldHash != null) {	//之前有头像
+									if (!oldHash.equals(newHash)) {	//头像有改变
+										vcard.setIconHash(newHash);
+										clearCache = true;
+									}
 								}
-							}
-							String iconPath = userVcard.getIconPath();
-							String thumbPath = userVcard.getThumbPath();
-							if (clearCache) {
-								ImageUtil.clearMemoryCache(iconPath);
-								ImageUtil.clearMemoryCache(thumbPath);
-							}
-							vcard.setIconPath(iconPath);
-							vcard.setThumbPath(thumbPath);
+								String iconPath = userVcard.getIconPath();
+								String thumbPath = userVcard.getThumbPath();
+								if (clearCache) {
+									ImageUtil.clearMemoryCache(iconPath);
+									ImageUtil.clearMemoryCache(thumbPath);
+								}
+								vcard.setIconPath(iconPath);
+								vcard.setThumbPath(thumbPath);
 
-							thread.setMsgThreadName(user.getName());
+								thread.setMsgThreadName(user.getName());
 
-							position = i;
-							targetThread = thread;
-							break;
+								position = i;
+								targetThread = thread;
+								break;
+							}
+						} else {
+							Log.d("-----user--is----null-----");
 						}
-					} else {
-						Log.d("-----user--is----null-----");
 					}
 				}
 			}

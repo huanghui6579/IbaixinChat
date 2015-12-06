@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.os.AsyncTaskCompat;
@@ -14,10 +15,12 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPropertyAnimatorCompat;
 import android.support.v7.internal.view.ViewPropertyAnimatorCompatSet;
 import android.util.SparseBooleanArray;
+import android.util.SparseIntArray;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -25,6 +28,8 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+
+import com.afollestad.materialdialogs.MaterialDialog;
 
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.fragment.PhotoFragment;
@@ -34,6 +39,7 @@ import net.ibaixin.chat.model.FileItem;
 import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.util.Constants;
+import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
 import net.ibaixin.chat.util.SystemUtil;
 
@@ -48,7 +54,7 @@ import java.util.Map;
  * @version 1.0.0
  * @update 2014年11月15日 上午9:37:58
  */
-public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.OnViewTapListener, View.OnClickListener {
+public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.OnViewTapListener, View.OnClickListener, PhotoFragment.OnLongClickListener {
 	public static final String ARG_PHOTO_LIST = "arg_photo_list";
 	public static final String ARG_POSITION = "arg_position";
 	public static final String ARG_SHOW_MODE = "arg_show_mode";
@@ -133,6 +139,8 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	 * 下载原始图片的按钮
 	 */
 	private Button mBtnDownload;
+
+	private SparseIntArray mViewIdArray;
 	
 	private Handler mHandler = new Handler() {
 
@@ -154,6 +162,11 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			case Constants.MSG_HIDE_DELAY:	//延迟隐藏
 				if (mMoreView.getVisibility() == View.VISIBLE) {
 					mMoreView.setVisibility(View.GONE);
+				}
+				break;
+			case Constants.MSG_DOWNLOAD_SUCCESS:	//文件下载成功的消息
+				if (mBtnDownload.getVisibility() == View.VISIBLE) {	//隐藏下载按钮
+					mBtnDownload.setVisibility(View.GONE);
 				}
 				break;
 			default:
@@ -197,6 +210,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	
 	@Override
 	protected void initData() {
+		mViewIdArray = new SparseIntArray();
 		Intent intent = getIntent();
 		mPhotos = intent.getParcelableArrayListExtra(ARG_PHOTO_LIST);
 		currentPostion = intent.getIntExtra(ARG_POSITION, 0);
@@ -482,14 +496,65 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		return super.onOptionsItemSelected(item);
 	}
 
+	/**
+	 * 获取当前的photoitem
+	 * @return
+	 */
+	private PhotoItem getCurrentItem() {
+		if (mViewPager != null) {
+			int position = mViewPager.getCurrentItem();
+			PhotoItem item = mPhotos.get(position);
+			return item;
+		} else {
+			return null;
+		}
+	}
+
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
 			case R.id.downloadOriginal:	//下载原始图片
 				if (photoAdapter != null) {
-					mViewPager.getCurrentItem();
+					int position = mViewPager.getCurrentItem();
+					int viewId = mViewIdArray.get(position, 0);
+					if (viewId != 0) {
+						PhotoFragment photoFragment = (PhotoFragment) getSupportFragmentManager().findFragmentById(viewId);
+						if (photoFragment != null) {
+							photoFragment.downloadPhotoItem(new PhotoFragment.DownloadCallback() {
+								@Override
+								public void onSuccess(PhotoItem photoItem, String filePath) {
+									PhotoItem currentItem = getCurrentItem();
+									if (currentItem != null) {
+										if (photoItem.getMsgId().equals(currentItem.getMsgId())) {	//同一张图片，界面没有一切换
+											currentItem.setNeedDownload(false);
+											mHandler.sendEmptyMessage(Constants.MSG_DOWNLOAD_SUCCESS);
+										}
+									}
+								}
+
+								@Override
+								public void onFailed(PhotoItem photoItem, int statusCode, String errMsg) {
+									Log.d("----photoItem--orifinal image download failed--" + photoItem + "---statusCode---" + statusCode + "--errMsg--" + errMsg);
+								}
+							});
+						}
+					}
 				}
 				break;
+		}
+	}
+
+	@Override
+	public void onLongClick(View view, DownloadItem photoItem) {
+		if (isDisplayMode()) {	//只有相册管理时才有菜单
+			MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
+			builder.items(R.array.album_photo_context_menu)
+					.itemsCallback(new MaterialDialog.ListCallback() {
+						@Override
+						public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+
+						}
+					});
 		}
 	}
 
@@ -529,6 +594,21 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				args.putBoolean(PhotoFragment.ARG_TOUCH_FINISH, mOnTouchFinish);
 			}
 			return android.support.v4.app.Fragment.instantiate(mContext, PhotoFragment.class.getCanonicalName(), args);
+		}
+
+		@Override
+		public Object instantiateItem(ViewGroup container, int position) {
+			Fragment fragment = (Fragment) super.instantiateItem(container, position);
+			if (fragment != null) {
+				mViewIdArray.put(position, fragment.getId());
+			}
+			return fragment;
+		}
+
+		@Override
+		public void destroyItem(ViewGroup container, int position, Object object) {
+			super.destroyItem(container, position, object);
+			mViewIdArray.delete(position);
 		}
 
 		@Override

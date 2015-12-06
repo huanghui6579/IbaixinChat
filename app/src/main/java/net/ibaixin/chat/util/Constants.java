@@ -271,4 +271,8 @@ public class Constants {
 	 * 【23】延迟隐藏的消息
 	 */
 	public static final int MSG_HIDE_DELAY = 0x000017;
+	/**
+	 * 【24】文件下载成功的消息
+	 */
+	public static final int MSG_DOWNLOAD_SUCCESS = 0x000018;
 }

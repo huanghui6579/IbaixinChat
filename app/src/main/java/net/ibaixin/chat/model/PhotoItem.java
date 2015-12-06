@@ -56,8 +56,9 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 
 	@Override
 	public String toString() {
-		return "PhotoItem [filePath=" + filePath + ", thumbPath=" + thumbPath
-				+ ", size=" + size + ", time=" + time + "]";
+		return "PhotoItem{" +
+				"thumbPath='" + thumbPath + '\'' +
+				"} " + super.toString();
 	}
 
 	public PhotoItem() {

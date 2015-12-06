@@ -348,8 +348,10 @@ public class MsgManager extends Observable<Observer> {
 			for (User user : users) {
 				sb.append(user.getId()).append(splite);
 			}
-			//去除最后一个多余的分隔符
-			sb.deleteCharAt(sb.length() - 1);
+			if (sb.length() > 1) {
+				//去除最后一个多余的分隔符
+				sb.deleteCharAt(sb.length() - 1);
+			}
 			memberIds = sb.toString();
 		}
 		return memberIds;

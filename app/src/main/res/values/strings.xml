@@ -95,6 +95,8 @@
     <string name="menu_share">分享</string>
     <string name="menu_more">更多</string>
 
+    <string name="menu_save_iamge">保存图片</string>
+
     <!-- 相册选择图片的菜单 -->
     <string name="action_select_complete">发送</string>
     

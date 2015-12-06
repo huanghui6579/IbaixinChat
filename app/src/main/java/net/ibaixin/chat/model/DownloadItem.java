@@ -107,4 +107,18 @@ public abstract class DownloadItem {
     public void setFileType(FileItem.FileType fileType) {
         this.fileType = fileType;
     }
+
+    @Override
+    public String toString() {
+        return "DownloadItem{" +
+                "msgId='" + msgId + '\'' +
+                ", filePath='" + filePath + '\'' +
+                ", size=" + size +
+                ", time=" + time +
+                ", needDownload=" + needDownload +
+                ", fileToken='" + fileToken + '\'' +
+                ", downloadType=" + downloadType +
+                ", fileType=" + fileType +
+                '}';
+    }
 }

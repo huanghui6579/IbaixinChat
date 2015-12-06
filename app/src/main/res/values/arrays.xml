@@ -52,6 +52,12 @@
         <item>趣图</item>
         <item>感悟</item>
     </string-array>
+
+    <!-- 相册管理的图片的菜单 -->
+    <string-array name="album_photo_context_menu">
+        <item>@string/menu_forward</item>
+        <item>@string/menu_save_iamge</item>
+    </string-array>
     
     <!-- 性别选择的选项组 -->
     <string-array name="sex_choice_menu">

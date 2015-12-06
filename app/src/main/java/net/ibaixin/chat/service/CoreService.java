@@ -64,7 +64,6 @@ import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
 import net.ibaixin.chat.util.Observer;
 import net.ibaixin.chat.util.SystemUtil;
-import net.ibaixin.chat.update.UpdateManager;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.util.XmppUtil;
 import net.ibaixin.chat.volley.toolbox.MultiPartStringRequest;
@@ -387,7 +386,8 @@ public class CoreService extends Service {
 			}
 			int offineFlag = intent.getIntExtra(FLAG_RECEIVE_OFFINE_MSG, 0);
 			if (offineFlag == FLAG_RECEIVE_OFFINE) {	//登录成功后接受离线消息
-				SystemUtil.getCachedThreadPool().execute(new HandleOffineMsgTask());
+				//接收离线消息
+				receiveOffineMsg();
 			}
 			Log.d("----onStartCommand--syncFlag--" + syncFlag);
 			//同步好友列表
@@ -1314,6 +1314,16 @@ public class CoreService extends Service {
 	}
 	
 	/**
+	 * 接收离线消息，要等好友都同步好了后才能接收该离校消息
+	 * @author tiger
+	 * @update 2015/12/6 11:19
+	 * @version 1.0.0
+	 */
+	private void receiveOffineMsg() {
+		SystemUtil.getCachedThreadPool().execute(new HandleOffineMsgTask());
+	}
+	
+	/**
 	 * 同步所有好友列表的任务线程
 	 * @author coolpad
 	 *
@@ -1337,8 +1347,8 @@ public class CoreService extends Service {
 //							sendBroadcast(intent);
 							
 							//接收离线消息
-//							SystemUtil.getCachedThreadPool().execute(new HandleOffineMsgTask());
-							
+							receiveOffineMsg();
+
 							//同步好友的电子名片信息
 							SystemUtil.getCachedThreadPool().execute(new SyncFriendVcardTask(userList));
 						}
@@ -1382,7 +1392,9 @@ public class CoreService extends Service {
 						map.put(name, vcard);
 					}
 				}
-				sb.deleteCharAt(sb.length() - 1);
+				if (sb.length() > 1) {
+					sb.deleteCharAt(sb.length() - 1);
+				}
 				//3、更新好友的头像等基本信息
 				UserEngine userEngine = new UserEngine(mContext);
 				userEngine.getSimpleVcardInfos(sb.toString(), map);

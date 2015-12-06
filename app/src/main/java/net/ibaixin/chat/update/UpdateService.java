@@ -1,28 +1,11 @@
 package net.ibaixin.chat.update;
 
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
-import android.support.v4.app.NotificationCompat;
-import android.widget.RemoteViews;
-import android.widget.Toast;
-import net.ibaixin.chat.R;
-import net.ibaixin.chat.util.Constants;
-import net.ibaixin.chat.util.SystemUtil;
+import android.support.annotation.Nullable;
+
+import java.net.MalformedURLException;
 
 /***
  * 软件升级服务
@@ -31,9 +14,14 @@ import net.ibaixin.chat.util.SystemUtil;
  * 
  */
 public class UpdateService extends Service {
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
 
-    public static final String Install_Apk = "Install_Apk";
-    /******** download progress step *********/
+    /*public static final String Install_Apk = "Install_Apk";
+    *//******** download progress step *********//*
     private static final int down_step_custom = 1;
 
     private static final int TIMEOUT = 10 * 1000;// 超时
@@ -50,9 +38,9 @@ public class UpdateService extends Service {
     private RemoteViews contentView;
     public static final String FLAG_SYNC = "flag_sync";
     private Context mContext ;
-    /**
+    *//**
      * 软件版本更新
-     */
+     *//*
     public static final int FLAG_UPDATESOFT = 3;
 
     @Override
@@ -66,14 +54,14 @@ public class UpdateService extends Service {
         mContext = this;
     }
 
-    /**
+    *//**
      * 方法描述：onStartCommand方法
      * 
      * @param Intent
      *            intent, int flags, int startId
      * @return int
      * @see UpdateService
-     */
+     *//*
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
@@ -95,7 +83,7 @@ public class UpdateService extends Service {
                         createThread();
                     } else {
                         SystemUtil.makeLongToast("抱歉,无法读写手机内部存储和SD卡");
-                        /*************** stop service ************/
+                        *//*************** stop service ************//*
                         stopSelf();
                     }
                     break;
@@ -104,14 +92,14 @@ public class UpdateService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    /********* update UI ******/
+    *//********* update UI ******//*
     private final Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
             case DOWN_OK:
 
-                /********* 下载完成，点击安装 ***********/
+                *//********* 下载完成，点击安装 ***********//*
                 Uri uri = Uri.fromFile(FileUtil.updateFile);
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setDataAndType(uri, "application/vnd.android.package-archive");
@@ -135,11 +123,11 @@ public class UpdateService extends Service {
                 // app_name + getString(R.string.down_sucess), null);
                 notificationManager.notify(R.layout.notification_item, builder.build());
 
-                /***** 安装APK ******/
+                *//***** 安装APK ******//*
                  installApk();
 
                 // stopService(updateIntent);
-                /*** stop service *****/
+                *//*** stop service *****//*
                 stopSelf();
                 break;
 
@@ -164,14 +152,14 @@ public class UpdateService extends Service {
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT);
                 bd.setContentIntent(PendingIntent.getActivity(UpdateService.this, 0, i, 0));
                 notificationManager.notify(R.layout.notification_item, bd.build());
-                /*** stop service *****/
+                *//*** stop service *****//*
                 // onDestroy();
                 stopSelf();
                 break;
 
             default:
                 // stopService(updateIntent);
-                /****** Stop service ******/
+                *//****** Stop service ******//*
                 // stopService(intentname)
                 // stopSelf();
                 break;
@@ -181,26 +169,26 @@ public class UpdateService extends Service {
 
     private void installApk() {
         // TODO Auto-generated method stub
-        /********* 下载完成，点击安装 ***********/
+        *//********* 下载完成，点击安装 ***********//*
         Uri uri = Uri.fromFile(FileUtil.updateFile);
         Intent intent = new Intent(Intent.ACTION_VIEW);
 
-        /**********
+        *//**********
          * 加这个属性是因为使用Context的startActivity方法的话，就需要开启一个新的task
-         **********/
+         **********//*
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         intent.setDataAndType(uri, "application/vnd.android.package-archive");
         UpdateService.this.startActivity(intent);
     }
 
-    /**
+    *//**
      * 方法描述：createThread方法, 开线程下载
      * 
      * @param
      * @return
      * @see UpdateService
-     */
+     *//*
     public void createThread() {
         new DownLoadThread().start();
     }
@@ -225,13 +213,13 @@ public class UpdateService extends Service {
         }
     }
 
-    /**
+    *//**
      * 方法描述：createNotification方法
      * 
      * @param
      * @return
      * @see UpdateService
-     */
+     *//*
     public void createNotification() {
 
         // notification = new Notification(R.drawable.dot_enable,app_name +
@@ -240,7 +228,7 @@ public class UpdateService extends Service {
         notification.flags = Notification.FLAG_ONGOING_EVENT;
         // notification.flags = Notification.FLAG_AUTO_CANCEL;
 
-        /*** 自定义 Notification 的显示 ****/
+        *//*** 自定义 Notification 的显示 ****//*
         contentView = new RemoteViews(getPackageName(), R.layout.notification_item);
         contentView.setTextViewText(R.id.notificationTitle, app_name + "更新包正在下载...");
         contentView.setTextViewText(R.id.notificationPercent, "0%");
@@ -257,12 +245,12 @@ public class UpdateService extends Service {
         notificationManager.notify(R.layout.notification_item, notification);
     }
 
-    /***
+    *//***
      * down file
      * 
      * @return
      * @throws MalformedURLException
-     */
+     *//*
     public long downloadUpdateFile(String down_url, String file) throws Exception {
 
         int down_step = down_step_custom;// 提示step
@@ -294,7 +282,7 @@ public class UpdateService extends Service {
 
         while ((readsize = inputStream.read(buffer)) != -1) {
 
-            // /*********如果下载过程中出现错误，就弹出错误提示，并且把notificationManager取消*********/
+            // *//*********如果下载过程中出现错误，就弹出错误提示，并且把notificationManager取消*********//*
             // if (httpURLConnection.getResponseCode() == 404) {
             // notificationManager.cancel(R.layout.notification_item);
             // throw new Exception("fail!");
@@ -304,7 +292,7 @@ public class UpdateService extends Service {
 
             outputStream.write(buffer, 0, readsize);
             downloadCount += readsize;// 时时获取下载到的大小
-            /*** 每次增张1% **/
+            *//*** 每次增张1% **//*
             if (updateCount == 0 || (downloadCount * 100 / totalSize - down_step) >= updateCount) {
                 updateCount += down_step;
                 // 改变通知栏
@@ -321,6 +309,6 @@ public class UpdateService extends Service {
         outputStream.close();
 
         return downloadCount;
-    }
+    }*/
 
 }
