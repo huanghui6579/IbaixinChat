@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android" >
     <corners android:radius="@dimen/album_download_button_radius" />
-    <stroke android:width="@dimen/common_divider_height" android:color="@android:color/white" />
+    <stroke android:width="@dimen/common_divider_height" android:color="@color/album_item_download_btn_pressed" />
     <gradient android:startColor="@color/translucence_color" android:endColor="@color/translucence_color" />
 </shape>

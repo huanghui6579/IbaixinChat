@@ -30,6 +30,7 @@
     <color name="album_text_selected">#aaaaaa</color>
     <color name="album_top_layout_bg">#AA000000</color>
     <color name="album_item_selected_alpha">#AA999999</color>
+    <color name="album_item_download_btn_pressed">#AA606363</color>
     
     <color name="session_list_item_content">#999999</color>
     <color name="session_list_item_time">#99888888</color>

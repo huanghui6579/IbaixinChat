@@ -449,7 +449,7 @@ public class MsgManager extends Observable<Observer> {
 	 * @param msgThread
 	 * @return 创建后的会话
 	 */
-	public MsgThread createMsgThread(MsgThread msgThread) {
+	public synchronized MsgThread createMsgThread(MsgThread msgThread) {
 		if (msgThread == null) {
 			return null;
 		}
