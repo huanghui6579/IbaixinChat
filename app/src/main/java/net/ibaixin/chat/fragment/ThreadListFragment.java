@@ -479,6 +479,7 @@ public class ThreadListFragment extends BaseFragment implements LoaderCallbacks<
 		private void showIcon(UserVcard userVcard, ImageView imageView) {
 			if (userVcard != null) {
 				String iconPath = userVcard.getIconShowPath();
+				Log.d("---call--showIcon---iconPath--" + iconPath);
 				if (SystemUtil.isFileExists(iconPath)) {
 					String imageUri = Scheme.FILE.wrap(iconPath);
 					mImageLoader.displayImage(imageUri, imageView, options);
@@ -584,6 +585,7 @@ public class ThreadListFragment extends BaseFragment implements LoaderCallbacks<
 				if (thread == null) {
 					return;
 				}
+				Log.d("-----call----update--thread---notifyType----" + notifyType + "----" + thread);
 				switch (notifyType) {
 				case ADD:	//添加
 					if (mThreadAdapter != null) {
@@ -610,33 +612,41 @@ public class ThreadListFragment extends BaseFragment implements LoaderCallbacks<
 				case ADD:	//添加好友的电子名片信息
 				case UPDATE:	//更新好友的电子名片信息
 					if (data != null) {
-						final UserVcard userVcard = (UserVcard) data;
-						SystemUtil.getCachedThreadPool().execute(new Runnable() {
-							
-							@Override
-							public void run() {
-								Log.d("--call----Provider.UserVcardColumns-----UPDATE---userVcard---" + userVcard);
-								updateUserInfo(userVcard);
-							}
-						});
+						if (SystemUtil.isNotEmpty(mMsgThreads)) {
+							final UserVcard userVcard = (UserVcard) data;
+							SystemUtil.getCachedThreadPool().execute(new Runnable() {
+
+								@Override
+								public void run() {
+									Log.d("--call----Provider.UserVcardColumns-----UPDATE---userVcard---" + userVcard);
+									updateUserInfo(userVcard);
+								}
+							});
+						} else {
+							Log.d("---MsgThreads--is empty--");
+						}
 					}
 					break;
 				case BATCH_UPDATE:	//批量更新
 					if (data != null) {
-						//username为key，vcard为value
-						final Map<String, UserVcard> userVcards = (Map<String, UserVcard>) data;
-						if (!SystemUtil.isEmpty(userVcards)) {
-							final Set<String> keys = userVcards.keySet();
-							SystemUtil.getCachedThreadPool().execute(new Runnable() {
-								
-								@Override
-								public void run() {
-									for (String key : keys) {
-										Log.d("--call----Provider.UserVcardColumns-----BATCH_UPDATE---userVcard---" + userVcards.get(key));
-										updateUserInfo(userVcards.get(key));
+						if (SystemUtil.isNotEmpty(mMsgThreads)) {
+							//username为key，vcard为value
+							final Map<String, UserVcard> userVcards = (Map<String, UserVcard>) data;
+							if (!SystemUtil.isEmpty(userVcards)) {
+								final Set<String> keys = userVcards.keySet();
+								SystemUtil.getCachedThreadPool().execute(new Runnable() {
+
+									@Override
+									public void run() {
+										for (String key : keys) {
+											Log.d("--call----Provider.UserVcardColumns-----BATCH_UPDATE---userVcard---" + userVcards.get(key));
+											updateUserInfo(userVcards.get(key));
+										}
 									}
-								}
-							});
+								});
+							}
+						} else {
+							Log.d("---MsgThreads--is empty--");
 						}
 					}
 					break;

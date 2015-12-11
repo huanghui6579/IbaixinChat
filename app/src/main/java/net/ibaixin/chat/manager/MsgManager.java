@@ -461,14 +461,14 @@ public class MsgManager extends Observable<Observer> {
 		try {
 			long rowId = db.insert(Provider.MsgThreadColumns.TABLE_NAME, null, values);
 			if (rowId > 0) {
-				if (memberIds != null) {
-					int threadId = getThreadIdByMemberIds(memberIds);
+//				if (memberIds != null) {
+//					int threadId = getThreadIdByMemberIds(memberIds);
 					//查询刚创建的会哈id
-					msgThread.setId(threadId);
+					msgThread.setId((int) rowId);
 					
 					//添加到缓存
-					mThreadCache.put(threadId, msgThread);
-				}
+					mThreadCache.put((int) rowId, msgThread);
+//				}
 				db.setTransactionSuccessful();
 				notifyObservers(Provider.MsgThreadColumns.NOTIFY_FLAG, NotifyType.ADD, msgThread);
 			}
