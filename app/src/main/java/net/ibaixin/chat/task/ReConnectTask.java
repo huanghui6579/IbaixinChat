@@ -24,13 +24,23 @@ public class ReConnectTask extends TimerTask {
 	 * 重连次数，最多重连3次
 	 */
 	public static final int RECONNECT_TIME = 3;
+
+	/**
+	 * 是不是仅仅执行登录操作
+	 */
+	private boolean mIsJustLogin = false;
 	
 	public ReConnectTask() {}
 	
 	public ReConnectTask(LoginCallBack callback) {
 		this.mCallback = callback;
 	}
-	
+
+	public ReConnectTask(LoginCallBack callback, boolean isJustLogin) {
+		this.mCallback = callback;
+		this.mIsJustLogin = isJustLogin;
+	}
+
 	/**
 	 * 设置回调
 	 * @update 2015年6月26日 下午8:32:50
@@ -39,7 +49,7 @@ public class ReConnectTask extends TimerTask {
 	public void setLoginCallback(LoginCallBack callback) {
 		this.mCallback = callback;
 	}
-	
+
 	@Override
 	public void run() {
 		Log.d("--------ReConnectTask------run--");
@@ -50,11 +60,17 @@ public class ReConnectTask extends TimerTask {
 			AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
 			try {
 				if (connection != null) {
-					if (!connection.isConnected()) {
-						connection.connect();
-					}
-					if (!connection.isAuthenticated()) {
+					if (mIsJustLogin) {
+						Log.d("--------ReConnectTask------run----just--login--");
 						connection.login(username, password, Constants.CLIENT_RESOURCE);
+					} else {
+						Log.d("--------ReConnectTask------run----connet--and--login----");
+						if (!connection.isConnected()) {
+							connection.connect();
+						}
+						if (!connection.isAuthenticated()) {
+							connection.login(username, password, Constants.CLIENT_RESOURCE);
+						}
 					}
 					if (mCallback != null) {
 						mCallback.onLoginSuccessful();
@@ -68,6 +84,9 @@ public class ReConnectTask extends TimerTask {
 					Log.e(e == null ? "" : "---e.getName---" + e.getClass().getName() + "-----" + e.getMessage());
 				} else {
 					Log.d("-----alread loginedin-----");
+					if (mCallback != null) {
+						mCallback.onLoginSuccessful();
+					}
 				}
 			}
 		}

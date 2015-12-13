@@ -212,12 +212,25 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
                                                                 msgPart.setDownloaded(true);
                                                                 msgPart.setMsgId(msgInfo.getMsgId());
                                                                 msgPart.setId(0);
+                                                                msgPart.setFileToken(null);
+                                                                String thumbPath = msgPart.getThumbPath();
+                                                                String filePath = msgPart.getFilePath();
+                                                                if (SystemUtil.isFileExists(filePath)) {    //原始文件存在
+                                                                    SystemUtil.generateThumbFile(filePath);
+                                                                    msgPart.setThumbName(SystemUtil.getFilename(thumbPath));
+                                                                } else {    //原始文件不存在，则将缩略图当原始图片发送
+                                                                    msgPart.setFilePath(thumbPath);
+                                                                    msgPart.setFileName(SystemUtil.getFilename(thumbPath));
+
+                                                                    msgPart.setThumbName(null);
+                                                                    msgPart.setThumbPath(null);
+                                                                }
 
                                                                 if (mSendType == SEND_TYPE_SHARE) { //分享过来的
                                                                     if (msgInfo.getMsgType() == MsgInfo.Type.IMAGE) {
                                                                         //生成缩略图
                                                                         String thumbName = SystemUtil.generateChatThumbAttachFilename(time);
-                                                                        String savePath = ImageUtil.generateThumbImage(msgPart.getFilePath(), msgInfo.getThreadID(), thumbName);
+                                                                        String savePath = ImageUtil.generateThumbImage(filePath, msgInfo.getThreadID(), thumbName);
                                                                         if (savePath != null) {
                                                                             msgPart.setThumbName(thumbName);
                                                                             msgPart.setThumbPath(savePath);

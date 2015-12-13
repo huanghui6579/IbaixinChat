@@ -864,9 +864,11 @@ public class MsgManager extends Observable<Observer> {
 				if (msgPart != null) {
 					item.setThumbPath(msgPart.getThumbPath());
 					item.setFilePath(msgPart.getFilePath());
+					item.setFileName(msgPart.getFileName());
 					item.setFileToken(msgPart.getFileToken());
 					item.setNeedDownload(!msgPart.isDownloaded());
 					item.setSize(msgPart.getSize());
+					item.setMime(msgPart.getMimeType());
 
 				}
 

@@ -15,7 +15,8 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 	 * 缩略图路径
 	 */
 	private String thumbPath;
-	
+
+
 	public String getThumbPath() {
 		return thumbPath;
 	}

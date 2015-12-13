@@ -11,6 +11,14 @@ public abstract class DownloadItem {
      */
     protected String msgId;
     /**
+     * 文件名
+     */
+    private String fileName;
+    /**
+     * 文件的mime
+     */
+    private String mime;
+    /**
      * 文件的全路径
      */
     protected String filePath;
@@ -108,10 +116,28 @@ public abstract class DownloadItem {
         this.fileType = fileType;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getMime() {
+        return mime;
+    }
+
+    public void setMime(String mime) {
+        this.mime = mime;
+    }
+
     @Override
     public String toString() {
         return "DownloadItem{" +
                 "msgId='" + msgId + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", mime='" + mime + '\'' +
                 ", filePath='" + filePath + '\'' +
                 ", size=" + size +
                 ", time=" + time +

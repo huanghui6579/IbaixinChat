@@ -53,6 +53,7 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
+import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
@@ -1933,7 +1934,52 @@ public class SystemUtil {
 	}
 	
 	/**
-	 * 根据原始图片生成本地图片的缓存
+	 * 获取相册里原始图片的压缩图片，压缩的尺寸大小为{@link ImageLoader#configuration}中的尺寸，并没有对图片进行质量压缩,生成压缩图片的路径在默认的配置中
+	 * @param filePath 原始图片的路径
+	 * @author tiger
+	 * @update 2015/12/12 21:55
+	 * @version 1.0.0
+	 * @return 是否生成成功，true：生成成功
+	 */
+	public static boolean generateThumbFile(String filePath) {
+		boolean success = false;
+		if (!TextUtils.isEmpty(filePath)) {
+			ImageLoader imageLoader = ImageLoader.getInstance();
+			File file = DiskCacheUtils.findInCache(Scheme.FILE.wrap(filePath), imageLoader.getDiskCache());
+			if (file == null || !file.exists() || file.length() == 0) {	//文件不存在或者没有内容
+				success = saveBitmap(filePath);
+			} else {
+				success = true;
+			}
+		}
+		Log.d("---generateThumbFile---result---" + success + "----filePath----" + filePath);
+		return success;
+	}
+
+	/**
+	 * 生成原始图片的压缩图片，并保存到本地磁盘
+	 * @param filePath 原始图片的路径
+	 * @author tiger
+	 * @update 2015/12/12 21:38
+	 * @version 1.0.0
+	 * @return 是否保存成功，true：保存成功
+	 */
+	public static boolean saveBitmap(String filePath) {
+		boolean success = false;
+		if (!TextUtils.isEmpty(filePath)) {
+			String fileUri = Scheme.FILE.wrap(filePath);
+			Bitmap bitmap = ImageUtil.loadImageThumbnailsSync(fileUri);
+			if (bitmap != null) {
+				success = saveBitmap(null, bitmap, filePath);
+			} else {
+				Log.d("---bitmap--is--null--filePath---" + filePath);
+			}
+		}
+		return success;
+	}
+	
+	/**
+	 * 根据原始图片生成本地图片的缓存,中途的用到的bitmap已经做了回收处理了
 	 * @update 2014年11月19日 下午6:03:58
 	 * @param imageLoader
 	 * @param bitmap
@@ -1950,11 +1996,11 @@ public class SystemUtil {
 	}
 
 	/**
-	 * 根据原始图片生成本地图片的缓存
+	 * 根据原始图片生成本地图片的缓存,中途的用到的bitmap已经做了回收处理了
 	 * @update 2014年11月19日 下午6:03:58
 	 * @param imageLoader
 	 * @param bitmap
-	 * @param filePath
+	 * @param filePath 原始文件的路径
 	 * @return
 	 */
 	public static boolean saveBitmap(ImageLoader imageLoader, Bitmap bitmap, String filePath) {
@@ -2740,7 +2786,7 @@ public class SystemUtil {
 	}
 	
 	/**
-	 * Generate a value suitable for use in {@link #View.setId(int)}.
+	 * Generate a value suitable for use in {@link View#setId(int)}.
 	 * This value will not collide with ID values generated at build time by aapt for R.id.
 	 *
 	 * @return a generated ID value

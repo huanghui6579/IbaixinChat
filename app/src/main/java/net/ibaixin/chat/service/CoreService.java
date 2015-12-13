@@ -589,8 +589,9 @@ public class CoreService extends Service {
 						attachDto.setSender(sender);
 						attachDto.setReceiver(receiver);
 						attachDto.setMimeType(mimeType);
-						
-						File sendFile = new File(msgPart.getFilePath());
+
+						String filePath = msgPart.getFilePath();
+						File sendFile = new File(filePath);
 						
 						final MessageTypeExtension typeExtension = new MessageTypeExtension();
 						typeExtension.setFileName(fileName);
@@ -605,15 +606,22 @@ public class CoreService extends Service {
 							attachDto.setThumbName(thumbName);
 							typeExtension.setThumbName(thumbName);
 							if (!senderInfo.originalImage) {	//非原图发送，则需压缩图片
-								sendFile = DiskCacheUtils.findInCache(Scheme.FILE.wrap(msgPart.getFilePath()), mImageLoader.getDiskCache());
-								File originalFile = new File(msgPart.getFilePath());
-								if (sendFile.length() > originalFile.length()) {	//压缩后的图片比原始图片还大，则直接发送原始图片
+								sendFile = DiskCacheUtils.findInCache(Scheme.FILE.wrap(filePath), mImageLoader.getDiskCache());
+								File originalFile = new File(filePath);
+								if (sendFile != null) {
+									if (sendFile.length() > originalFile.length()) {	//压缩后的图片比原始图片还大，则直接发送原始图片
+										sendFile = originalFile;
+									}
+								} else {	//直接发送原图
 									sendFile = originalFile;
 								}
 							}
+							String thumbPath = msgPart.getThumbPath();
 							File[] uploads = new File[2];
 							uploads[0] = sendFile;
-							uploads[1] = new File(msgPart.getThumbPath());	//发送压缩图片的同时，还要发送该压缩图片的缩略图
+							if (!TextUtils.isEmpty(thumbName) && !TextUtils.isEmpty(thumbPath)) {	//缩略图存在
+								uploads[1] = new File(thumbPath);	//发送压缩图片的同时，还要发送该压缩图片的缩略图
+							}
 							files.put("uploadFile", uploads);
 							break;
 						case LOCATION:	//地理位置消息
@@ -698,8 +706,7 @@ public class CoreService extends Service {
 					}
 				} catch (Exception e) {
 					msgInfo.setSendState(SendState.FAILED);
-					e.printStackTrace();
-					Log.d("-------发送失败------");
+					Log.d("-------发送失败------\n" + e.getMessage());
 				}
 			} else {
 				msgInfo.setSendState(SendState.FAILED);
@@ -1211,10 +1218,12 @@ public class CoreService extends Service {
 					switch (msgType) {
 					case IMAGE:	//先下载缩略图
 						String thumbName = typeExtension.getThumbName();
-						String thumbPath = SystemUtil.generateChatThumbAttachFilePath(threadId, SystemUtil.generateChatThumbAttachFilename(saveName));
-						
-						msgPart.setThumbName(thumbName);
-						msgPart.setThumbPath(thumbPath);
+						if (!TextUtils.isEmpty(thumbName)) {	//有缩略图
+							String thumbPath = SystemUtil.generateChatThumbAttachFilePath(threadId, SystemUtil.generateChatThumbAttachFilename(saveName));
+
+							msgPart.setThumbName(thumbName);
+							msgPart.setThumbPath(thumbPath);
+						}
 						break;
 					default:
 						break;
@@ -1244,8 +1253,11 @@ public class CoreService extends Service {
 				int fileType = -1;
 				switch (msgType) {
 					case IMAGE:	//先下载缩略图
-
-						fileType = Constants.FILE_TYPE_THUMB;
+						if (TextUtils.isEmpty(msgPart.getThumbName())) {	//没有缩略图，则直接下载原图
+							fileType = Constants.FILE_TYPE_ORIGINAL;
+						} else {
+							fileType = Constants.FILE_TYPE_THUMB;
+						}
 						break;
 					case LOCATION:	//地理位置,下载原始图片，地理位置不存在缩略图
 					case VOICE:	//语音
@@ -1299,6 +1311,18 @@ public class CoreService extends Service {
 		@Override
 		public void onSuccess(int downloadId, String filePath) {
 			Log.d("---------文件下载成功-----downloadId-----" + downloadId + "-------------" + filePath);
+			if (!msgInfo.hasThumbFile()) {	//没有缩略图，则下载的是原图,需更新是否downloaded字段为true
+				msgInfo.setDownloaded(true);
+				final MsgPart msgPart = msgInfo.getMsgPart();
+				if (msgPart != null) {
+					SystemUtil.getCachedThreadPool().execute(new Runnable() {
+						@Override
+						public void run() {
+							msgManager.updateMsgPartDownload(msgPart, false);
+						}
+					});
+				}
+			}
 			msgManager.notifyObservers(Provider.MsgInfoColumns.NOTIFY_FLAG, Observer.NotifyType.UPDATE, msgInfo);
 //								Intent intent = new Intent(ChatActivity.MsgProcessReceiver.ACTION_REFRESH_MSG);
 //								sendBroadcast(intent);

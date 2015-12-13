@@ -215,6 +215,38 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 	}
 
 	/**
+	 * 判断该消息是否有缩略图
+	 * @author tiger
+	 * @update 2015/12/13 11:13
+	 * @version 1.0.0
+	 * @return 是否有缩略图
+	 */
+	public boolean hasThumbFile() {
+		boolean flag = false;
+		if (msgPart != null) {
+			String thumbName = msgPart.getThumbName();
+			if (TextUtils.isEmpty(thumbName)) {
+				if (SystemUtil.isFileExists(msgPart.getThumbPath())) {
+					flag = true;
+				}
+			} else {
+				flag = true;
+			}
+		}
+		return flag;
+	}
+
+	/**
+	 * 设置消息的附件是否下载原始图片
+	 * @param downloaded
+	 */
+	public void setDownloaded(boolean downloaded) {
+		if (msgPart != null) {
+			msgPart.setDownloaded(downloaded);
+		}
+	}
+
+	/**
 	 * 获取会话的摘要
 	 * @return 范湖会话的摘要
 	 * @author tiger

@@ -6,6 +6,7 @@ import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.task.ReConnectTask;
 import net.ibaixin.chat.util.Log;
+import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.util.XmppConnectionManager;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -87,6 +88,8 @@ public class ChatConnectionListener implements ConnectionListener, ReConnectTask
 		loginTime = 0;
 		if (mTimer != null) {
 			mTimer.cancel();
+			//仅执行登录操作
+			SystemUtil.getCachedThreadPool().execute(new ReConnectTask(this, true));
 		}
 		// TODO Auto-generated method stub
 		Log.d("----ChatConnectionListener-----reconnectionSuccessful------------");

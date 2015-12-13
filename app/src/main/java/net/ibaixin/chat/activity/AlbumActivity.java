@@ -53,6 +53,7 @@ import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.model.Album;
 import net.ibaixin.chat.model.FileItem;
 import net.ibaixin.chat.model.MsgInfo;
+import net.ibaixin.chat.model.MsgPart;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.DensityUtil;
@@ -522,7 +523,24 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					
 					@Override
 					public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-						return super.onActionItemClicked(mode, item);
+						switch (item.getItemId()) {
+							case R.id.action_forward:	//转发
+								if (mPhotoAdapter != null) {
+									SystemUtil.getCachedThreadPool().execute(new Runnable() {
+										@Override
+										public void run() {
+											ArrayList<MsgInfo> msgInfos = mPhotoAdapter.getSelectMsgInfos();
+											if (SystemUtil.isNotEmpty(msgInfos)) {
+
+											} else {
+												Log.d("---not select photoitem---");
+											}
+										}
+									});
+								}
+								break;
+						}
+						return false;
 					}
 
 					@Override
@@ -1002,6 +1020,53 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				}
 			}
 			return selects;
+		}
+		
+		/**
+		 * 将所选择的图片组装成一组消息
+		 * @author tiger
+		 * @update 2015/12/12 11:02
+		 * @version 1.0.0
+		 * @return 返回一组选择的消息
+		 */
+		public ArrayList<MsgInfo> getSelectMsgInfos() {
+			if (mIsAlbumManager) {
+				ArrayList<MsgInfo> selects = new ArrayList<>();
+				int len = selectArray.size();
+				for (int i = 0; i < len; i++) {
+					boolean value = selectArray.valueAt(i);
+					if (value) {
+						int position = selectArray.keyAt(i);
+						PhotoItem photoItem = mPhotos.get(position);
+
+						MsgInfo msgInfo = new MsgInfo();
+						FileItem.FileType fileType = photoItem.getFileType();
+						switch (fileType) {
+							case IMAGE:	//图片
+								msgInfo.setMsgType(MsgInfo.Type.IMAGE);
+								break;
+							case VIDEO:	//视频
+								msgInfo.setMsgType(MsgInfo.Type.VIDEO);
+								break;
+							default:	//其他
+								msgInfo.setMsgType(MsgInfo.Type.FILE);
+								break;
+						}
+						MsgPart msgPart = new MsgPart();
+						msgPart.setThumbPath(photoItem.getThumbPath());
+						msgPart.setFileName(photoItem.getFileName());
+						msgPart.setFilePath(photoItem.getFilePath());
+						msgPart.setMimeType(photoItem.getMime());
+						msgPart.setSize(photoItem.getSize());
+
+						msgInfo.setMsgPart(msgPart);
+
+						selects.add(msgInfo);
+					}
+				}
+				return selects;
+			}
+			return null;
 		}
 		
 		@Override

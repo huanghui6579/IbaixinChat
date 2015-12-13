@@ -39,6 +39,7 @@ import net.ibaixin.chat.model.FileItem;
 import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.util.Constants;
+import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
 import net.ibaixin.chat.util.SystemUtil;
 
@@ -515,7 +516,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	public void onClick(View v) {
 		switch (v.getId()) {
 			case R.id.downloadOriginal:	//下载原始图片
-				/*if (photoAdapter != null) {
+				if (photoAdapter != null) {
 					int position = mViewPager.getCurrentItem();
 					int viewId = mViewIdArray.get(position, 0);
 					if (viewId != 0) {
@@ -540,7 +541,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 							});
 						}
 					}
-				}*/
+				}
 				break;
 		}
 	}

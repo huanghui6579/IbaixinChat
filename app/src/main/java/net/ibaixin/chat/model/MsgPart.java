@@ -2,7 +2,8 @@ package net.ibaixin.chat.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.text.TextUtils;
+
+import net.ibaixin.chat.util.SystemUtil;
 
 /**
  * 消息的附件类
@@ -171,7 +172,7 @@ public class MsgPart implements Parcelable, Cloneable {
 	 * @return
 	 */
 	public String getShowPath() {
-		if (!TextUtils.isEmpty(thumbPath)) {
+		if (SystemUtil.isFileExists(thumbPath)) {
 			return thumbPath;
 		} else {
 			return filePath;
