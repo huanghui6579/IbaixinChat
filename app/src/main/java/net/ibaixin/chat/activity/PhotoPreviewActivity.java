@@ -242,6 +242,17 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		totalCount = mPhotos.size();
 		setTitle(getString(R.string.album_preview_photo_index, currentPostion + 1, totalCount));
 	}
+
+	/**
+	 * 显示底部栏
+	 */
+	private void showBottomLayout() {
+		if (layoutBottom != null) {
+			if (layoutBottom.getVisibility() != View.VISIBLE) {
+				layoutBottom.setVisibility(View.VISIBLE);
+			}
+		}
+	}
 	
 	/**
 	 * 初始化一些数据
@@ -356,6 +367,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 
 			@Override
 			public void onPageSelected(int position) {
+				Log.d("----onPageSelected----position---" + position);
 				// TODO Auto-generated method stub
 				boolean showDownloadBtn = false;
 				currentPostion = position;
@@ -367,6 +379,19 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 						if (photoItem.isNeedDownload() || !SystemUtil.isFileExists(filePath)) {	//需要下载原始图片
 							showDownloadBtn = true;
 						}
+						if (photoItem.getFileType() == FileItem.FileType.VIDEO) {	//视频文件
+							cbOrigianlImage.setVisibility(View.GONE);
+							mTvFileSize.setVisibility(View.VISIBLE);
+							mTvFileSize.setText(getString(R.string.album_video_size, SystemUtil.sizeToString(photoItem.getSize())));
+						} else {	//图片
+							showDownloadBtn = photoItem.isNeedDownload();
+						}
+						if (showDownloadBtn) {
+							mBtnDownload.setText(getString(R.string.album_download_original_image_size, SystemUtil.sizeToString(photoItem.getSize())));
+							mBtnDownload.setVisibility(View.VISIBLE);
+						} else {
+							mBtnDownload.setVisibility(View.GONE);
+						}
 					}
 				} else {
 					cbChose.setOnCheckedChangeListener(null);
@@ -374,13 +399,6 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 					addCheckImageListener();
 					if (mMenuDone != null) {
 						updateBtnOpt(selectCount);
-					}
-				}
-				if (showDownloadBtn) {	//显示下载按钮
-					mBtnDownload.setVisibility(View.VISIBLE);
-				} else {
-					if (mBtnDownload.getVisibility() == View.VISIBLE) {
-						mBtnDownload.setVisibility(View.GONE);
 					}
 				}
 			}
@@ -432,6 +450,13 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		return showMode == MODE_DISPLAY;
 	}
 
+	/**
+	 * 初始化
+	 */
+	private void initDownloadButton() {
+		
+	}
+
 	@Override
 	protected void onNewIntent(Intent intent) {
 		/*
@@ -447,9 +472,19 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 
 		initData();
 	}
-	
+
+	/**
+	 * 重置view的一些状态
+	 */
 	private void resetView() {
+		if (SystemUtil.isFullScreen(this)) {	//判断是否是全屏
+			fullScreen(false);
+		}
 		mBtnDownload.setVisibility(View.GONE);
+		showBottomLayout();
+		if (mAppBar != null) {
+			mAppBar.setVisibility(View.VISIBLE);
+		}
 		
 	}
 
@@ -578,19 +613,6 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				PhotoItem photoItem = mPhotos.get(position);
 				if (msgInfo != null) {
 					photoItem.setMsgId(msgInfo.getMsgId());
-				}
-				boolean showDownloadBtn = false;
-				if (photoItem.getFileType() == FileItem.FileType.VIDEO) {	//视频文件
-					cbOrigianlImage.setVisibility(View.GONE);
-					mTvFileSize.setVisibility(View.VISIBLE);
-					mTvFileSize.setText(getString(R.string.album_video_size, SystemUtil.sizeToString(photoItem.getSize())));
-				} else {	//图片
-					showDownloadBtn = photoItem.isNeedDownload();
-				}
-				if (showDownloadBtn) {
-					mBtnDownload.setVisibility(View.VISIBLE);
-				} else {
-					mBtnDownload.setVisibility(View.GONE);
 				}
 				args.putParcelable(PhotoFragment.ARG_PHOTO, photoItem);
 				args.putBoolean(PhotoFragment.ARG_TOUCH_FINISH, mOnTouchFinish);
