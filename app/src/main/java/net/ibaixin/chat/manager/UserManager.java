@@ -415,7 +415,7 @@ public class UserManager extends Observable<Observer> {
 		if (cursor != null) {
 			cursor.close();
 		}
-		
+		Log.d("-----saveOrUpdateFriend---UserCache--" + mUserCache);
 		return user;
 	}
 	
@@ -748,7 +748,7 @@ public class UserManager extends Observable<Observer> {
 				SystemUtil.deleteFile(iconPath);
 			}
 		}
-		int rowId = db.update(Provider.UserVcardColumns.TABLE_NAME, cardVaules, Provider.UserVcardColumns._ID + " = ?", new String[] {String.valueOf(vcard.getId())});
+		int rowId = db.update(Provider.UserVcardColumns.TABLE_NAME, cardVaules, Provider.UserVcardColumns._ID + " = ?", new String[]{String.valueOf(vcard.getId())});
 		if (rowId > 0) {
 			//更新缓存的电子名片信息
 			User tUser = mUserCache.get(user.getUsername());
@@ -818,7 +818,7 @@ public class UserManager extends Observable<Observer> {
 			User tUser = mUserCache.get(user.getUsername());
 			long rowId = db.update(Provider.UserVcardColumns.TABLE_NAME, values, Provider.UserVcardColumns.USERID + " = ?", new String[] {String.valueOf(vcard.getUserId())});
 			if (rowId > 0) {	//更新成功
-				if (tUser != null) {
+				if (tUser != null) {	//缓存中有
 					UserVcard tCard = tUser.getUserVcard();
 					if (tCard != null) {
 						tCard.setNickname(vcard.getNickname());
@@ -826,6 +826,9 @@ public class UserManager extends Observable<Observer> {
 					} else {
 						tUser.setUserVcard(vcard);
 					}
+				} else {	//缓存中没有
+					Log.d("-----saveOrUpdateSimpleVcard---username-----is---null--in---cache-----whell--add----to---cache----" + user.getUsername());
+					mUserCache.put(user.getUsername(), user);
 				}
 				if (notifyObserver) {
 					Log.d("-----call----saveOrUpdateSimpleVcard----Provider.UserVcardColumns.NOTIFY_FLAG----NotifyType.UPDATE----");
@@ -835,7 +838,7 @@ public class UserManager extends Observable<Observer> {
 				values.put(Provider.UserVcardColumns.USERID, vcard.getUserId());
 				rowId= db.insert(Provider.UserVcardColumns.TABLE_NAME, Provider.UserVcardColumns.USERID, values);
 				if (rowId > 0) {	//添加成功
-					if (tUser != null) {
+					if (tUser != null) {	//缓存中有
 						UserVcard tCard = tUser.getUserVcard();
 						if (tCard != null) {
 							tCard.setNickname(vcard.getNickname());
@@ -843,6 +846,9 @@ public class UserManager extends Observable<Observer> {
 						} else {
 							tUser.setUserVcard(vcard);
 						}
+					} else {	//缓存中没有
+						Log.d("-----saveOrUpdateSimpleVcard---username-----is---null--in---cache-----whell--add----to---cache----" + user.getUsername());
+						mUserCache.put(user.getUsername(), user);
 					}
 					if (notifyObserver) {
 						Log.d("-----call----saveOrUpdateSimpleVcard----Provider.UserVcardColumns.NOTIFY_FLAG----NotifyType.UPDATE----");
@@ -886,6 +892,15 @@ public class UserManager extends Observable<Observer> {
 					} else {
 						tUser.setUserVcard(vcard);
 					}
+				} else {
+					//从数据库中查询该电子名片信息
+					String username = user.getUsername();
+					if (username == null) {
+						getUserDetailById(user.getId());
+					} else {
+						getUserByUsername(username);
+					}
+					Log.d("--updateUserVcardThumbIcon---username---" + user.getUsername() + "-------from---cache---is---null---whell---add---to--cache--");
 				}
 				success = true;
 				Log.d("-----call----updateUserVcardThumbIcon----Provider.UserVcardColumns.NOTIFY_FLAG----NotifyType.UPDATE----" + vcard);
@@ -951,7 +966,7 @@ public class UserManager extends Observable<Observer> {
 			boolean success = false;
 			if (rowId > 0) {
 				User tUser = mUserCache.get(user.getUsername());
-				if (tUser != null) {
+				if (tUser != null) {	//缓存中存在
 					UserVcard tVcard = tUser.getUserVcard();
 					if (tVcard != null) {
 						tVcard.setIconPath(vcard.getIconPath());
@@ -959,6 +974,14 @@ public class UserManager extends Observable<Observer> {
 						tVcard.setIconHash(vcard.getIconHash());
 					} else {
 						tUser.setUserVcard(vcard);
+					}
+				} else {	//缓存中不存在，则从数据库中加载
+					//从数据库中查询该电子名片信息
+					String username = user.getUsername();
+					if (username == null) {
+						getUserDetailById(user.getId());
+					} else {
+						getUserByUsername(username);
 					}
 				}
 				success = true;
@@ -1335,6 +1358,9 @@ public class UserManager extends Observable<Observer> {
 				if (cursor != null) {
 					cursor.close();
 				}
+				Log.d("-----getUserByUsername----from----DB----username--" + username);
+			} else {
+				Log.d("-----getUserByUsername----from----UserCache----username--" + username + "---user---" + mUserCache.get(username));
 			}
 		}
 		return user;
