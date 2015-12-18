@@ -6,7 +6,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.os.AsyncTaskCompat;
@@ -15,12 +14,10 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPropertyAnimatorCompat;
 import android.support.v7.internal.view.ViewPropertyAnimatorCompatSet;
 import android.util.SparseBooleanArray;
-import android.util.SparseIntArray;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -140,8 +137,6 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	 */
 	private Button mBtnDownload;
 
-	private SparseIntArray mViewIdArray;
-	
 	private Handler mHandler = new Handler() {
 
 		@Override
@@ -210,7 +205,6 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	
 	@Override
 	protected void initData() {
-		mViewIdArray = new SparseIntArray();
 		Intent intent = getIntent();
 		mPhotos = intent.getParcelableArrayListExtra(ARG_PHOTO_LIST);
 		currentPostion = intent.getIntExtra(ARG_POSITION, 0);
@@ -553,28 +547,28 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			case R.id.downloadOriginal:	//下载原始图片
 				if (photoAdapter != null) {
 					int position = mViewPager.getCurrentItem();
-					int viewId = mViewIdArray.get(position, 0);
-					if (viewId != 0) {
-						PhotoFragment photoFragment = (PhotoFragment) getSupportFragmentManager().findFragmentById(viewId);
-						if (photoFragment != null) {
-							photoFragment.downloadPhotoItem(new PhotoFragment.DownloadCallback() {
-								@Override
-								public void onSuccess(PhotoItem photoItem, String filePath) {
-									PhotoItem currentItem = getCurrentItem();
-									if (currentItem != null) {
-										if (photoItem.getMsgId().equals(currentItem.getMsgId())) {	//同一张图片，界面没有一切换
-											currentItem.setNeedDownload(false);
-											mHandler.sendEmptyMessage(Constants.MSG_DOWNLOAD_SUCCESS);
-										}
+					Object obj = photoAdapter.instantiateItem(mViewPager, position);
+					if (obj != null) {
+						PhotoFragment photoFragment = (PhotoFragment) obj;
+						photoFragment.downloadPhotoItem(new PhotoFragment.DownloadCallback() {
+							@Override
+							public void onSuccess(PhotoItem photoItem, String filePath) {
+								PhotoItem currentItem = getCurrentItem();
+								if (currentItem != null) {
+									if (photoItem.getMsgId().equals(currentItem.getMsgId())) {	//同一张图片，界面没有一切换
+										currentItem.setNeedDownload(false);
+										mHandler.sendEmptyMessage(Constants.MSG_DOWNLOAD_SUCCESS);
 									}
 								}
+							}
 
-								@Override
-								public void onFailed(PhotoItem photoItem, int statusCode, String errMsg) {
-									Log.d("----photoItem--orifinal image download failed--" + photoItem + "---statusCode---" + statusCode + "--errMsg--" + errMsg);
-								}
-							});
-						}
+							@Override
+							public void onFailed(PhotoItem photoItem, int statusCode, String errMsg) {
+								Log.d("----photoItem--orifinal image download failed--" + photoItem + "---statusCode---" + statusCode + "--errMsg--" + errMsg);
+							}
+						});
+					} else {
+						Log.d("---download---photoitem---viewpager---position---" + position + "---fragment--is--null---");
 					}
 				}
 				break;
@@ -618,21 +612,6 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				args.putBoolean(PhotoFragment.ARG_TOUCH_FINISH, mOnTouchFinish);
 			}
 			return android.support.v4.app.Fragment.instantiate(mContext, PhotoFragment.class.getCanonicalName(), args);
-		}
-
-		@Override
-		public Object instantiateItem(ViewGroup container, int position) {
-			Fragment fragment = (Fragment) super.instantiateItem(container, position);
-			if (fragment != null) {
-				mViewIdArray.put(position, fragment.getId());
-			}
-			return fragment;
-		}
-
-		@Override
-		public void destroyItem(ViewGroup container, int position, Object object) {
-			super.destroyItem(container, position, object);
-			mViewIdArray.delete(position);
 		}
 
 		@Override
