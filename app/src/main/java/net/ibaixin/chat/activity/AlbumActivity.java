@@ -21,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -29,6 +30,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
 import android.widget.AbsListView.LayoutParams;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
@@ -76,15 +78,15 @@ import java.util.Set;
  * @update 2014年11月13日 下午9:08:50
  */
 public class AlbumActivity extends BaseActivity implements OnClickListener {
-	public static final int REQ_PARENT_MAKE_IMG_MSG = 300;
-	public static final int REQ_PARENT_MAKE_VIDEO_MSG = 301;
-	public static final int REQ_PARENT_CLIP_ICON = 302;
+	public static final int REQ_PARENT_MAKE_IMG_MSG = 10;
+	public static final int REQ_PARENT_MAKE_VIDEO_MSG = 11;
+	public static final int REQ_PARENT_CLIP_ICON = 12;
 	
-	public static final int REQ_PREVIEW_IMAGE = 101;
-	public static final int REQ_TAKE_PIC = 102;
-	public static final int REQ_CLIP_PIC = 103;
-	public static final int REQ_TAKE_CLIP_PIC = 104;
-	public static final int REQ_TAKE_VIDEO = 105;
+	public static final int REQ_PREVIEW_IMAGE = 13;
+	public static final int REQ_TAKE_PIC = 14;
+	public static final int REQ_CLIP_PIC = 15;
+	public static final int REQ_TAKE_CLIP_PIC = 16;
+	public static final int REQ_TAKE_VIDEO = 17;
 	
 	public static final String ARG_REQ_CODE = "arg_req_code";
 	public static final String ARG_IS_IMAGE = "arg_is_image";
@@ -100,7 +102,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	
 	private GridView gvPhoto;
 	private ProgressWheel pbLoading;
-	private TextView tvAllPhoto;
+	private Button tvAllPhoto;
 	private TextView tvPreview;
 	private TextView tvTime;
 	private MenuItem mMenuDone;
@@ -219,7 +221,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	protected void initView() {
 		gvPhoto = (GridView) findViewById(R.id.gv_photo);
 		pbLoading = (ProgressWheel) findViewById(R.id.pb_loading);
-		tvAllPhoto = (TextView) findViewById(R.id.tv_all_photo);
+		tvAllPhoto = (Button) findViewById(R.id.tv_all_photo);
 		tvPreview = (TextView) findViewById(R.id.tv_preview);
 		tvTime = (TextView) findViewById(R.id.tv_time);
 		layoutBottom = (RelativeLayout) findViewById(R.id.layout_bottom);
@@ -306,18 +308,18 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
+									int position, long id) {
 				PhotoItem item = (PhotoItem) mPhotoAdapter.getItem(position);
 				if (item != null) {
-					if (item.isEmpty()) {	//拍照
+					if (item.isEmpty()) {    //拍照
 						Intent intent = null;
-						if (isImage) {	//
+						if (isImage) {    //
 							int reqCode = 0;
 							switch (mReqCode) {
-								case REQ_PARENT_CLIP_ICON:	//裁剪图片的拍照
+								case REQ_PARENT_CLIP_ICON:    //裁剪图片的拍照
 									reqCode = REQ_TAKE_CLIP_PIC;
 									break;
-								case REQ_PARENT_MAKE_IMG_MSG:	//选择图片的拍照
+								case REQ_PARENT_MAKE_IMG_MSG:    //选择图片的拍照
 									reqCode = REQ_TAKE_PIC;
 									break;
 								default:
@@ -327,7 +329,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 							mFilePath = SystemUtil.generatePhotoPath();
 							File file = new File(mFilePath);
 							Uri uri = Uri.fromFile(file);
-							intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);	//将照片保存到指定位置
+							intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);    //将照片保存到指定位置
 							ActivityOptionsCompat options = ActivityOptionsCompat.makeScaleUpAnimation(view, 0, 0, view.getWidth(), view.getHeight());
 							ActivityCompat.startActivityForResult(AlbumActivity.this, intent, reqCode, options.toBundle());
 						} else {
@@ -335,7 +337,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 							intent.setAction(MediaStore.ACTION_VIDEO_CAPTURE);
 							mFilePath = SystemUtil.generateVideoPath();
 							File file = new File(mFilePath);
-							if(file.exists()) {
+							if (file.exists()) {
 								file.delete();
 							}
 							Uri uri = Uri.fromFile(file);
@@ -349,7 +351,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 						Intent intent = null;
 						int reqCode = 0;
 						boolean startForResult = true;
-						if (mIsSingleChoice) {	//单选模式,裁剪图像
+						if (mIsSingleChoice) {    //单选模式,裁剪图像
 							if (mIsAlbumManager) {//相册管理模式
 								intent = new Intent(mContext, PhotoPreviewActivity.class);
 								intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_DISPLAY);
@@ -365,7 +367,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 							}
 						} else {
 							int argPosition = position - 1;
-							if (mIsAlbumManager) {	//相册管理模式，没有拍照功能
+							if (mIsAlbumManager) {    //相册管理模式，没有拍照功能
 								argPosition = position;
 							}
 							intent = new Intent(mContext, PhotoPreviewActivity.class);
@@ -422,6 +424,13 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					PhotoItem photo = (PhotoItem) mPhotoAdapter.getItem(firstVisibleItem);
 					showAlbumTime(photo, tvTime);
 				}
+			}
+		});
+		gvPhoto.setOnTouchListener(new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				hideWindow(mPopupWindow);
+				return false;
 			}
 		});
 	}
@@ -505,7 +514,14 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		}
 		finishActionMode(mActionMode);
 	}
-	
+
+	@Override
+	public void onBackPressed() {
+		if (!hideWindow(mPopupWindow)) {
+			super.onBackPressed();
+		}
+	}
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -616,16 +632,16 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
      * 根据文件夹获取对应的相册的数据
      * @update 2014年11月14日 下午4:28:20
      * @param map
-     * @param isIamge 是否是图片
+     * @param isImage 是否是图片
      * @return
      */
-    private List<AlbumItem> getAlbumList(Map<String, List<PhotoItem>> map, boolean isIamge) {
+    private List<AlbumItem> getAlbumList(Map<String, List<PhotoItem>> map, boolean isImage) {
     	if (SystemUtil.isEmpty(map)) {
 			return null;
 		}
     	List<AlbumItem> list = new ArrayList<>();
     	int resId = R.string.album_all_photo;
-    	if (!isIamge) {	//视频
+    	if (!isImage) {	//视频
     		resId = R.string.album_all_video;
     	}
     	AlbumItem defaultAlbum = new AlbumItem(getString(resId), mPhotos.size(), mPhotos.get(0).getFilePath());
@@ -634,7 +650,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
     	for (String key : keys) {
     		List<PhotoItem> temp = map.get(key);
     		String topPath = null;
-    		if (isIamge) {	//图片
+    		if (isImage) {	//图片
     			topPath = temp.get(0).getFilePath();
 			} else {	//视频
 				String thumbPath = temp.get(0).getThumbPath();
@@ -704,9 +720,10 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			mPopupWindow = new PopupWindow(contentView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 			mPopupWindow.setHeight(listViewHeight);
 			mPopupWindow.setContentView(lvAlbum);
-			mPopupWindow.setOutsideTouchable(true);
-			mPopupWindow.setFocusable(true);
+			mPopupWindow.setOutsideTouchable(false);
+			mPopupWindow.setFocusable(false);
 			mPopupWindow.update();
+//			mPopupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 //			mPopupWindow.setBackgroundDrawable(new BitmapDrawable(getResources(), (Bitmap)null));
 		}
 		togglewindow(mPopupWindow, author);
@@ -723,6 +740,20 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			window.dismiss();
 		} else {
 			window.showAsDropDown(anchor, 0, 0);
+		}
+	}
+
+	/**
+	 * 隐藏弹出窗
+	 * @param popupWindow
+	 * @return 是否隐藏成功，true:之前window是显示状态，隐藏成功了，false:之前window没有显示
+	 */
+	private boolean hideWindow(PopupWindow popupWindow) {
+		if (popupWindow != null && popupWindow.isShowing()) {
+			popupWindow.dismiss();
+			return true;
+		} else {
+			return false;
 		}
 	}
 	

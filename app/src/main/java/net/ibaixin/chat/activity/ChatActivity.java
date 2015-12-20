@@ -151,15 +151,15 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	/**
 	 * 调用文件的请请求码
 	 */
-	public static final int REQ_FILE = 102;
+	public static final int REQ_FILE = 7;
 	/**
 	 * 调用音频的请请求码
 	 */
-	public static final int REQ_AUDIO = 103;
+	public static final int REQ_AUDIO = 8;
 	/**
 	 * 地理位置请求码
 	 */
-	public static final int REQ_LOCATION = 104;
+	public static final int REQ_LOCATION = 9;
 	
 	/**
 	 * 默认的编辑模式，文本框内没有任何内容
@@ -1155,7 +1155,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				}
 				if (intent != null) {
 					intent.putExtra(ARG_MSG_INFO, msgInfo);
-					startActivityForResult(intent, requestCode);
+//					startActivityForResult(intent, requestCode);
+					ActivityCompat.startActivityForResult(ChatActivity.this, intent, requestCode, null);
 				}
 			}
 		});
