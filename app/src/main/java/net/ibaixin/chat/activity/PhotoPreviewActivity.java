@@ -55,6 +55,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	public static final String ARG_PHOTO_LIST = "arg_photo_list";
 	public static final String ARG_POSITION = "arg_position";
 	public static final String ARG_SHOW_MODE = "arg_show_mode";
+	public static final String ARG_QUERY_FLAG = "arg_query_flag";
 
 	/**
 	 * 延迟5秒“图片的更多”控件隐藏
@@ -137,6 +138,11 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	 */
 	private Button mBtnDownload;
 
+	/**
+	 * 是否需要查询图片，当通过intent传入的数据过大时，会出现报错，只有重新查询刷新界面
+	 */
+	private boolean mNeedQuery;
+
 	private Handler mHandler = new Handler() {
 
 		@Override
@@ -213,8 +219,13 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		mOnTouchFinish = intent.getBooleanExtra(PhotoFragment.ARG_TOUCH_FINISH, false);
 		photoAdapter = new PhotoFragmentViewPager(getSupportFragmentManager());
 		mViewPager.setAdapter(photoAdapter);
+		mNeedQuery = intent.getBooleanExtra(ARG_QUERY_FLAG, false);
 		if (currentPostion != 0) {
-			mViewPager.setCurrentItem(currentPostion);
+			if (currentPostion < photoAdapter.getCount()) {
+				mViewPager.setCurrentItem(currentPostion);
+			} else {
+				currentPostion = 0;
+			}
 		}
 		if (showMode == MODE_CHOSE) {	//选择模式，则默认选中的就是所有列表
 			mSelectList.addAll(mPhotos);
@@ -236,6 +247,13 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			}
 			layoutBottom.setVisibility(View.GONE);
 			mAppBar.setVisibility(View.GONE);
+		} else {	//图片浏览模式
+			if (mNeedQuery) {	//需要查询某路径下的所有图片
+				if (SystemUtil.isNotEmpty(mPhotos)) {	//先显示第0条
+					PhotoItem photoItem = mPhotos.get(0);
+					AsyncTaskCompat.executeParallel(new LoadImageTask(), photoItem);
+				}
+			}
 		}
 		totalCount = mPhotos.size();
 		setTitle(getString(R.string.album_preview_photo_index, currentPostion + 1, totalCount));
@@ -730,6 +748,47 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 					
 					mHandler.sendEmptyMessageDelayed(Constants.MSG_HIDE_DELAY, HIDE_DELAY);
 				}
+			}
+		}
+	}
+	
+	/**
+	 * 根据路径来加载该路径下的图片
+	 * @author huanghui1
+	 * @update 2015/12/21 14:03
+	 * @version: 0.0.1
+	 */
+	class LoadImageTask extends AsyncTask<PhotoItem, Void, List<PhotoItem>> {
+
+		@Override
+		protected List<PhotoItem> doInBackground(PhotoItem... params) {
+			List<PhotoItem> list = null;
+			if (SystemUtil.isNotEmpty(params)) {
+				PhotoItem currentItem = params[0];
+				Map<String, Object> map = msgManager.getImagesByBucket(currentItem);
+				if (map != null) {
+					list = (List<PhotoItem>) map.get("photoItems");
+					currentPostion = (int) map.get("currentPosition");
+					totalCount = list.size();
+				}
+			}
+			return list;
+		}
+
+		@Override
+		protected void onPostExecute(List<PhotoItem> photoItems) {
+			if (photoItems != null) {
+				mPhotos.clear();
+
+				mPhotos.addAll(photoItems);
+				if (photoAdapter != null) {
+					photoAdapter.notifyDataSetChanged();
+				} else {
+					photoAdapter = new PhotoFragmentViewPager(getSupportFragmentManager());
+					mViewPager.setAdapter(photoAdapter);
+				}
+				mViewPager.setCurrentItem(currentPostion, false);
+				setTitle(getString(R.string.album_preview_photo_index, currentPostion + 1, totalCount));
 			}
 		}
 	}

@@ -1,5 +1,7 @@
 package net.ibaixin.chat.model;
 
+import java.io.File;
+
 /**
  * @author tiger
  * @version 1.0.0
@@ -117,6 +119,12 @@ public abstract class DownloadItem {
     }
 
     public String getFileName() {
+        if (fileName == null) {
+            if (filePath != null) {
+                File file = new File(filePath);
+                fileName = file.getName();
+            }
+        }
         return fileName;
     }
 

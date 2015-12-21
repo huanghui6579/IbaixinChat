@@ -794,7 +794,7 @@ public class MsgManager extends Observable<Observer> {
 		String sortOrder = Provider.MsgInfoColumns.DEFAULT_SORT_ORDER;
 		String limit = pageOffset + "," + Constants.PAGE_SIZE_MSG;
 		SQLiteDatabase db = mChatDBHelper.getReadableDatabase();
-		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.DEFAULT_PROJECTION, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[] {String.valueOf(threadId)}, null, null, sortOrder, limit);
+		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, Provider.MsgInfoColumns.DEFAULT_PROJECTION, Provider.MsgInfoColumns.THREAD_ID + " = ?", new String[]{String.valueOf(threadId)}, null, null, sortOrder, limit);
 		if (cursor != null) {
 			list = new ArrayList<>();
 			while (cursor.moveToNext()) {
@@ -834,7 +834,7 @@ public class MsgManager extends Observable<Observer> {
 				MsgInfo.Type.VIDEO.ordinal()
 		};
 		int currentPosition = 0;
-		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, projection, Provider.MsgInfoColumns.THREAD_ID + " = ? AND " + Provider.MsgInfoColumns.MSG_TYPE + " in (" + SystemUtil.makePlaceholders(msgTypes.length) + ")", new String[] {String.valueOf(threadId), String.valueOf(MsgInfo.Type.IMAGE.ordinal()), String.valueOf(MsgInfo.Type.VIDEO.ordinal())}, null, null, order, null);
+		Cursor cursor = db.query(Provider.MsgInfoColumns.TABLE_NAME, projection, Provider.MsgInfoColumns.THREAD_ID + " = ? AND " + Provider.MsgInfoColumns.MSG_TYPE + " in (" + SystemUtil.makePlaceholders(msgTypes.length) + ")", new String[]{String.valueOf(threadId), String.valueOf(MsgInfo.Type.IMAGE.ordinal()), String.valueOf(MsgInfo.Type.VIDEO.ordinal())}, null, null, order, null);
 		if (cursor != null) {
 			map = new HashMap<>();
 			list = new ArrayList<>();
@@ -883,6 +883,135 @@ public class MsgManager extends Observable<Observer> {
 		return map;
 	}
 	
+	/**
+	 * 根据文件夹来获取对应文件夹里的所有图片
+	 * @param photoItem 当前的图片
+	 * @param loadAll 是否加载全部    
+	 * @author huanghui1
+	 * @update 2015/12/21 14:11
+	 * @version: 0.0.1
+	 * @return 返回文件夹中所有的图片的map，key中"currentPosition":当前浏览的图片在集合中的索引；"photoItems":图片消息的集合
+	 */
+	public Map<String, Object> getImagesByBucket(PhotoItem photoItem, boolean loadAll) {
+		//TODO 未完成图片加载任务
+		Map<String, Object> map = null;
+		String bucketId = photoItem.getBucketId();
+		String currentName = photoItem.getFileName();
+		FileItem.FileType fileType = photoItem.getFileType();
+		int currentPosition = 0;
+		if (fileType == FileItem.FileType.IMAGE) {	//加载图片
+			String[] projection = {
+					MediaStore.Images.Media.DATA,
+					MediaStore.Images.Media.SIZE,
+					MediaStore.Images.Media.DATE_TAKEN,
+					MediaStore.Images.Media.DISPLAY_NAME,
+					MediaStore.Images.Media.MIME_TYPE
+			};
+			String selection = null;
+			String[] selectionArgs = {
+					/*"image/jpeg",
+					"image/png",*/
+					bucketId
+			};
+			if (!loadAll) {	//不加载全部
+				selection = MediaStore.Images.Media.BUCKET_ID + " = ?";
+			} else {	//加载全部
+				selectionArgs = null;
+			}
+			
+			Cursor cursor = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, /*MediaStore.Images.Media.MIME_TYPE + " in (" + SystemUtil.makePlaceholders(selectionArgs.length - 1) + ") AND " + */selection, selectionArgs, MediaStore.Images.Media.DATE_TAKEN + " DESC");
+			if (cursor != null) {
+				List<PhotoItem> list = new ArrayList<>();
+				int index = 0;
+				map = new HashMap<>();
+				while (cursor.moveToNext()) {
+					PhotoItem item = new PhotoItem();
+					item.setFileType(photoItem.getFileType());
+					item.setFilePath(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA)));
+					item.setSize(cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.SIZE)));
+					item.setTime(cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN)));
+					item.setFileName(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)));
+					item.setBucketId(bucketId);
+					item.setMime(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.MIME_TYPE)));
+
+					if (item.getFileName().equals(currentName)) {	//当前的文件
+						currentPosition = index;
+					}
+
+					list.add(item);
+
+					index ++;
+				}
+				map.put("currentPosition", currentPosition);
+				map.put("photoItems", list);
+				
+				cursor.close();
+			}
+		} else if (fileType == FileItem.FileType.VIDEO) {	//加载视频
+			String[] projection = {
+					MediaStore.Video.Media._ID,
+					MediaStore.Video.Media.DATA,
+					MediaStore.Video.Media.SIZE,
+					MediaStore.Video.Media.DATE_TAKEN,
+					MediaStore.Video.Media.MIME_TYPE,
+					MediaStore.Video.Media.DISPLAY_NAME
+			};
+			String[] thumbProjection = {
+					MediaStore.Video.Thumbnails.DATA
+			};
+			String[] selectionArgs = {
+					bucketId
+			};
+			String selection = null;
+			if (!loadAll) {	//不加载全部
+				selection = MediaStore.Video.Media.BUCKET_ID + " = ?";
+			} else {	//加载全部
+				selectionArgs = null;
+			}
+			
+			Cursor cursor = mContext.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, projection, selection, selectionArgs, MediaStore.Video.Media.DATE_TAKEN + " DESC");
+			if (cursor != null) {
+				int index = 0;
+				map = new HashMap<>();
+				List<PhotoItem> list = new ArrayList<>();
+				while (cursor.moveToNext()) {
+					PhotoItem photo = new PhotoItem();
+					photo.setFileType(FileItem.FileType.VIDEO);
+					int id = cursor.getInt(cursor.getColumnIndex(MediaStore.Video.Media._ID));
+					photo.setFilePath(cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA)));
+					photo.setSize(cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.SIZE)));
+					photo.setTime(cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN)));
+					photo.setBucketId(bucketId);
+					photo.setMime(cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE)));
+					photo.setFileName(cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME)));
+
+					Cursor thumbCursor = mContext.getContentResolver().query(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, thumbProjection, MediaStore.Video.Thumbnails.VIDEO_ID + " = ?", new String[] {String.valueOf(id)}, null);
+					if (thumbCursor != null && thumbCursor.moveToFirst()) {
+						photo.setThumbPath(thumbCursor.getString(thumbCursor.getColumnIndex(MediaStore.Video.Thumbnails.DATA)));
+					}
+					if (thumbCursor != null) {
+						thumbCursor.close();
+					}
+					
+					if (photo.getFileName().equals(currentName)) {	//当前的视频
+						currentPosition = index;
+					}
+					
+					list.add(photo);
+					
+					index ++;
+				}
+
+				map.put("currentPosition", currentPosition);
+				map.put("photoItems", list);
+
+				cursor.close();
+
+			}
+		}
+		return map;
+	}
+
 	/**
 	 * 根据会话id查询该会的消息数量
 	 * @update 2015年3月6日 下午4:55:31
@@ -2067,12 +2196,15 @@ public class MsgManager extends Observable<Observer> {
 					MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
 					MediaStore.Images.Media.SIZE,
 					MediaStore.Images.Media.DATE_TAKEN,
+					MediaStore.Images.Media.BUCKET_ID,
+					MediaStore.Images.Media.MIME_TYPE,
+					MediaStore.Images.Media.DISPLAY_NAME
 			};
-			String[] selectionArgs = {
-				"image/jpeg",
-				"image/png"
-			};
-			Cursor cursor = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, MediaStore.Images.Media.MIME_TYPE + " in (" + SystemUtil.makePlaceholders(selectionArgs.length) + ")", selectionArgs, MediaStore.Images.Media.DATE_TAKEN + " DESC");
+//			String[] selectionArgs = {
+//				"image/jpeg",
+//				"image/png"
+//			};
+			Cursor cursor = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null/*MediaStore.Images.Media.MIME_TYPE + " in (" + SystemUtil.makePlaceholders(selectionArgs.length) + ")"*/, /*selectionArgs*/null, MediaStore.Images.Media.DATE_TAKEN + " DESC");
 			if (cursor != null) {
 				album = new Album();
 				List<PhotoItem>  list = new ArrayList<>();
@@ -2084,6 +2216,9 @@ public class MsgManager extends Observable<Observer> {
 					String parentName = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME));
 					photo.setSize(cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.SIZE)));
 					photo.setTime(cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN)));
+					photo.setBucketId(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.BUCKET_ID)));
+					photo.setMime(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.MIME_TYPE)));
+					photo.setFileName(cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)));
 					if (TextUtils.isEmpty(parentName)) {
 						File file = new File(photo.getFilePath()).getParentFile();
 						if (file != null) {
@@ -2113,6 +2248,9 @@ public class MsgManager extends Observable<Observer> {
 					MediaStore.Video.Media.BUCKET_DISPLAY_NAME,
 					MediaStore.Video.Media.SIZE,
 					MediaStore.Video.Media.DATE_TAKEN,
+					MediaStore.Video.Media.BUCKET_ID,
+					MediaStore.Video.Media.MIME_TYPE,
+					MediaStore.Video.Media.DISPLAY_NAME
 			};
 			String[] thumbProjection = {
 					MediaStore.Video.Thumbnails.DATA
@@ -2130,6 +2268,9 @@ public class MsgManager extends Observable<Observer> {
 					String parentName = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME));
 					photo.setSize(cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.SIZE)));
 					photo.setTime(cursor.getLong(cursor.getColumnIndex(MediaStore.Video.Media.DATE_TAKEN)));
+					photo.setBucketId(cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.BUCKET_ID)));
+					photo.setMime(cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE)));
+					photo.setFileName(cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME)));
 					
 					Cursor thumbCursor = mContext.getContentResolver().query(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, thumbProjection, MediaStore.Video.Thumbnails.VIDEO_ID + " = ?", new String[] {String.valueOf(id)}, null);
 					if (thumbCursor != null && thumbCursor.moveToFirst()) {

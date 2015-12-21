@@ -94,7 +94,11 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	public static final String ARG_IS_SINGLE_CHOICE = "arg_is_single_choice";
 
 	public static final String ARG_ALBUM_MANAGER = "arg_album_manager";
-	
+
+	/**
+	 * 用intent传递list的参数时，最多100条数据，多了就需要重新查询
+	 */
+	private final int MAX_PHOTO_NUMBER = 100; 
 	
 	private ImageLoader mImageLoader = ImageLoader.getInstance();
 	
@@ -229,6 +233,26 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		screenSize = SystemUtil.getScreenSize();
 		
 	}
+	
+	/**
+	 * 是否加载全部图片
+	 * @author huanghui1
+	 * @update 2015/12/21 16:28
+	 * @version: 0.0.1
+	 * @return  是否加载全部图片
+	 */
+	private boolean isLoadAllPhoto() {
+		if (lvAlbum == null) {
+			return true;
+		} else {
+			AlbumAdapter albumAdapter = (AlbumAdapter) lvAlbum.getAdapter();
+			if (albumAdapter != null) {
+				return albumAdapter.isAllImages();
+			} else {
+				return false;
+			}
+		}
+	}
 
 	@Override
 	protected void initData() {
@@ -357,7 +381,14 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 								intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_DISPLAY);
 								intent.putExtra(PhotoFragment.ARG_TOUCH_FINISH, true);
 								intent.putExtra(PhotoPreviewActivity.ARG_POSITION, position);
-								intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
+								if (mPhotos.size() > MAX_PHOTO_NUMBER) {	//数据量太大，容易报错，所需要重新查询
+									ArrayList<PhotoItem> list = new ArrayList<>(1);
+									list.add(item);
+									intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, list);
+									intent.putExtra(PhotoPreviewActivity.ARG_QUERY_FLAG, true);
+								} else {
+									intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
+								}
 								intent.putExtra(ChatActivity.ARG_MSG_INFO, msgInfo);
 								startForResult = false;
 							} else {
@@ -373,7 +404,14 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 							intent = new Intent(mContext, PhotoPreviewActivity.class);
 							intent.putExtra(PhotoPreviewActivity.ARG_POSITION, argPosition);
 							intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_BROWSE);
-							intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
+							if (mPhotos.size() > MAX_PHOTO_NUMBER) {	//数据量太大，容易报错，所需要重新查询
+								ArrayList<PhotoItem> list = new ArrayList<>(1);
+								list.add(item);
+								intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, list);
+								intent.putExtra(PhotoPreviewActivity.ARG_QUERY_FLAG, true);
+							} else {
+								intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
+							}
 							intent.putExtra(ChatActivity.ARG_MSG_INFO, msgInfo);
 
 							reqCode = REQ_PREVIEW_IMAGE;
@@ -927,6 +965,14 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		public void setCurrentPosition(int currentPosition) {
 			this.currentPosition = currentPosition;
 			notifyDataSetChanged();
+		}
+
+		/**
+		 * 根据当前的索引来判断当前是否加载了全部的图片
+		 * @return
+		 */
+		public boolean isAllImages() {
+			return currentPosition == 0;
 		}
 
 		@Override

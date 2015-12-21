@@ -16,6 +16,10 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 	 */
 	private String thumbPath;
 
+	/**
+	 * 文件夹的id
+	 */
+	private String bucketId;
 
 	public String getThumbPath() {
 		return thumbPath;
@@ -23,6 +27,14 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 
 	public void setThumbPath(String thumbPath) {
 		this.thumbPath = thumbPath;
+	}
+
+	public String getBucketId() {
+		return bucketId;
+	}
+
+	public void setBucketId(String bucketId) {
+		this.bucketId = bucketId;
 	}
 
 	/**
@@ -53,13 +65,15 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 		dest.writeInt(downloadType);
 		dest.writeString(msgId);
 		dest.writeInt(fileType.ordinal());
+		dest.writeString(bucketId);
 	}
 
 	@Override
 	public String toString() {
 		return "PhotoItem{" +
 				"thumbPath='" + thumbPath + '\'' +
-				"} " + super.toString();
+				", bucketId='" + bucketId + '\'' +
+				'}';
 	}
 
 	public PhotoItem() {
@@ -83,6 +97,7 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 		downloadType = in.readInt();
 		msgId = in.readString();
 		fileType = FileItem.FileType.valueOf(in.readInt());
+		bucketId = in.readString();
 	}
 	
 	public static final Creator<PhotoItem> CREATOR = new Creator<PhotoItem>() {
