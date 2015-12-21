@@ -381,11 +381,17 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 								intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_DISPLAY);
 								intent.putExtra(PhotoFragment.ARG_TOUCH_FINISH, true);
 								intent.putExtra(PhotoPreviewActivity.ARG_POSITION, position);
-								if (mPhotos.size() > MAX_PHOTO_NUMBER) {	//数据量太大，容易报错，所需要重新查询
+								if (mPhotos.size() > MAX_PHOTO_NUMBER) {    //数据量太大，容易报错，所需要重新查询
 									ArrayList<PhotoItem> list = new ArrayList<>(1);
 									list.add(item);
 									intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, list);
-									intent.putExtra(PhotoPreviewActivity.ARG_QUERY_FLAG, true);
+									int queryFlag = 0;
+									if (isLoadAllPhoto()) {
+										queryFlag = PhotoPreviewActivity.QUERY_FLAG_ALL;
+									} else {
+										queryFlag = PhotoPreviewActivity.QUERY_FLAG_BUCKET;
+									}
+									intent.putExtra(PhotoPreviewActivity.ARG_QUERY_FLAG, queryFlag);
 								} else {
 									intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
 								}
@@ -404,11 +410,17 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 							intent = new Intent(mContext, PhotoPreviewActivity.class);
 							intent.putExtra(PhotoPreviewActivity.ARG_POSITION, argPosition);
 							intent.putExtra(PhotoPreviewActivity.ARG_SHOW_MODE, PhotoPreviewActivity.MODE_BROWSE);
-							if (mPhotos.size() > MAX_PHOTO_NUMBER) {	//数据量太大，容易报错，所需要重新查询
+							if (mPhotos.size() > MAX_PHOTO_NUMBER) {    //数据量太大，容易报错，所需要重新查询
 								ArrayList<PhotoItem> list = new ArrayList<>(1);
 								list.add(item);
 								intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, list);
-								intent.putExtra(PhotoPreviewActivity.ARG_QUERY_FLAG, true);
+								int queryFlag = 0;
+								if (isLoadAllPhoto()) {
+									queryFlag = PhotoPreviewActivity.QUERY_FLAG_ALL;
+								} else {
+									queryFlag = PhotoPreviewActivity.QUERY_FLAG_BUCKET;
+								}
+								intent.putExtra(PhotoPreviewActivity.ARG_QUERY_FLAG, queryFlag);
 							} else {
 								intent.putParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST, mPhotos);
 							}
@@ -755,7 +767,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				}
 			});
 			
-			mPopupWindow = new PopupWindow(contentView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+			mPopupWindow = new PopupWindow(contentView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 			mPopupWindow.setHeight(listViewHeight);
 			mPopupWindow.setContentView(lvAlbum);
 			mPopupWindow.setOutsideTouchable(false);
@@ -766,7 +778,6 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		}
 		togglewindow(mPopupWindow, author);
 	}
-	
 	/**
 	 * 显示和隐藏相册菜单
 	 * @update 2014年11月14日 下午5:44:37

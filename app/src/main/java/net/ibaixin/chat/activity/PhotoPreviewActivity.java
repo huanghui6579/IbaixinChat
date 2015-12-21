@@ -57,11 +57,15 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	public static final String ARG_SHOW_MODE = "arg_show_mode";
 	public static final String ARG_QUERY_FLAG = "arg_query_flag";
 
+	public static final int QUERY_FLAG_NONE = 0;
+	public static final int QUERY_FLAG_ALL = 1;
+	public static final int QUERY_FLAG_BUCKET = 2;
+
 	/**
 	 * 延迟5秒“图片的更多”控件隐藏
 	 */
 	private static final int HIDE_DELAY = 5000;
-	
+
 	/**
 	 * 是否原图发送
 	 */
@@ -141,7 +145,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	/**
 	 * 是否需要查询图片，当通过intent传入的数据过大时，会出现报错，只有重新查询刷新界面
 	 */
-	private boolean mNeedQuery;
+	private int mQueryFlag;
 
 	private Handler mHandler = new Handler() {
 
@@ -219,7 +223,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		mOnTouchFinish = intent.getBooleanExtra(PhotoFragment.ARG_TOUCH_FINISH, false);
 		photoAdapter = new PhotoFragmentViewPager(getSupportFragmentManager());
 		mViewPager.setAdapter(photoAdapter);
-		mNeedQuery = intent.getBooleanExtra(ARG_QUERY_FLAG, false);
+		mQueryFlag = intent.getIntExtra(ARG_QUERY_FLAG, QUERY_FLAG_NONE);
 		if (currentPostion != 0) {
 			if (currentPostion < photoAdapter.getCount()) {
 				mViewPager.setCurrentItem(currentPostion);
@@ -248,7 +252,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			layoutBottom.setVisibility(View.GONE);
 			mAppBar.setVisibility(View.GONE);
 		} else {	//图片浏览模式
-			if (mNeedQuery) {	//需要查询某路径下的所有图片
+			if (mQueryFlag != QUERY_FLAG_NONE) {	//需要查询某路径下的所有图片
 				if (SystemUtil.isNotEmpty(mPhotos)) {	//先显示第0条
 					PhotoItem photoItem = mPhotos.get(0);
 					AsyncTaskCompat.executeParallel(new LoadImageTask(), photoItem);
@@ -278,6 +282,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 	 */
 	private void resetData() {
 		mShow = true;
+		mQueryFlag = QUERY_FLAG_NONE;
 		if (pDialog != null && pDialog.isShowing()) {
 			pDialog.dismiss();
 		}
@@ -765,7 +770,8 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			List<PhotoItem> list = null;
 			if (SystemUtil.isNotEmpty(params)) {
 				PhotoItem currentItem = params[0];
-				Map<String, Object> map = msgManager.getImagesByBucket(currentItem);
+				boolean loadAll = mQueryFlag == QUERY_FLAG_ALL;
+				Map<String, Object> map = msgManager.getImagesByBucket(currentItem, loadAll);
 				if (map != null) {
 					list = (List<PhotoItem>) map.get("photoItems");
 					currentPostion = (int) map.get("currentPosition");
