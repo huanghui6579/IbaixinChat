@@ -22,6 +22,7 @@
     <!-- 图片预览的样式 -->
     <style name="AppTheme.ImagePreviewActivity">
         <item name="android:windowActionBarOverlay">true</item>
+        <item name="windowActionBarOverlay">true</item>
     </style>
     
     <!-- Toolbar的样式 -->

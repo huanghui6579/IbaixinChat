@@ -480,6 +480,9 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 	 */
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	protected void hideSystemUi(View view) {
+		if (view == null) {
+			view = getWindow().getDecorView();
+		}
 		int uiOptions = view.getSystemUiVisibility();
 		if (SystemUtil.hasSDK16()) {
 			uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
@@ -497,6 +500,46 @@ public abstract class BaseActivity extends AppCompatActivity implements SwipeBac
 //	        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 //	        | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
 //	        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+	}
+	
+	/**
+	 * 隐藏状态栏
+	 * @author huanghui1
+	 * @update 2015/12/22 18:01
+	 * @version: 0.0.1
+	 */
+	protected void hideStatuBar() {
+		View view = getWindow().getDecorView();
+		int uiOptions = view.getSystemUiVisibility();
+		uiOptions |= View.INVISIBLE;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+			uiOptions |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+		}
+		if (SystemUtil.hasSDK19()) {
+//			getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+			uiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+		}
+		view.setSystemUiVisibility(uiOptions);
+	}
+	
+	/**
+	 * 显示状态栏
+	 * @author huanghui1
+	 * @update 2015/12/22 18:02
+	 * @version: 0.0.1
+	 */
+	protected void showStatuBar() {
+		View view = getWindow().getDecorView();
+		int uiOptions = view.getSystemUiVisibility();
+		uiOptions &= View.INVISIBLE;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+			uiOptions &= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+		}
+		if (SystemUtil.hasSDK19()) {
+//			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+			uiOptions &= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+		}
+		view.setSystemUiVisibility(uiOptions);
 	}
 	
 	/**

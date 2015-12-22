@@ -201,6 +201,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		mBtnDownload = (Button) findViewById(R.id.downloadOriginal);
 
 		mMoreView = findViewById(R.id.iv_more);
+
 	}
 	
 	@Override
@@ -392,7 +393,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				// TODO Auto-generated method stub
 				currentPostion = position;
 				setTitle(getString(R.string.album_preview_photo_index, currentPostion + 1, totalCount));
-				if (isDisplayMode()) {	//查看图片的模式
+				if (isDisplayMode()) {    //查看图片的模式
 					PhotoItem photoItem = mPhotos.get(position);
 					initDownloadButton(photoItem);
 				} else {
@@ -415,12 +416,12 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			@Override
 			public void onPageScrollStateChanged(int state) {
 				// TODO Auto-generated method stub
-				if (showMode == MODE_DISPLAY) {	//图片查看模式
+				if (showMode == MODE_DISPLAY) {    //图片查看模式
 					mHandler.removeMessages(Constants.MSG_HIDE_DELAY);
-					if (state == ViewPager.SCROLL_STATE_IDLE) {	//闲置状态
+					if (state == ViewPager.SCROLL_STATE_IDLE) {    //闲置状态
 						mHandler.sendEmptyMessageDelayed(Constants.MSG_HIDE_DELAY, HIDE_DELAY);
 					} else {
-						if (mMoreView.getVisibility() != View.VISIBLE) {	//隐藏状态，则立即显示
+						if (mMoreView.getVisibility() != View.VISIBLE) {    //隐藏状态，则立即显示
 							mMoreView.setVisibility(View.VISIBLE);
 						}
 					}
@@ -653,7 +654,11 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				//解决调用adapter.notifyDataSetChanged方法后当前页的左右两边的fragment不刷新数据的问题
 				return POSITION_NONE;
 			} else {
-				return super.getItemPosition(object);
+				if (showMode == MODE_BROWSE && mQueryFlag != QUERY_FLAG_NONE) {
+					return POSITION_NONE;
+				} else {
+					return super.getItemPosition(object);
+				}
 			}
 		}
 	}
@@ -691,6 +696,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 						anim.play(toolBarAnim)
 								.play(bottomAnim);
 						anim.start();
+						hideStatuBar();
 					} else {
 						mShow = true;
 						ViewPropertyAnimatorCompatSet anim = new ViewPropertyAnimatorCompatSet();
@@ -699,6 +705,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 						anim.play(toolBarAnim)
 								.play(bottomAnim);
 						anim.start();
+						showStatuBar();
 					}
 				}
 			}

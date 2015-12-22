@@ -1193,7 +1193,7 @@ public class SystemUtil {
 			.showImageOnFail(R.drawable.ic_default_icon_error)
 			.cacheInMemory(true)
 			.cacheOnDisk(false)
-			.imageScaleType(ImageScaleType.NONE)
+			.imageScaleType(ImageScaleType.IN_SAMPLE_INT)
 			.bitmapConfig(Bitmap.Config.RGB_565)	//防止内存溢出
 //			.displayer(new FadeInBitmapDisplayer(100))
 			.build();
