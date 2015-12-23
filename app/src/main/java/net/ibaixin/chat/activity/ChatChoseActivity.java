@@ -54,6 +54,8 @@ import java.util.List;
 public class ChatChoseActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<List<ChatChoseItem>> {
     public static final String ARG_MSG_INFOS= "arg_msg_infos";
     public static final String ARG_FORWARD_FLAG = "arg_forward_flag";
+    
+    public static final String ARG_FINISH = "arg_finish";
 
     public static final String ARG_SEND_TYPE = "arg_send_type";
 
@@ -94,18 +96,27 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
 
     private ProgressDialog pDialog;
 
+    /**
+     * 转发后是否销毁该界面
+     */
+    private boolean mFinish = true;
+
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case Constants.MSG_SUCCESS:
-                    MsgThread msgThread = (MsgThread) msg.obj;
-                    Intent intent = new Intent(mContext, ChatActivity.class);
-                    intent.putExtra(ARG_FORWARD_FLAG, true);
-                    intent.putExtra(ChatActivity.ARG_THREAD, msgThread);
-                    intent.putParcelableArrayListExtra(ARG_MSG_INFOS, mMsgInfos);
-                    startActivity(intent);
-                    finish();
+                    if (mFinish) {
+                        MsgThread msgThread = (MsgThread) msg.obj;
+                        Intent intent = new Intent(mContext, ChatActivity.class);
+                        intent.putExtra(ARG_FORWARD_FLAG, true);
+                        intent.putExtra(ChatActivity.ARG_THREAD, msgThread);
+                        intent.putParcelableArrayListExtra(ARG_MSG_INFOS, mMsgInfos);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        SystemUtil.makeShortToast(R.string.chat_forward_msg_success);
+                    }
                     break;
                 case Constants.MSG_FAILED:
                     SystemUtil.makeShortToast(R.string.chat_forward_msg_error);
@@ -134,6 +145,7 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
         if (intent != null) {
             mMsgInfos = intent.getParcelableArrayListExtra(ARG_MSG_INFOS);
             mSendType = intent.getIntExtra(ARG_SEND_TYPE, SEND_TYPE_FORWARD);
+            mFinish = intent.getBooleanExtra(ARG_FINISH, true);
         }
         
     }
@@ -267,6 +279,7 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     @Override
     protected void onDestroy() {
         getSupportLoaderManager().destroyLoader(0);
+        mFinish = true;
         super.onDestroy();
     }
 

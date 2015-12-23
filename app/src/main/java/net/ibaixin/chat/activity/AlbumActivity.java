@@ -10,6 +10,7 @@ import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.os.AsyncTaskCompat;
 import android.support.v7.view.ActionMode;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -98,7 +99,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	/**
 	 * 用intent传递list的参数时，最多100条数据，多了就需要重新查询
 	 */
-	private final int MAX_PHOTO_NUMBER = 100; 
+	public static final int MAX_PHOTO_NUMBER = 100; 
 	
 	private ImageLoader mImageLoader = ImageLoader.getInstance();
 	
@@ -148,7 +149,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	/**
 	 * 资源内容是否是图片，分为视频和图片两类
 	 */
-	private boolean isImage = true;
+	private boolean mIsImage = true;
 	
 	/**
 	 * 是否是单选模式
@@ -257,7 +258,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	@Override
 	protected void initData() {
 		Intent intent = getIntent();
-		isImage = intent.getBooleanExtra(ARG_IS_IMAGE, true);
+		mIsImage = intent.getBooleanExtra(ARG_IS_IMAGE, true);
 		msgInfo = intent.getParcelableExtra(ChatActivity.ARG_MSG_INFO);
 		mMaxSelectSize = intent.getIntExtra(ARG_MAX_SELECT_SIZE, Constants.ALBUM_SELECT_SIZE);
 		mIsSingleChoice = intent.getBooleanExtra(ARG_IS_SINGLE_CHOICE, false);
@@ -267,6 +268,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		
 		if (mIsAlbumManager) {	//相册管理
 			mPhotos = intent.getParcelableArrayListExtra(PhotoPreviewActivity.ARG_PHOTO_LIST);
+			boolean needQuery = intent.getBooleanExtra(PhotoPreviewActivity.ARG_QUERY_FLAG, false);
 			mIsSingleChoice = true;
 			if (mPhotos == null) {
 				mPhotos = new ArrayList<>();
@@ -274,6 +276,14 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			layoutBottom.setVisibility(View.GONE);
 			setTitle(R.string.album_image_msg);
 			pbLoading.setVisibility(View.GONE);
+			
+			if (needQuery) {	//查询某会话下的所有聊天图片
+				if (msgInfo != null) {
+					int threadId = msgInfo.getThreadID();
+					AsyncTaskCompat.executeParallel(new LoadImageMsgTask(), threadId);
+				}
+			}
+			
 		} else {
 			if (mIsSingleChoice) {
 				tvPreview.setVisibility(View.GONE);
@@ -281,7 +291,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				tvPreview.setVisibility(View.VISIBLE);
 			}
 
-			if (!isImage) {	//不是图片，则不显示预览选项
+			if (!mIsImage) {	//不是图片，则不显示预览选项
 				tvAllPhoto.setText(R.string.album_all_video);
 				setTitle(R.string.activity_lable_video);
 			}
@@ -289,7 +299,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			new LoadPhotoTask().execute();
 		}
 
-		mPhotoAdapter = new PhotoAdapter(mPhotos, mContext, isImage);
+		mPhotoAdapter = new PhotoAdapter(mPhotos, mContext);
 		gvPhoto.setAdapter(mPhotoAdapter);
 		
 	}
@@ -337,7 +347,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 				if (item != null) {
 					if (item.isEmpty()) {    //拍照
 						Intent intent = null;
-						if (isImage) {    //
+						if (mIsImage) {    //
 							int reqCode = 0;
 							switch (mReqCode) {
 								case REQ_PARENT_CLIP_ICON:    //裁剪图片的拍照
@@ -627,7 +637,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					@Override
 					public void run() {
 						ArrayList<MsgInfo> msgList = null;
-						if (isImage) {	//图片消息
+						if (mIsImage) {	//图片消息
 							msgList = msgManager.getMsgInfoListByPhotos(msgInfo, selects, false);
 						} else {
 							msgList = msgManager.getMsgInfoListByVideos(msgInfo, selects);
@@ -731,7 +741,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			View contentView = inflater.inflate(R.layout.layout_album_list, null);
 			lvAlbum = (ListView) contentView.findViewById(R.id.lv_album);
 			
-			final List<AlbumItem> list = getAlbumList(folderMap, isImage);
+			final List<AlbumItem> list = getAlbumList(folderMap, mIsImage);
 			final AlbumAdapter albumAdapter = new AlbumAdapter(list, mContext);
 			lvAlbum.setAdapter(albumAdapter);
 			
@@ -932,7 +942,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		@Override
 		protected List<PhotoItem> doInBackground(String... params) {
 			if (SystemUtil.isEmpty(params)) {	//默认加载全部
-				Album album = msgManager.getAlbum(isImage);
+				Album album = msgManager.getAlbum(mIsImage);
 				if (album != null) {
 					List<PhotoItem> list = album.getmPhotos();
 					folderMap = album.getFolderMap();
@@ -1006,7 +1016,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			String albumName = albumItem.getAlbumName();
 			int count = albumItem.getPhotoCount();
 			int resId = R.string.album_item_content;
-			if (!isImage) {	//视频
+			if (!mIsImage) {	//视频
 				holder.ivFlag.setVisibility(View.VISIBLE);
 				resId = R.string.album_item_video_content;
 			} else {
@@ -1044,25 +1054,14 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 	 * @update 2014年11月13日 下午9:12:17
 	 */
 	class PhotoAdapter extends CommonAdapter<PhotoItem> {
-		DisplayImageOptions options = null;
+		DisplayImageOptions imageOptions = SystemUtil.getAlbumImageOptions();
+		DisplayImageOptions videoOptions = SystemUtil.getAlbumVideoOptions();
 		
 		private SparseBooleanArray selectArray = new SparseBooleanArray();
 		int selectSize = 0;
 		
-		/**
-		 * 显示的是否是图片，不是图片就是视频
-		 */
-		private boolean isImage;
-		
-		public PhotoAdapter(List<PhotoItem> list, Context context, boolean isImage) {
+		public PhotoAdapter(List<PhotoItem> list, Context context) {
 			super(list, context);
-			this.isImage = isImage;
-			
-			if (isImage) {
-				options = SystemUtil.getAlbumImageOptions();
-			} else {
-				options = SystemUtil.getAlbumVideoOptions();
-			}
 		}
 		
 		/**
@@ -1222,6 +1221,9 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					holder.ivPhoto.setBackgroundResource(0);
 //				holder.ivPhoto.setScaleType(ScaleType.FIT_XY);
 
+					//是否是视频项
+					boolean isVideo = photoItem.isVideoItem();
+					
 					String filePath = null;
 					if (mIsSingleChoice) {
 						holder.cbChose.setVisibility(View.GONE);
@@ -1240,9 +1242,11 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					} else {
 						holder.cbChose.setOnCheckedChangeListener(new OnCheckedChangeListenerImpl(holder, position));
 					}
-					if (isImage) {
+					DisplayImageOptions options = null;
+					if (!isVideo) {	//图片文件
 						holder.ivFlag.setVisibility(View.GONE);
 						filePath = photoItem.getFilePath();
+						options = imageOptions;
 					} else {
 						holder.ivFlag.setVisibility(View.VISIBLE);
 						holder.viewAplha.setVisibility(View.GONE);
@@ -1252,11 +1256,13 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 						} else {
 							filePath = thumbPath;
 						}
+						options = videoOptions;
 					}
 					String uri = null;
 					if (!TextUtils.isEmpty(filePath)) {
 						uri = Scheme.FILE.wrap(filePath);
 					}
+					
 					mImageLoader.displayImage(uri, holder.ivPhoto, options);
 				}
 
@@ -1323,7 +1329,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 						tvPreview.setEnabled(false);
 						holder.cbChose.setChecked(false);
 						int resId = 0;
-						if (isImage) {	//选择的是图片
+						if (mIsImage) {	//选择的是图片
 							resId = R.string.album_tip_max_select;
 						} else {
 							resId = R.string.album_video_tip_max_select;
@@ -1446,6 +1452,44 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					+ "]";
 		}
 		
+	}
+	
+	/**
+	 * 加载图片消息的任务
+	 * @author huanghui1
+	 * @update 2015/12/23 14:50
+	 * @version: 0.0.1
+	 */
+	class LoadImageMsgTask extends AsyncTask<Integer, Void, List<PhotoItem>> {
+
+		@Override
+		protected List<PhotoItem> doInBackground(Integer... params) {
+			List<PhotoItem> photoItems = null;
+			if (SystemUtil.isNotEmpty(params)) {
+				int threadId = params[0];
+				Map<String, Object> map = msgManager.getMsgImagesByThreadId(threadId, null);
+				if (map != null) {
+					photoItems = (List<PhotoItem>) map.get("photoItems");
+				}
+			}
+			return photoItems;
+		}
+
+		@Override
+		protected void onPostExecute(List<PhotoItem> photoItems) {
+			if (photoItems != null) {
+				mPhotos.clear();
+
+				mPhotos.addAll(photoItems);
+				
+				if (mPhotoAdapter == null) {
+					mPhotoAdapter = new PhotoAdapter(mPhotos, mContext);
+					gvPhoto.setAdapter(mPhotoAdapter);
+				} else {
+					mPhotoAdapter.notifyDataSetChanged();
+				}
+			}
+		}
 	}
 	
 }

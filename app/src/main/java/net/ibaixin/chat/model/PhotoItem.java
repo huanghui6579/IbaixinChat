@@ -48,6 +48,17 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 			return filePath;
 		}
 	}
+	
+	/**
+	 * 判断该项是否是视频项
+	 * @author huanghui1
+	 * @update 2015/12/23 15:14
+	 * @version: 0.0.1
+	 * @return 是否是视频文件，true:是视频
+	 */
+	public boolean isVideoItem() {
+		return fileType == FileItem.FileType.VIDEO;
+	}
 
 	@Override
 	public int describeContents() {

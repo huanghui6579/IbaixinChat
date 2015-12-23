@@ -275,4 +275,8 @@ public class Constants {
 	 * 【24】文件下载成功的消息
 	 */
 	public static final int MSG_DOWNLOAD_SUCCESS = 0x000018;
+	/**
+	 * 【25】文件下载失败的消息
+	 */
+	public static final int MSG_DOWNLOAD_FAILED = 0x000019;
 }

@@ -21,6 +21,7 @@ import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.os.AsyncTaskCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorCompat;
 import android.support.v4.view.ViewPropertyAnimatorListenerAdapter;
@@ -1016,8 +1017,11 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				lvMsgs.removeHeaderView(headView);
 			}
 			if (!SystemUtil.isEmpty(result)) {	//有数据
+				//加载的消息数量
+				int loadSize = result.size();
 				mMsgInfos.addAll(0, result);
 				msgAdapter.notifyDataSetChanged();
+				lvMsgs.setSelection(loadSize);
 			}
 		}
 	}
@@ -1201,7 +1205,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 						headView = LayoutInflater.from(mContext).inflate(R.layout.layout_head_loading, null);
 					}
 					lvMsgs.addHeaderView(headView);
-					new LoadMoreDataTask().execute(mThreadId, getPageOffset());
+					AsyncTaskCompat.executeParallel(new LoadMoreDataTask(), mThreadId, getPageOffset());
 				}
 			}
 			

@@ -76,12 +76,12 @@
         <uses-library android:name="android.test.runner" />
 
         <!-- 百度地图key -->
+        <!--<meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="SVrxtfQG5YFAkONV40IZSRCZ" />-->
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="SVrxtfQG5YFAkONV40IZSRCZ" />
-<!--        <meta-data
-            android:name="com.baidu.lbsapi.API_KEY"
-            android:value="g8p76iCOjPOhOtt3yXKQHUci" />-->
+            android:value="g8p76iCOjPOhOtt3yXKQHUci" />
 
         <!--
         <activity

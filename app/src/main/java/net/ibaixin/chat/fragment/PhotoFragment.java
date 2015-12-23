@@ -56,6 +56,8 @@ public class PhotoFragment extends BaseFragment {
 	
 	private OnViewTapListener mOnViewTapListener;
 	
+	private OnLongClickListener mOnLongClickListener;
+	
 	/**
 	 * 是否点击屏幕就退出该界面
 	 */
@@ -81,6 +83,7 @@ public class PhotoFragment extends BaseFragment {
 		}
 		if (context instanceof PhotoPreviewActivity) {
 			mOnViewTapListener = (PhotoPreviewActivity) context;
+			mOnLongClickListener = (OnLongClickListener) context;
 		}
 		super.onAttach(context);
 	}
@@ -93,6 +96,9 @@ public class PhotoFragment extends BaseFragment {
         if (mOnViewTapListener != null) {
             mOnViewTapListener = null;
         }
+		if (mOnLongClickListener != null) {
+			mOnLongClickListener = null;
+		}
 		super.onDetach();
 	}
 	
@@ -118,6 +124,18 @@ public class PhotoFragment extends BaseFragment {
 						fileType = mPhoto.getFileType();
 					}
 					mOnViewTapListener.onTap(view, fileType, mPhoto);
+				}
+			}
+		});
+		
+		ivPhoto.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				if (mOnLongClickListener != null) {
+					mOnLongClickListener.onLongClick(v, mPhoto);
+					return true;
+				} else {
+					return false;
 				}
 			}
 		});
@@ -195,6 +213,20 @@ public class PhotoFragment extends BaseFragment {
 	}
 	
 	/**
+	 * 重置下载进度条的状态
+	 * @param progressBar 进度条
+	 * @author huanghui1
+	 * @update 2015/12/23 11:08
+	 * @version: 0.0.1
+	 */
+	private void resetDownloadProgress(CircleProgressBar progressBar) {
+		progressBar.setVisibility(View.VISIBLE);
+		progressBar.setCircleBackgroundEnabled(true);
+		progressBar.setShowProgressText(true);
+		progressBar.setProgress(0);
+	}
+	
+	/**
 	 * 现在原始图片
 	 * @param photoItem 图片或者视频项
 	 * @author huanghui1
@@ -205,14 +237,15 @@ public class PhotoFragment extends BaseFragment {
 		//开始下载文件
 		final String showPath = photoItem.getShowPath();
 		final MsgEngine msgEngine = new MsgEngine(getActivity());
+		resetDownloadProgress(pbLoading);
 		msgEngine.downloadFile(photoItem, new DownloadListener() {
 
 			@Override
 			public void onStart(int downloadId, long totalBytes) {
-				pbLoading.setVisibility(View.VISIBLE);
-				pbLoading.setCircleBackgroundEnabled(true);
-				pbLoading.setShowProgressText(true);
-				pbLoading.setProgress(0);
+				
+				if (pbLoading.getVisibility() == View.GONE) {
+					resetDownloadProgress(pbLoading);
+				}
 			}
 
 			@Override
@@ -233,6 +266,7 @@ public class PhotoFragment extends BaseFragment {
 				pbLoading.setVisibility(View.GONE);
 				if (!TextUtils.isEmpty(filePath)) {
 					photoItem.setNeedDownload(false);
+					photoItem.setFilePath(filePath);
 					if (downloadCallback != null) {
 						downloadCallback.onSuccess(photoItem, filePath);
 					}
@@ -315,9 +349,9 @@ public class PhotoFragment extends BaseFragment {
 		/**
 		 * 长按事件
 		 * @param view 长按的控件
-		 * @param photoItem 长按的item
+		 * @param downloadItem 长按的item
 		 */
-		public void onLongClick(View view, DownloadItem photoItem);
+		public void onLongClick(View view, DownloadItem downloadItem);
 	}
 	
 	/**

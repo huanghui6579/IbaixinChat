@@ -157,6 +157,7 @@
     <string name="chat_chose_item_title_thread">最近聊天</string>
     <string name="chat_chose_item_title_contact">好友</string>
     <string name="chat_forward_msg_error">没有消息内容，发送失败</string>
+    <string name="chat_forward_msg_success">发送成功</string>
     <string name="chat_forward_msg_prompt">确定发送给：</string>
     <string name="chat_share_no_files">没有可分享的内容</string>
 
@@ -173,6 +174,7 @@
     <string name="album_item_content">"%1$s\r\n%2$d张"</string>
     <string name="album_item_video_content">"%1$s\r\n%2$d个"</string>
     <string name="album_photo_chose_error">文件选择错误</string>
+    <string name="album_photo_download_failed">文件下载失败</string>
     <string name="album_no_data">没有更多记录</string>
     <string name="album_video_size">视频大小：%1$s</string>
     <string name="album_download_original_image_size">查看原图(%1$s)</string>

@@ -2591,9 +2591,11 @@ public class MsgManager extends Observable<Observer> {
 		values.put(Provider.MsgPartColumns.DOWNLOADED, msgPart.isDownloaded() ? 1 : 0);
 		int count = db.update(Provider.MsgPartColumns.TABLE_NAME, values, Provider.MsgPartColumns.MSG_ID + " = ?", new String[] {msgPart.getMsgId()});
 		if (count > 0 && refreshUi) {
+			Log.d("-----updateMsgPartDownload---success----msgPart----" + msgPart);
 			notifyObservers(Provider.MsgPartColumns.NOTIFY_FLAG, NotifyType.UPDATE, msgPart);
 			return true;
 		} else {
+			Log.d("-----updateMsgPartDownload---failed----msgPart----" + msgPart);
 			return false;
 		}
 	}

@@ -34,6 +34,7 @@ import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.model.DownloadItem;
 import net.ibaixin.chat.model.FileItem;
 import net.ibaixin.chat.model.MsgInfo;
+import net.ibaixin.chat.model.MsgPart;
 import net.ibaixin.chat.model.PhotoItem;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.Log;
@@ -173,6 +174,9 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 				if (mBtnDownload.getVisibility() == View.VISIBLE) {	//隐藏下载按钮
 					mBtnDownload.setVisibility(View.GONE);
 				}
+				break;
+			case Constants.MSG_DOWNLOAD_FAILED:	//文件下载失败
+				SystemUtil.makeShortToast(R.string.album_photo_download_failed);
 				break;
 			default:
 				break;
@@ -429,15 +433,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 			}
 		});
 
-		mMoreView.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(mContext, AlbumActivity.class);
-				intent.putParcelableArrayListExtra(ARG_PHOTO_LIST, mPhotos);
-				intent.putExtra(AlbumActivity.ARG_ALBUM_MANAGER, true);
-				startActivity(intent);
-			}
-		});
+		mMoreView.setOnClickListener(this);
 
 		mBtnDownload.setOnClickListener(this);
 		
@@ -586,6 +582,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 								if (currentItem != null) {
 									if (photoItem.getMsgId().equals(currentItem.getMsgId())) {	//同一张图片，界面没有一切换
 										currentItem.setNeedDownload(false);
+										currentItem.setFilePath(filePath);
 										mHandler.sendEmptyMessage(Constants.MSG_DOWNLOAD_SUCCESS);
 									}
 								}
@@ -593,6 +590,7 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 
 							@Override
 							public void onFailed(PhotoItem photoItem, int statusCode, String errMsg) {
+								mHandler.sendEmptyMessage(Constants.MSG_DOWNLOAD_FAILED);
 								Log.d("----photoItem--orifinal image download failed--" + photoItem + "---statusCode---" + statusCode + "--errMsg--" + errMsg);
 							}
 						});
@@ -601,20 +599,74 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 					}
 				}
 				break;
+			case R.id.iv_more:	//管理聊天图片
+				Intent intent = new Intent(mContext, AlbumActivity.class);
+				intent.putExtra(AlbumActivity.ARG_ALBUM_MANAGER, true);
+				if (mPhotos.size() > AlbumActivity.MAX_PHOTO_NUMBER) {	//数据超过100条就重新查询，不然会崩溃
+					if (msgInfo != null) {
+						int position = mViewPager.getCurrentItem();
+						PhotoItem item = mPhotos.get(position);
+						MsgInfo msg = new MsgInfo();
+						msg.setMsgId(item.getMsgId());
+						msg.setThreadID(msgInfo.getThreadID());
+						ArrayList<PhotoItem> list = new ArrayList<>(1);
+						list.add(item);
+						intent.putParcelableArrayListExtra(ARG_PHOTO_LIST, list);
+						intent.putExtra(ChatActivity.ARG_MSG_INFO, msg);
+						intent.putExtra(ARG_QUERY_FLAG, QUERY_FLAG_ALL);
+					}
+				} else {
+					intent.putParcelableArrayListExtra(ARG_PHOTO_LIST, mPhotos);
+				}
+				startActivity(intent);
+				break;
 		}
 	}
 
 	@Override
-	public void onLongClick(View view, DownloadItem photoItem) {
-		if (isDisplayMode()) {	//只有相册管理时才有菜单
-			MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
-			builder.items(R.array.album_photo_context_menu)
-					.itemsCallback(new MaterialDialog.ListCallback() {
-						@Override
-						public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+	public void onLongClick(View view, final DownloadItem downloadItem) {
+		if (downloadItem != null && isDisplayMode()) {	//只有相册管理时才有菜单
+			if (downloadItem instanceof PhotoItem) {
+				final PhotoItem photoItem = (PhotoItem) downloadItem;
+				MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
+				builder.items(R.array.album_photo_context_menu)
+						.itemsCallback(new MaterialDialog.ListCallback() {
+							@Override
+							public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+								switch (which) {
+									case 0:	//转发
+										MsgInfo msgInfo = new MsgInfo();
 
-						}
-					});
+										FileItem.FileType fileType = photoItem.getFileType();
+										if (fileType == FileItem.FileType.IMAGE) {	//图片
+											msgInfo.setMsgType(MsgInfo.Type.IMAGE);
+										} else if (fileType == FileItem.FileType.VIDEO) {	//视频
+											msgInfo.setMsgType(MsgInfo.Type.VIDEO);
+										} else {
+											msgInfo.setMsgType(MsgInfo.Type.FILE);
+										}
+										MsgPart msgPart = new MsgPart();
+										msgPart.setFilePath(photoItem.getFilePath());
+										msgPart.setFileName(photoItem.getFileName());
+										msgPart.setThumbPath(photoItem.getThumbPath());
+										msgPart.setMimeType(photoItem.getMime());
+										msgPart.setSize(photoItem.getSize());
+										
+										msgInfo.setMsgPart(msgPart);
+										
+										ArrayList<MsgInfo> argMsgs = new ArrayList<>(1);
+										argMsgs.add(msgInfo);
+										Intent intent = new Intent(mContext, ChatChoseActivity.class);
+										intent.putParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS, argMsgs);
+										intent.putExtra(ChatChoseActivity.ARG_FINISH, false);
+										startActivity(intent);
+										break;
+									case 1:	//保存图片到本地
+										break;
+								}
+							}
+						}).show();
+			}
 		}
 	}
 
