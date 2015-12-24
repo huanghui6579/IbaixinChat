@@ -1,6 +1,5 @@
 package net.ibaixin.chat.fragment;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -166,8 +165,8 @@ public class ContactFragment extends BaseFragment implements LazyLoadCallBack {
 	}
 	
 	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
+	public void onAttach(Context context) {
+		super.onAttach(context);
 		
 		//注册好友的观察者
 		registUserContentObserver();

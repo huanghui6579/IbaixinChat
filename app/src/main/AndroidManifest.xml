@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="net.ibaixin.chat"
-    android:versionCode="2"
-    android:versionName="1.2.1" >
+<manifest package="net.ibaixin.chat"
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          android:versionCode="2"
+          android:versionName="1.2.1">
 
     <!--
         <uses-sdk
@@ -11,77 +11,79 @@
 
 
     <!-- 访问网络的权限 -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- 读取网络状态权限 -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <!-- 存储卡读写权限 -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <!-- 读取存储卡的权限 -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <!-- 访问后台服务的权限 -->
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_SERVICE"/>
     <!-- 获取手机状态的权限 -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.READ_USER_DICTIONARY" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.READ_USER_DICTIONARY"/>
     <!-- 添加录音权限 -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
     <!-- 这个权限用于进行网络定位 -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <!-- 这个权限用于访问GPS定位 -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION"/>
      
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
 
     <!-- 获取应用程序的运行状态的权限 -->
-    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.GET_TASKS"/>
 
     <!-- 手机震动权限 -->
-    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <!-- 百度地图相关权限 -->
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
-    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
-    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
-    <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.BROADCAST_STICKY" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.USE_CREDENTIALS"/>
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+    <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.BROADCAST_STICKY"/>
     <!-- 允许应用读取低级别的系统日志文件 -->
-    <uses-permission android:name="android.permission.READ_LOGS" />
-    <uses-permission android:name="android.permission.RUN_INSTRUMENTATION" />
+    <uses-permission android:name="android.permission.READ_LOGS"/>
+    <uses-permission android:name="android.permission.RUN_INSTRUMENTATION"/>
     <!-- service 里面弹出对话框 -->
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.CALL_PHONE" />
-    <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL"/>
 
     <!-- 要使用相机,但不是必需的 -->
     <uses-feature
         android:name="android.hardware.camera"
-        android:required="false" />
+        android:required="false"/>
 
     <instrumentation
         android:name="android.test.InstrumentationTestRunner"
         android:label="Test for my app"
-        android:targetPackage="net.ibaixin.chat" />
+        android:targetPackage="net.ibaixin.chat"/>
 
     <application
         android:name=".ChatApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
-        <uses-library android:name="android.test.runner" />
+        android:theme="@style/AppTheme">
+        <uses-library android:name="android.test.runner"/>
 
         <!-- 百度地图key -->
-        <!--<meta-data
+        <!--
+            <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="SVrxtfQG5YFAkONV40IZSRCZ" />-->
+            android:value="SVrxtfQG5YFAkONV40IZSRCZ" />
+        -->
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="g8p76iCOjPOhOtt3yXKQHUci" />
+            android:value="g8p76iCOjPOhOtt3yXKQHUci"/>
 
         <!--
         <activity
@@ -125,140 +127,140 @@
             android:name=".activity.SplashActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.FullScreen.Splash" >
+            android:theme="@style/AppTheme.FullScreen.Splash">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
             android:name=".activity.LoginActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name" />
+            android:label="@string/app_name"/>
         <activity
             android:name=".activity.MainActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/app_name"
             android:launchMode="singleTask"
-            android:theme="@style/AppTheme.MainActivity" />
+            android:theme="@style/AppTheme.MainActivity"/>
         <activity
             android:name=".activity.RegistActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_regist" />
+            android:label="@string/activity_lable_regist"/>
         <activity
             android:name=".activity.AddFriendActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_add_friend" />
+            android:label="@string/activity_lable_add_friend"/>
         <activity
             android:name=".activity.UserInfoActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_friend_info" />
+            android:label="@string/activity_lable_friend_info"/>
         <activity
             android:name=".activity.ChatActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/activity_lable_chat"
             android:launchMode="singleTask"
             android:parentActivityName=".activity.MainActivity"
-            android:theme="@style/AppTheme.ChatActivity" >
+            android:theme="@style/AppTheme.ChatActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="net.ibaixin.chat.activity.MainActivity" />
+                android:value="net.ibaixin.chat.activity.MainActivity"/>
         </activity>
         <activity
             android:name=".activity.NewFriendInfoActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_new_friend_info" />
+            android:label="@string/activity_lable_new_friend_info"/>
         <activity
             android:name=".activity.AlbumActivity"
             android:configChanges="orientation|screenSize"
-            android:launchMode="singleInstance"
             android:label="@string/activity_lable_album"
-            android:theme="@style/AppTheme.AlbumActivity" />
+            android:launchMode="singleInstance"
+            android:theme="@style/AppTheme.AlbumActivity"/>
         <activity
             android:name=".activity.PhotoPreviewActivity"
             android:configChanges="orientation|screenSize"
-            android:launchMode="singleInstance"
             android:label="@string/activity_lable_album"
-            android:theme="@style/AppTheme.ImagePreviewActivity" />
+            android:launchMode="singleInstance"
+            android:theme="@style/AppTheme.ImagePreviewActivity"/>
         <activity
             android:name=".activity.FileExplorerActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_file_explorer" />
+            android:label="@string/activity_lable_file_explorer"/>
         <activity
             android:name=".activity.AudioListActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_audio" />
+            android:label="@string/activity_lable_audio"/>
         <activity
             android:name=".activity.LocationShareActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_location_share" />
+            android:label="@string/activity_lable_location_share"/>
         <activity
             android:name=".activity.RemarkEditActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_edit_remark" />
+            android:label="@string/activity_lable_edit_remark"/>
         <activity
             android:name=".activity.ChatImagePreviewActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_edit_remark" />
+            android:label="@string/activity_lable_edit_remark"/>
         <activity
             android:name=".activity.LocationShowActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_show_location" />
+            android:label="@string/activity_lable_show_location"/>
         <activity
             android:name=".activity.MsgShowActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_show_msg" />
+            android:label="@string/activity_lable_show_msg"/>
         <activity
             android:name=".activity.JokeReadMainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/activity_lable_joke" />
+            android:label="@string/activity_lable_joke"/>
         <activity
             android:name=".activity.VideoReadMainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:hardwareAccelerated="true"
-            android:label="@string/activity_lable_jokevideo" />
+            android:label="@string/activity_lable_jokevideo"/>
         <activity
             android:name=".activity.BackDoorActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/backdoor_label" />
+            android:label="@string/backdoor_label"/>
         <activity
             android:name=".activity.JokeAddActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/addjoke_label" />
+            android:label="@string/addjoke_label"/>
         <activity
             android:name=".activity.VideoAddActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/addvideo_label" />
+            android:label="@string/addvideo_label"/>
         <activity
             android:name=".activity.PersonalInfoActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_personal_info" />
+            android:label="@string/activity_lable_personal_info"/>
         <activity
             android:name=".activity.ClipHeadIconActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_clip_head_icon" />
+            android:label="@string/activity_lable_clip_head_icon"/>
         <activity
             android:name=".activity.EditNicknameActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_nickname" />
+            android:label="@string/activity_lable_nickname"/>
         <activity
             android:name=".activity.SettingActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/item_setting" />
+            android:label="@string/item_setting"/>
         <activity
             android:name=".activity.AboutActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/about" />
+            android:label="@string/about"/>
         <activity
             android:name=".activity.GeoChoiceActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/geo_choice" >
+            android:label="@string/geo_choice">
         </activity>
         <activity
             android:name=".activity.EditSignatureActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/personal_info_signature" />
+            android:label="@string/personal_info_signature"/>
         <!--
         <provider android:name="net.ibaixin.chat.provider.UserProvider"
             android:authorities="net.ibaixin.chat.provider.user;net.ibaixin.chat.provider.newFriend"
@@ -272,41 +274,42 @@
         <provider
             android:name=".provider.PersonalProvider"
             android:authorities="net.ibaixin.chat.provider.personal"
-            android:exported="false" />
+            android:exported="false"/>
 
-        <service android:name=".service.CoreService" />
+        <service android:name=".service.CoreService"/>
 
         <!-- 百度定位service -->
         <service
             android:name="com.baidu.location.f"
             android:enabled="true"
-            android:process=":remote" >
+            android:process=":remote">
         </service>
 
         <!-- QQ登录所需的activity -->
         <activity
             android:name="com.tencent.tauth.AuthActivity"
             android:launchMode="singleTask"
-            android:noHistory="true" >
+            android:noHistory="true">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.VIEW"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data android:scheme="tencent1104396884" /> <!-- 100380359 100381104 222222 -->
+                <data android:scheme="tencent1104396884"/>
+                <!-- 100380359 100381104 222222 -->
             </intent-filter>
         </activity>
         <activity
             android:name="com.tencent.connect.common.AssistActivity"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
 
         <!-- 网络监听的广播 -->
-        <receiver android:name=".receiver.NetworkReceiver" >
+        <receiver android:name=".receiver.NetworkReceiver">
             <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-                <action android:name="net.ibaixin.chat.receiver.ACTION_CHECK_NETWORK" />
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+                <action android:name="net.ibaixin.chat.receiver.ACTION_CHECK_NETWORK"/>
             </intent-filter>
         </receiver>
 
@@ -343,31 +346,31 @@
         <activity
             android:name=".activity.ChatChoseActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_lable_chose" />
-
-        <activity android:name=".activity.ActionShareActivity"
+            android:label="@string/activity_lable_chose"/>
+        <activity
+            android:name=".activity.ActionShareActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/activity_lable_action_share">
             <intent-filter>
-                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
-                <data android:mimeType="*/*" />
+                <data android:mimeType="*/*"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <action android:name="android.intent.action.SEND_MULTIPLE"/>
 
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT"/>
 
-                <data android:mimeType="*/*" />
+                <data android:mimeType="*/*"/>
             </intent-filter>
         </activity>
 
         <!-- 更新安装包服务 -->
-        <service
-            android:name=".update.UpdateService" >
+        <service android:name=".update.UpdateService">
         </service>
+
     </application>
 
 </manifest>

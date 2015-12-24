@@ -135,8 +135,10 @@ public class MainActivity extends BaseActivity {
 		Intent intent = null;
 		switch (item.getItemId()) {
 		case R.id.action_add_friend:	//添加好友
-			intent = new Intent(mContext, AddFriendActivity.class);
-			startActivity(intent);
+			String s = null;
+			boolean flag = s.equals("abc");
+//			intent = new Intent(mContext, AddFriendActivity.class);
+//			startActivity(intent);
 			break;
 		/*case R.id.action_exit:	//退出
 			application.exit();

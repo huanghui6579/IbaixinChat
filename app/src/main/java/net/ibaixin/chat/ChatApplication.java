@@ -112,7 +112,7 @@ public class ChatApplication extends Application {
 		
 		initNativeLib();
 		
-		Log.setPolicy(Log.LOG_WARN_TO_FILE);
+		Log.setPolicy(Log.LOG_ERROR_TO_FILE);
 		
 		// 在使用 SDK 各组间之前初始化 context 信息，传入 ApplicationContext
 		SDKInitializer.initialize(this);
@@ -124,7 +124,10 @@ public class ChatApplication extends Application {
 		initEmojiType();
 		
 		initEmoji();
-		
+
+		CrashHandler crashHandler = CrashHandler.getInstance();
+		crashHandler.init(getApplicationContext());
+
 //		makeWebViewCacheDir() ;
 		
 	}
@@ -469,7 +472,17 @@ public class ChatApplication extends Application {
 	 * @update 2014年10月8日 下午10:30:04
 	 */
 	public void exit() {
-		removePassword();
+		exit(true);
+	}
+
+	/**
+	 * 退出应用应用程序
+	 * @param removePassword 是否移除本地密码
+	 */
+	public void exit(boolean removePassword) {
+		if (removePassword) {
+			removePassword();
+		}
 		setSureExit(true);
 		XmppConnectionManager.getInstance().disconnect();
 		Intent intent = new Intent(mInstance, CoreService.class);

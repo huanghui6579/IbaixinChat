@@ -4,9 +4,9 @@
     <string name="app_name">百信</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    
+
     <string name="splash_desc">让沟通更简单</string>
-    
+
     <string name="delete">删除</string>
     <string name="download">下载</string>
     <string name="forward">转发</string>
@@ -21,14 +21,14 @@
     <string name="update_success">更新成功</string>
     <string name="update_failed">更新失败</string>
     <string name="send_success">发送成功</string>
-    
+
     <string name="chat_state_composing">对方正在输入&#8230;</string>
-    
+
     <string name="net_error_tip">世界最遥远的距离就是没有网。检查设置</string>
-    
+
     <string name="sex_man">男</string>
     <string name="sex_woman">女</string>
-    
+
     <string name="apply">使用</string>
     <string name="choice">选择</string>
     <string name="send">发送</string>
@@ -44,9 +44,11 @@
     <string name="copy_text_success">内容成功复制到剪贴板！</string>
     <string name="location_info_error">地理位置信息为空！</string>
     <string name="not_login">请先登录!</string>
-    
+
+    <string name="app_exception_msg">程序运行异常，即将退出</string>
+
     <string name="my_location_prompt">[我的位置]\r\n%1$s</string>
-    
+
     <string name="activity_lable_login">用户登录</string>
     <string name="activity_lable_regist">用户注册</string>
     <string name="activity_lable_add_friend">添加好友</string>
@@ -74,12 +76,12 @@
     <string name="username">用户名：%1$s</string>
     <string name="nickname">昵称：%1$s</string>
     <string name="realname">姓名：%1$s</string>
-    
+
     <string name="sdcard_not_available">SD卡不可用！</string>
     <string name="file_not_exists">文件不存在或者已损坏！</string>
-    
+
     <string name="file_open_intent_error">没有对应的软件能打开该文件</string>
-    
+
     <!-- MainActivity的主菜单 -->
     <string name="action_exit">退出</string>
     <string name="action_search">搜索</string>
@@ -99,7 +101,7 @@
 
     <!-- 相册选择图片的菜单 -->
     <string name="action_select_complete">发送</string>
-    
+
     <string name="login_failed">登录失败</string>
     <string name="regist_failed">注册失败</string>
     <string name="request_address_failed">网络请求的地址不对</string>
@@ -109,7 +111,7 @@
     <string name="logining">正在登录，请稍后&#8230;</string>
     <string name="registing">正在注册，请稍后&#8230;</string>
     <string name="network_error">没有可用的网络连接，请检查网络！</string>
-    
+
     <string name="login_hint_account">账号</string>
     <string name="login_hint_nickname">昵称</string>
     <string name="login_hint_email">邮箱</string>
@@ -119,7 +121,7 @@
     <string name="login_text_button_regist">注册</string>
     <string name="login_text_regist">创建账号</string>
     <string name="login_text_login">已有账号，点击登录</string>
-    
+
     <string name="contact_hint_search_friend">账号</string>
     <string name="contact_hint_search">查找</string>
     <string name="contact_hint_edit_nick">请输入备注</string>
@@ -138,18 +140,18 @@
     <string name="contact_send_add_friend_request_repeat">已发送过请求了，不必重复发送</string>
     <string name="contact_list_new_friend">新的朋友</string>
     <string name="contact_list_group_chat">群聊</string>
-    
+
     <string name="contact_new_friend_status_title_unadd">添加</string>
     <string name="contact_new_friend_status_title_added">已添加</string>
     <string name="contact_new_friend_status_title_verifying">等待验证</string>
     <string name="contact_new_friend_status_title_accept">接受</string>
-    
+
     <string name="contact_list_content_menu_set_nickname">设置备注</string>
     <string name="contact_list_content_delete_prompt">确定删除“%1$s”吗？</string>
 
     <string name="contact_friend_add_request">对方请求添加你为朋友</string>
     <string name="contact_friend_add_target_request">请求添加对方为好友</string>
-    
+
     <string name="chat_msg_edit_hint">请输入内容</string>
     <string name="chat_btn_make_voice_start">按住&#160;说话</string>
     <string name="chat_sending_file">正在发送文件&#8230;</string>
@@ -178,7 +180,7 @@
     <string name="album_no_data">没有更多记录</string>
     <string name="album_video_size">视频大小：%1$s</string>
     <string name="album_download_original_image_size">查看原图(%1$s)</string>
-    
+
     <string name="album_image_msg">聊天图片</string>
 
     <string name="msg_thread_snippet_content_audio">[音频]%1$s</string>
@@ -188,10 +190,10 @@
     <string name="msg_thread_snippet_content_location">[地理位置]%1$s</string>
     <string name="msg_thread_snippet_content_vcard">[电子名片]%1$s</string>
     <string name="msg_thread_snippet_content_voice">[语音]%1$s</string>
-    
+
     <string name="thread_list_context_menu_top">置顶聊天</string>
     <string name="thread_list_context_menu_top_cancel">取消置顶</string>
-    
+
     <string name="file_explorer_folder_item_num">%1$d项</string>
     <string name="file_explorer_folder_unreadable">不可读</string>
     <string name="file_tip_max_select">只能选择%1$d个文件</string>
@@ -199,35 +201,35 @@
     <!-- \u0020 表示空格 -->
     <string name="audio_item_content">%1$s\u0020|\u0020%2$s</string>
     <string name="audio_list_search_hint">请输入歌曲名</string>
-    
+
     <string name="chat_loction_opt_failed">分享地理位值失败，请稍后再试！</string>
-    
+
     <string name="notification_new_msg_title">您有%1$d条未读消息!</string>
     <string name="notification_batch_promtp_title">未读消息提醒</string>
     <string name="notification_batch_promtp_content">您有%1$d条未读消息,点击查看详情！</string>
-    
+
     <string name="show_location_error">显示地理信息失败!</string>
-    
+
     <string name="personal_info_head_icon">头像</string>
     <string name="personal_info_nick">昵称</string>
     <string name="personal_info_account">用户名</string>
     <string name="personal_info_sex">性别</string>
     <string name="personal_info_address">地区</string>
     <string name="personal_info_signature">个性签名</string>
-    
+
     <string name="personal_info_not_filled">未填写</string>
-    
+
     <string name="personal_info_hint_signature">请输个性签名</string>
     <string name="personal_info_prompt_signature">%1$d/%2$d</string>
     <string name="personal_info_hint_nickname">请输入昵称</string>
     <string name="personal_info_prompt_nickname">好名字可以让朋友更容易记住你</string>
-    
+
     <string name="geo_current_location">当前位置</string>
     <string name="geo_locating">定位中&#8230;</string>
     <string name="geo_all_district">全部地区</string>
     <string name="geo_checked_district">已选地区</string>
     <string name="geo_locate_error">定位失败</string>
-    
+
     <string name="chat_record_dialog_cancel">松开手指可取消录音</string>
     <string name="chat_record_btn_cancel">松开手指&#160;取消录音</string>
     <string name="chat_record_dialog_done">向上滑动可取消录音</string>
@@ -237,7 +239,7 @@
     <string name="chat_delte_msg_prompt">确定删除所选项？</string>
 
     <string name="prompt_account">账号：%1$s</string>
-    
+
     <string name="item_setting">系统设置</string>
     <string name="item_readjokestext">趣味阅读</string>
     <string name="item_readjokesvideo">趣味视频</string>
@@ -247,7 +249,7 @@
     <string name="addjoke_label">发段子</string>
     <string name="addvideo_label">分享视频</string>
     <string name="addjoke_jokepic">添加趣图</string>
-    
+
     <string name="submittingdata">正在提交数据&#8230;</string>
     <!-- <string name="imgloading">图片加载中...</string> -->
     <string name="imgloading">图片加载中&#8230;</string>
@@ -283,6 +285,6 @@
     <string name="choose_from">选择来源</string>
     <string name="choose_from1">腾讯视频</string>
     <string name="choose_from2">优酷视频</string>
-    
-    
+
+
 </resources>
