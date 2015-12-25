@@ -1,9 +1,6 @@
 package net.ibaixin.chat;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import android.widget.Toast;
 
 import net.ibaixin.chat.util.Log;
 
@@ -22,8 +19,6 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
     private Context mContext;
     
     private CrashHandler() {}
-    
-    private Handler mHandler = new Handler();
     
     public static CrashHandler getInstance() {
         if (mInstance == null) {
@@ -53,16 +48,51 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
         if (!handleException(ex) && mDefalutHandler != null) {
             mDefalutHandler.uncaughtException(thread, ex);
         } else {    //退出应用
+            ChatApplication.getInstance().exit(false);
             //使用Toast来显示异常信息  
-            new Thread() {
+            /*new Thread() {
                 @Override
                 public void run() {
                     Looper.prepare();
-                    Toast.makeText(mContext, "很抱歉,程序出现异常,即将退出.", Toast.LENGTH_LONG).show();
-                    ChatApplication.getInstance().exit(false);
+//                    Toast.makeText(mContext, "很抱歉,程序出现异常,即将退出.", Toast.LENGTH_LONG).show();
+
+                    MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
+                    MaterialDialog dialog = builder.title(R.string.prompt)
+                            .content(R.string.app_exception_msg)
+                            .positiveText(android.R.string.ok)
+                            .cancelable(false)
+                            .callback(new MaterialDialog.ButtonCallback() {
+                                @Override
+                                public void onPositive(MaterialDialog dialog) {
+                                    ChatApplication.getInstance().exit(false);
+                                }
+                            })
+                            .build();
+                    dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                    dialog.show();
+                    
                     Looper.loop();
                 }
-            }.start();  
+            }.start();*/
+            /*MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
+            MaterialDialog dialog = builder.title(R.string.prompt)
+                    .content(R.string.app_exception_msg)
+                    .positiveText(android.R.string.ok)
+                    .cancelable(false)
+                    .callback(new MaterialDialog.ButtonCallback() {
+                        @Override
+                        public void onPositive(MaterialDialog dialog) {
+                            ChatApplication.getInstance().exit(false);
+                        }
+                    })
+                    .build();
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            dialog.show();*/
+
+//            Intent intent = new Intent(mContext, TestActivity.class);
+//            mContext.startActivity(intent);
+            
+//            ChatApplication.getInstance().exit(false);
             /*new Thread(new Runnable() {
                 @Override
                 public void run() {
