@@ -714,7 +714,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * 修改备注：
 	 * @version: 0.0.1
 	 */
-	private void handleForwarMsg() {
+	private void handleForwardMsg() {
 		Intent intent = getIntent();
 		if (intent != null) {
 			final List<MsgInfo> argMsgs = intent.getParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS);
@@ -771,6 +771,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * @update 2015年9月14日 上午9:49:35
 	 */
 	private void resetData() {
+		mAttachItems.clear();
 		SystemUtil.getCachedThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
@@ -858,7 +859,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * @update 2014年11月6日 下午9:38:50
 	 * @return
 	 */
-	private Chat createChat(AbstractXMPPConnection connection, boolean doLogin) {
+	private synchronized Chat createChat(AbstractXMPPConnection connection, boolean doLogin) {
 		try {
 			if (connection == null) {
                 connection = XmppConnectionManager.getInstance().getConnection();
@@ -985,7 +986,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			
 			if (isForward) {
 				//处理转发、分享的消息
-				handleForwarMsg();
+				handleForwardMsg();
 			}
 		}
 	}
