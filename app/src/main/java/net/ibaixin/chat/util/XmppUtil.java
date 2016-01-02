@@ -1,5 +1,7 @@
 package net.ibaixin.chat.util;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.text.TextUtils;
@@ -10,6 +12,7 @@ import net.ibaixin.chat.model.HeadIcon;
 import net.ibaixin.chat.model.Personal;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.model.UserVcard;
+import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.smack.packet.VcardX;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -18,6 +21,8 @@ import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.SmackException.NotLoggedInException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException.XMPPErrorException;
+import org.jivesoftware.smack.chat.Chat;
+import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.id.StanzaIdUtil;
@@ -566,5 +571,52 @@ public class XmppUtil {
 			}
 		}
 		return isOut;
+	}
+
+	/**
+	 * 创建聊天的资源
+	 * @param chatManager 聊天管理器
+	 * @param context 上下文
+	 * @param toJid 消息接收人的jid
+	 * @param doLogin 当连接断开时是否自动登录
+	 * @author tiger
+	 * @update 2015/12/27 13:05
+	 * @version 1.0.0
+	 * @return 返回chat
+	 */
+	public static Chat createChat(ChatManager chatManager, Context context, String toJid, boolean doLogin) {
+		Chat chat = null;
+		try {
+			AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
+			if (connection.isAuthenticated()) {	//是否登录
+				if (chatManager == null) {
+					chatManager = ChatManager.getInstanceFor(connection);
+				}
+				chat = chatManager.createChat(toJid, null);
+				return chat;
+			} else {
+				boolean flag = false;
+				if (doLogin) {
+					flag = XmppConnectionManager.getInstance().checkAuthority(connection, (ChatApplication) context.getApplicationContext());
+					if (flag) {
+						if (chatManager == null) {
+							chatManager = ChatManager.getInstanceFor(connection);
+						}
+						chat = chatManager.createChat(toJid, null);
+						return chat;
+					} else {
+						return null;
+					}
+				} else {
+					//发送广播，重新登录
+					Intent intent = new Intent(CoreService.CoreReceiver.ACTION_RELOGIN);
+					context.sendBroadcast(intent);
+					return null;
+				}
+			}
+		} catch (Exception e) {
+			Log.e(e.getMessage());
+			return null;
+		}
 	}
 }

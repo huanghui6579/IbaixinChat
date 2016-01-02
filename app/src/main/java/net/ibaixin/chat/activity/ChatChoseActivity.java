@@ -1,10 +1,13 @@
 package net.ibaixin.chat.activity;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -29,15 +32,21 @@ import net.ibaixin.chat.manager.MsgManager;
 import net.ibaixin.chat.model.ChatChoseItem;
 import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.MsgPart;
+import net.ibaixin.chat.model.MsgSenderInfo;
 import net.ibaixin.chat.model.MsgThread;
 import net.ibaixin.chat.model.ShowInfo;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.model.UserVcard;
+import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.ImageUtil;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.SystemUtil;
+import net.ibaixin.chat.util.XmppUtil;
 import net.ibaixin.chat.view.ProgressDialog;
+
+import org.jivesoftware.smack.chat.Chat;
+import org.jivesoftware.smack.chat.ChatManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +110,12 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
      */
     private boolean mFinish = true;
 
+    private CoreService mCoreService;
+
+    private Chat mChat;
+
+    private ChatManager mChatManager;
+
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -124,6 +139,23 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
             }
         }
     };
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            CoreService.MainBinder mBinder = (CoreService.MainBinder) service;
+            mCoreService = mBinder.getService();
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            // TODO Auto-generated method stub
+
+        }
+
+    };
     
     @Override
     protected int getContentView() {
@@ -138,6 +170,9 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     @Override
     protected void initData() {
         mChoseItems = new ArrayList<>();
+
+        Intent service = new Intent(mContext, CoreService.class);
+        bindService(service, mServiceConnection, Context.BIND_AUTO_CREATE);
 
         getSupportLoaderManager().initLoader(0, null, ChatChoseActivity.this);
 
@@ -251,7 +286,12 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
                                                                 }
                                                             }
 
+                                                            if (mFinish) {
+                                                                sendMsg(msgInfo, msgThread);
+                                                            }
+
                                                         }
+
                                                         pDialog.dismiss();
                                                         Message msg = mHandler.obtainMessage();
                                                         msg.what = Constants.MSG_SUCCESS;
@@ -280,7 +320,40 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     protected void onDestroy() {
         getSupportLoaderManager().destroyLoader(0);
         mFinish = true;
+
+        try {
+            if (mServiceConnection != null) {
+                unbindService(mServiceConnection);
+            }
+        } catch (Exception e) {
+            Log.e(e.getMessage());
+        }
+
         super.onDestroy();
+    }
+
+    /**
+     * 发送消息
+     * @param msgInfo 消息
+     * @param msgThread 发送的会话
+     * @author tiger
+     * @update 2015/12/27 13:09
+     * @version 1.0.0
+     */
+    private void sendMsg(MsgInfo msgInfo, MsgThread msgThread) {
+        if (msgInfo != null) {
+            if (mChat == null) {
+                mChat = XmppUtil.createChat(mChatManager, mContext, msgInfo.getToUser(), true);
+            }
+            if (mChat != null) {
+                MsgSenderInfo msgSenderInfo = new MsgSenderInfo(mChat, msgInfo, msgThread, mHandler, false);
+                mCoreService.sendChatMsg(msgSenderInfo);
+            } else {
+                Log.d("-----sendMsgs----mChat---is----null-----");
+            }
+        } else {
+            Log.d("-----sendMsgs----msgInfo---is----empty-----");
+        }
     }
 
     @Override
