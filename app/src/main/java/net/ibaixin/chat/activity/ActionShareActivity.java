@@ -8,10 +8,12 @@ import android.os.Message;
 
 import com.nostra13.universalimageloader.core.download.ImageDownloader;
 
+import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.model.MsgInfo;
 import net.ibaixin.chat.model.MsgPart;
 import net.ibaixin.chat.receiver.NetworkReceiver;
+import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.ImageUtil;
 import net.ibaixin.chat.util.Log;
@@ -36,6 +38,10 @@ public class ActionShareActivity extends BaseActivity {
     private ProgressDialog pDialog;
 
     private AbstractXMPPConnection mConnection;
+    
+    public static final String ARG_ACTION_SHARE = "arg_action_share";
+    
+    private final int REQ_LOGIN = 1;
 
     private Handler mHandler = new Handler() {
         @Override
@@ -70,6 +76,58 @@ public class ActionShareActivity extends BaseActivity {
 
     @Override
     protected void initData() {
+        int loginState = application.getFirstLoginState();
+        Intent intent = null;
+        switch (loginState) {
+            case ChatApplication.LOGIN_STATE_NONE:  //从未登录过，或者本地数据被清除了
+            case ChatApplication.LOGIN_STATE_LOGOUT:    //用户注销了，则进入登录界面
+                intent = new Intent(mContext, SplashActivity.class);
+                intent.putExtra(ARG_ACTION_SHARE, true);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivityForResult(intent, REQ_LOGIN);
+//                finish();
+                break;
+            case ChatApplication.LOGIN_STATE_LOGIN: //用户已经本地登录过了，则只需在后台登录或者不用登录了
+                handleMsgSender();
+                break;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case REQ_LOGIN: //从登录界面返回
+                    afterLogin();
+                    handleMsgSender();
+                    break;
+            }
+        }
+        
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+    
+    /**
+     * 在后台服务里处理登录后的一些数据加载工作
+     * @author huanghui1
+     * @update 2016/1/2 14:52
+     * @version: 1.0.0
+     */
+    private void afterLogin() {
+        Intent service = new Intent(mContext, CoreService.class);
+        service.putExtra(CoreService.FLAG_INIT_CURRENT_USER, CoreService.FLAG_INIT_PERSONAL_INFO);
+        service.putExtra(CoreService.FLAG_SYNC, CoreService.FLAG_SYNC_FRENDS);
+        startService(service);
+    }
+
+    /**
+     * 处理消息的发送
+     * @author huanghui1
+     * @update 2016/1/2 11:46
+     * @version: 1.0.0
+     */
+    private void handleMsgSender() {
         pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading));
         SystemUtil.getCachedThreadPool().execute(new Runnable() {
             @Override
@@ -91,7 +149,12 @@ public class ActionShareActivity extends BaseActivity {
                                 if (type != null) {
                                     MsgInfo msgInfo = null;
                                     if (MimeUtils.MIME_TYPE_TEXT.equals(type)) {    //普通文本
-                                        msgInfo = getTextMsg(handleSendText(intent));
+                                        String text = handleSendText(intent);
+                                        if (text == null) {
+                                            msgInfo = getFileMsg(handleSendFile(intent));
+                                        } else {
+                                            msgInfo = getTextMsg(handleSendText(intent));
+                                        }
                                     } else {    //文件
                                         msgInfo = getFileMsg(handleSendFile(intent));
                                     }

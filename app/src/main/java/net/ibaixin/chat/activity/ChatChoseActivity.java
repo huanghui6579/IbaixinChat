@@ -348,8 +348,8 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     private View getEmptyView() {
         if (mEmptyView == null) {
             ViewStub viewStub = (ViewStub) findViewById(R.id.empty_stub);
-            viewStub.inflate();
-            mEmptyView = findViewById(R.id.empty_view);
+            View view = viewStub.inflate();
+            mEmptyView = view.findViewById(R.id.empty_view);
         }
         return mEmptyView;
     }

@@ -1,22 +1,21 @@
 package net.ibaixin.chat.activity;
 
-import net.ibaixin.chat.R;
-import net.ibaixin.chat.model.SystemConfig;
-import net.ibaixin.chat.task.RegistTask;
-import net.ibaixin.chat.util.SystemUtil;
 import android.content.Intent;
-import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import net.ibaixin.chat.R;
+import net.ibaixin.chat.model.SystemConfig;
+import net.ibaixin.chat.task.RegistTask;
+import net.ibaixin.chat.util.SystemUtil;
 
 /**
  * 注册界面
@@ -40,6 +39,11 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 	private TextView tvLogin;
 	
 	private SystemConfig systemConfig;
+
+	/**
+	 * 是否从分享界面进入的
+	 */
+	private boolean mIsActionShare;
 
 	/**
 	 * 是否显示进入到登录界面的按钮
@@ -68,6 +72,7 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 		systemConfig = application.getSystemConfig();
 		Intent intent = getIntent();
 		mShowLogin = intent.getBooleanExtra(ARG_SHOW_LOGIN, true);
+		mIsActionShare = intent.getBooleanExtra(ActionShareActivity.ARG_ACTION_SHARE, false);
 		if (mShowLogin) {	//显示登录入口
 			if (tvLogin.getVisibility() != View.VISIBLE) {
 				tvLogin.setVisibility(View.VISIBLE);
@@ -175,7 +180,7 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 						systemConfig.setPassword(etPassword.getText().toString());
 						systemConfig.setNickname(etNickname.getText().toString());
 						systemConfig.setEmail(etEmail.getText().toString());
-						new RegistTask(mContext).execute(systemConfig);
+						new RegistTask(RegistActivity.this, mIsActionShare).execute(systemConfig);
 					}
 					return true;
 				}
@@ -206,7 +211,8 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 			if (SystemUtil.isSoftInputActive()) {	//输入法已展开，则关闭输入法
 				SystemUtil.hideSoftInput(this);
 			}
-			new RegistTask(mContext).execute(systemConfig);
+			
+			new RegistTask(this, mIsActionShare).execute(systemConfig);
 			break;
 		case R.id.tv_login:	//返回登录界面
 			Intent intent = new Intent(mContext, LoginActivity.class);
@@ -223,7 +229,7 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 	 * 设置注册按钮的状态
 	 * @author Administrator
 	 * @update 2014年10月7日 下午3:47:36
-	 * @param isEnable
+	 * @param enable
 	 */
 	private void setRegistBtnState(boolean enable) {
 		isCanRegister = enable ;

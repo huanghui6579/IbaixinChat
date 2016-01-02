@@ -1,30 +1,5 @@
 package net.ibaixin.chat.activity;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.jivesoftware.smack.AbstractXMPPConnection;
-import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.SmackException.AlreadyLoggedInException;
-import org.jivesoftware.smack.SmackException.ConnectionException;
-import org.jivesoftware.smack.SmackException.NoResponseException;
-import org.jivesoftware.smack.XMPPException;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.baidu.api.Baidu;
-import com.baidu.api.BaiduDialog.BaiduDialogListener;
-import com.baidu.api.BaiduDialogError;
-import com.baidu.api.BaiduException;
-import com.baidu.api.Util;
-import com.tencent.connect.UserInfo;
-import com.tencent.tauth.IUiListener;
-import com.tencent.tauth.Tencent;
-import com.tencent.tauth.UiError;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -42,20 +17,44 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.baidu.api.Baidu;
+import com.baidu.api.BaiduDialog.BaiduDialogListener;
+import com.baidu.api.BaiduDialogError;
+import com.baidu.api.BaiduException;
+import com.baidu.api.Util;
+import com.tencent.connect.UserInfo;
+import com.tencent.tauth.IUiListener;
+import com.tencent.tauth.Tencent;
+import com.tencent.tauth.UiError;
+
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.model.SystemConfig;
 import net.ibaixin.chat.receiver.NetworkReceiver;
-import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.task.RegistTask;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.QQUtil;
 import net.ibaixin.chat.util.StreamTool;
 import net.ibaixin.chat.util.SystemUtil;
-import net.ibaixin.chat.update.UpdateManager;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.view.ProgressDialog;
+
+import org.jivesoftware.smack.AbstractXMPPConnection;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.SmackException.AlreadyLoggedInException;
+import org.jivesoftware.smack.SmackException.ConnectionException;
+import org.jivesoftware.smack.SmackException.NoResponseException;
+import org.jivesoftware.smack.XMPPException;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
 /**
  * 登录主界面
  * @author huanghui1
@@ -63,7 +62,9 @@ import net.ibaixin.chat.view.ProgressDialog;
  */
 public class LoginActivity extends BaseActivity implements OnClickListener {
 	
-	public static Map<String,String>  CookieContiner = new HashMap<String,String>() ;
+	private final int REQ_ACTION_SHARE = 1;
+	
+	public static Map<String,String>  CookieContiner = new HashMap<>() ;
 	private EditText etAccount;
 	private EditText etPassword;
 	private Button btnLogin;
@@ -72,6 +73,11 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 	
 	private SystemConfig systemConfig;
 	private ProgressDialog pDialog;
+
+	/**
+	 * 是否是从分享界面过来的
+	 */
+	private boolean mIsActionShare;
 	
 	// 下边的是QQ/微博登录的相关变量
 //	private Button sinaLogin;
@@ -131,7 +137,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 				break;
 			case TASK_REGISTER:
 				isQQAccountRegister = true ;
-				new RegistTask(mContext).execute(systemConfig);
+				new RegistTask(LoginActivity.this, mIsActionShare).execute(systemConfig);
 				break;
 			case RESULT_QQLOGIN_ERROR:
 				SystemUtil.makeShortToast("抱歉，QQ登录出错啦");
@@ -221,6 +227,8 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 	@Override
 	protected void initData() {
 		systemConfig = application.getSystemConfig();
+
+		mIsActionShare = isActionShare();
 		
 		String tAccount = systemConfig.getAccount();
 		String tPassword = systemConfig.getPassword();
@@ -382,11 +390,29 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 //			Intent intent = new Intent(mContext, MainActivity.class);
 			Intent intent = new Intent(mContext, RegistActivity.class);
 			intent.putExtra(RegistActivity.ARG_SHOW_LOGIN, false);
+			if (mIsActionShare) {
+				startActivityForResult(intent, REQ_ACTION_SHARE);
+			}
 			startActivity(intent, true);
 			break;
 		default:
 			break;
 		}
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (resultCode == RESULT_OK) {
+			switch (requestCode) {
+				case REQ_ACTION_SHARE: //从分享界面过来的
+					setResult(RESULT_OK);
+					finish();
+					break;
+			}
+		} else {
+			setResult(resultCode);
+		}
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	/**
@@ -433,9 +459,16 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 			}
 			switch (result) {
 			case Constants.MSG_SUCCESS:	//登录成功
-				Intent intent = new Intent(mContext, MainActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				startActivity(intent, true);
+				Intent actionIntent = getIntent();
+				//是否从分享界面进来的
+				if (mIsActionShare) {	//分享界面过来的
+					setResult(RESULT_OK);
+				} else {
+					Intent intent = new Intent(mContext, MainActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					startActivity(intent, true);
+				}
+				
 				finish();
 				break;
 			case Constants.MSG_REQUEST_ADDRESS_FAILED:	//网络请求的地址不对
@@ -483,6 +516,22 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 			return false;
 		}
 	}
+
+	/**
+	 * 是否是从分享界面进入的
+	 * @author huanghui1
+	 * @update 2016/1/2 15:15
+	 * @version: 1.0.0
+	 * @return true:是从分享界面过来的
+	 */
+	private boolean isActionShare() {
+		boolean isActionShare = false;
+		Intent actionIntent = getIntent();
+		if (actionIntent != null) {
+			isActionShare = actionIntent.getBooleanExtra(ActionShareActivity.ARG_ACTION_SHARE, false);
+		}
+		return isActionShare;
+	}
 	
 	/**
 	 * 登录
@@ -517,15 +566,18 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 			} else if (e instanceof NoResponseException) {
 				code = Constants.MSG_NO_RESPONSE;	//服务器没有响应
 			} else if (e instanceof SmackException.AlreadyConnectedException) {
-				if (connection != null) {
-					connection.disconnect();
-				}
 				code = Constants.MSG_FAILED;
 			} else {
 				code = Constants.MSG_FAILED;
 			}
+			if (connection != null) {
+				connection.disconnect();
+			}
 			Log.e(e.toString());
 		} catch (IOException e) {
+			if (connection != null) {
+				connection.disconnect();
+			}
 			Log.e(e.toString());
 		} catch (XMPPException e) {
 			if (connection != null) {

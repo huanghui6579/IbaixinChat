@@ -206,14 +206,17 @@ public class XmppConnectionManager {
 			//初始化个人信息
 			Personal currentUser = application.getCurrentUser();
 			if (currentUser.getUsername() == null) {
+				SystemConfig systemConfig = application.getSystemConfig();
+				username = systemConfig.getAccount();
 				currentUser.setUsername(username);
+				application.setCurrentAccount(username);
 			}
 			Personal tmpPerson = PersonalManage.getInstance().getLocalSelfInfoByUsername(currentUser);
 			application.setCurrentUser(tmpPerson);
 		}
 		return isConnected && isLogined;
 	}
-
+	
 	/**
 	 * 后台登录
 	 * @param connection 连接

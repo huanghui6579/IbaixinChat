@@ -44,6 +44,22 @@ import java.util.Map;
  *
  */
 public class ChatApplication extends Application {
+
+	/**
+	 * 从未登录过，应用第一次安装或者本地数据缓存被清除了
+	 */
+	public static final int LOGIN_STATE_NONE = 0;
+
+	/**
+	 * 用户登录过，但手动注销了，此时本地没有用户名或者密码
+	 */
+	public static final int LOGIN_STATE_LOGOUT = 1;
+
+	/**
+	 * 用户本地有用户名和密码
+	 */
+	public static final int LOGIN_STATE_LOGIN = 2;
+	
 	private LinkedList<Activity> activities = new LinkedList<>();
 	
 	private static final String TAG = ChatApplication.class.getSimpleName();
@@ -430,7 +446,50 @@ public class ChatApplication extends Application {
 //		editor.putString(Constants.NAME_SERVER_HOST, systemConfig.getHost());
 //		editor.putString(Constants.NAME_SERVER_NAME, systemConfig.getServerName());
 //		editor.putInt(Constants.NAME_SERVER_PORT, systemConfig.getPort());
-		editor.commit();
+		editor.apply();
+	}
+	
+	/**
+	 * 判断应用的登录状态, 主要有用户从未登录过或者应用本地的数据混存被清除了{@link ChatApplication#LOGIN_STATE_NONE}、本地有用户名和密码{@link ChatApplication#LOGIN_STATE_LOGIN}和
+	 * 用户注销了{@link ChatApplication#LOGIN_STATE_LOGOUT}三种状态,若状态为{@link ChatApplication#LOGIN_STATE_NONE}则直接跳转到{@link net.ibaixin.chat.activity.SplashActivity};
+	 * 若状态为{@link ChatApplication#LOGIN_STATE_LOGOUT},则跳转到{@link net.ibaixin.chat.activity.LoginActivity}界面;
+	 * 若状态为{@link ChatApplication#LOGIN_STATE_LOGIN}，则进行后台登录或者不需要登录
+	 * @author huanghui1
+	 * @update 2016/1/2 10:00
+	 * @version: 0.0.1
+	 * @return 返回应用的登录状态
+	 */
+	public int getFirstLoginState() {
+		int loginState = LOGIN_STATE_NONE;
+		if (systemConfig != null) {
+			if (!systemConfig.isFirstLogin()) {	//本地已经不是第一次登录了
+				loginState = isLoginedFromLocal();
+			}
+		}
+		return loginState;
+	}
+	
+	/**
+	 * 根据本地保存的文件来判断本地的登录状态
+	 * @author huanghui1
+	 * @update 2016/1/2 10:05
+	 * @version: 0.0.1
+	 * @return 返回本地的登录状态
+	 */
+	private int isLoginedFromLocal() {
+		SharedPreferences preferences = getSharedPreferences(Constants.SETTTING_LOGIN, Context.MODE_PRIVATE);
+		boolean isFirstLogin = preferences.getBoolean(Constants.USER_ISFIRST, true);
+		int loginState = LOGIN_STATE_NONE;
+		if (!isFirstLogin) {	//判断用户名或者密码有没有
+			String account = preferences.getString(Constants.USER_ACCOUNT, null);
+			String password = preferences.getString(Constants.USER_PASSWORD, null);
+			if (TextUtils.isEmpty(account) || TextUtils.isEmpty(password)) {	//账号与密码有一个为空
+				loginState = LOGIN_STATE_LOGOUT;
+			} else {
+				loginState = LOGIN_STATE_LOGIN;
+			}
+		}
+		return loginState;
 	}
 	
 	/**
@@ -506,7 +565,7 @@ public class ChatApplication extends Application {
 //		editor.putString(Constants.NAME_SERVER_HOST, systemConfig.getHost());
 //		editor.putString(Constants.NAME_SERVER_NAME, systemConfig.getServerName());
 //		editor.putInt(Constants.NAME_SERVER_PORT, systemConfig.getPort());
-		editor.commit();
+		editor.apply();
 	}
 	
 	/**

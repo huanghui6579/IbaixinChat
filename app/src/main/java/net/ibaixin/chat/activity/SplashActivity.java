@@ -8,9 +8,9 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.model.SystemConfig;
-import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.update.UpdateManager;
 import net.ibaixin.chat.update.UpdateService;
 import net.ibaixin.chat.util.SystemUtil;
@@ -23,6 +23,7 @@ import net.ibaixin.chat.util.XmppConnectionManager;
  * @update 2015年6月25日 下午8:36:01
  */
 public class SplashActivity extends BaseActivity implements OnClickListener {
+	private final int REQ_ACTION_SHARE = 1;
 	/**
 	 * 延迟时间2秒
 	 */
@@ -32,6 +33,11 @@ public class SplashActivity extends BaseActivity implements OnClickListener {
 	
 	private Button btnLogin;
 	private Button btnRegist;
+
+	/**
+	 * 是否分享过来的
+	 */
+	boolean mIsActionShare;
 
 	private Handler mHandler = new Handler() {
 
@@ -73,8 +79,13 @@ public class SplashActivity extends BaseActivity implements OnClickListener {
 					} else {
 						intent.setClass(mContext, LoginActivity.class);
 					}
-					startActivity(intent, true);
-					finish();
+					if (mIsActionShare) {
+						intent.putExtra(ActionShareActivity.ARG_ACTION_SHARE, mIsActionShare);
+						startActivityForResult(intent, REQ_ACTION_SHARE);
+					} else {
+						startActivity(intent, true);
+						finish();
+					}
 				}
 			}, delayTime);
 		}
@@ -116,6 +127,18 @@ public class SplashActivity extends BaseActivity implements OnClickListener {
 	protected void initData() {
 		systemConfig = application.getSystemConfig();
 		XmppConnectionManager.getInstance().init(systemConfig);
+
+		Intent actionIntent = getIntent();
+		if (actionIntent != null) {
+			mIsActionShare = actionIntent.getBooleanExtra(ActionShareActivity.ARG_ACTION_SHARE, false);
+		}
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		setResult(resultCode);
+		finish();
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	@Override
@@ -126,7 +149,9 @@ public class SplashActivity extends BaseActivity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
+		
 		Intent intent = new Intent();
+		intent.putExtra(ActionShareActivity.ARG_ACTION_SHARE, mIsActionShare);
 		switch (v.getId()) {
 		case R.id.btn_login:	//进入登录界面
 			intent.setClass(mContext, LoginActivity.class);

@@ -212,7 +212,7 @@ public class MainActivity extends BaseActivity {
 					Log.d("---已经通过登录或者注册界面登录，需要同步好友信息---");
 					syncFlag = CoreService.FLAG_SYNC_FRENDS;
 				} else {
-					Log.d("---已经通过登录或者注册界面登录，不需要同步好友信息---");
+					Log.d("---不需要同步好友信息---");
 					syncFlag = 0;
 				}
 			} else {//如果没有连接或者登录，则在后台登录

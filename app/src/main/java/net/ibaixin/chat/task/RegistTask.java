@@ -1,9 +1,8 @@
 package net.ibaixin.chat.task;
 
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.AsyncTask;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
@@ -34,9 +33,10 @@ import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smackx.iqregister.packet.Registration;
 
-import android.content.Context;
-import android.content.Intent;
-import android.os.AsyncTask;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 /**
  * 注册的后台任务
  * @author Administrator
@@ -51,15 +51,21 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 	private static final int REGIST_RESULT_FAIL = 3;
 	
 	private ProgressDialog pDialog;
-	private Context mContext;
+	private Activity mActivity;
+
+	/**
+	 * 是否是分享过来的，如果是分享过来的，那注册成功后就跳转到主界面了
+	 */
+	private boolean mIsActionShare;
 	
-	public RegistTask(Context mContext){
-		this.mContext = mContext ;
+	public RegistTask(Activity activity, boolean isActionShare){
+		this.mActivity = activity;
+		this.mIsActionShare = isActionShare;
 	}
 	@Override
 	protected void onPreExecute() {
 		if (pDialog == null) {
-			pDialog = ProgressDialog.show(mContext, null, mContext.getString(R.string.registing), true);
+			pDialog = ProgressDialog.show(mActivity, null, mActivity.getString(R.string.registing), true);
 		} else {
 			pDialog.show();
 		}
@@ -83,13 +89,20 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 		switch (result) {
 		case REGIST_RESULT_SUCCESS:	//注册成功
 			//保存用户信息
-			ChatApplication.getInstance().getSystemConfig().setOnline(true);
-			ChatApplication.getInstance().getSystemConfig().setFirstLogin(false);
-			if(LoginActivity.isLocalAccountLogin)
+			SystemConfig systemConfig = ChatApplication.getInstance().getSystemConfig();
+			systemConfig.setOnline(true);
+			systemConfig.setFirstLogin(false);
+			if(LoginActivity.isLocalAccountLogin) {
 				ChatApplication.getInstance().saveSystemConfig();
-			Intent intent = new Intent(mContext, MainActivity.class);
-			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			mContext.startActivity(intent);
+			}
+			if (mIsActionShare) {
+				mActivity.setResult(Activity.RESULT_OK);
+			} else {
+				Intent intent = new Intent(mActivity, MainActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				mActivity.startActivity(intent);
+			}
+			mActivity.finish();
 			break;
 		case REGIST_RESULT_FAIL:	//失败
 			SystemUtil.makeLongToast(R.string.regist_failed);
@@ -106,16 +119,18 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 	 * 账号注册
 	 * @author Administrator
 	 * @update 2014年10月7日 下午6:00:55
-	 * @param connection
-	 * @param config
+	 * @param username
+	 * @param password
+	 * @param nickName
+	 * @param email
 	 * @return
 	 */
-	public static int regist(String username,String password ,String nickName,String email) {
+	public int regist(String username,String password ,String nickName,String email) {
 		try {
 			AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
 			connection.connect();
 			connection.addAsyncStanzaListener(new StanzaListener() {
-				
+
 				@Override
 				public void processPacket(Stanza packet) throws NotConnectedException {
 					if (packet instanceof Bind) {
@@ -124,7 +139,7 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 					}
 				}
 			}, new AndFilter(new StanzaTypeFilter(Bind.class), new FlexibleStanzaTypeFilter<IQ>() {
-				
+
 				@Override
 				protected boolean acceptSpecific(IQ iq) {
 					// TODO Auto-generated method stub
@@ -132,7 +147,7 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 				}
 			}));
 			
-			Map<String, String> attr = new HashMap<String, String>();
+			Map<String, String> attr = new HashMap<>();
 			attr.put("username", username);
 			attr.put("password", password);
 			attr.put("name", nickName);
@@ -143,7 +158,7 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 			StanzaFilter filter = new AndFilter(new StanzaIdFilter(registration.getStanzaId()), new StanzaTypeFilter(IQ.class));
 			PacketCollector collector = connection.createPacketCollector(filter);
 			connection.sendStanza(registration);
-			IQ result = (IQ) collector.nextResult(SmackConfiguration.getDefaultPacketReplyTimeout());
+			IQ result = collector.nextResult(SmackConfiguration.getDefaultPacketReplyTimeout());
 			collector.cancel();
 			if (result == null) {
 				Log.d("regist failed");
