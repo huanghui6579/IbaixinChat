@@ -1,21 +1,23 @@
 package net.ibaixin.chat.activity;
 
+import net.ibaixin.chat.R;
+import net.ibaixin.chat.model.SystemConfig;
+import net.ibaixin.chat.task.RegistTask;
+import net.ibaixin.chat.util.StringUtils;
+import net.ibaixin.chat.util.SystemUtil;
 import android.content.Intent;
+import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-
-import net.ibaixin.chat.R;
-import net.ibaixin.chat.model.SystemConfig;
-import net.ibaixin.chat.task.RegistTask;
-import net.ibaixin.chat.util.SystemUtil;
 
 /**
  * 注册界面
@@ -92,7 +94,7 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
 				String password = etPassword.getText().toString();
 				String confirmPassword = etConfirmPassword.getText().toString();
-				if (TextUtils.isEmpty(s) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
+				if (!isValidAccount(s) || !isPassValid(password) || TextUtils.isEmpty(confirmPassword)) {
 					setRegistBtnState(false);
 				} else if (!password.equals(confirmPassword)) {
 					setRegistBtnState(false);
@@ -119,7 +121,7 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
 				String confirmPassword = etConfirmPassword.getText().toString();
-				if (TextUtils.isEmpty(s) || TextUtils.isEmpty(etAccount.getText().toString()) || TextUtils.isEmpty(confirmPassword)) {
+				if (!isPassValid(s) || !isValidAccount(etAccount.getText().toString()) || TextUtils.isEmpty(confirmPassword)) {
 					setRegistBtnState(false);
 				} else if (!s.toString().equals(confirmPassword)) {
 					setRegistBtnState(false);
@@ -146,7 +148,7 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
 				String password = etPassword.getText().toString();
-				if (TextUtils.isEmpty(s) || TextUtils.isEmpty(etAccount.getText().toString()) || TextUtils.isEmpty(password)) {
+				if (TextUtils.isEmpty(s) || !isValidAccount(etAccount.getText().toString()) || !isPassValid(password)) {
 					setRegistBtnState(false);
 				} else if (!s.toString().equals(password)) {
 					setRegistBtnState(false);
@@ -180,6 +182,7 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 						systemConfig.setPassword(etPassword.getText().toString());
 						systemConfig.setNickname(etNickname.getText().toString());
 						systemConfig.setEmail(etEmail.getText().toString());
+						LoginActivity.isThirdAccountRegister = false;
 						new RegistTask(RegistActivity.this, mIsActionShare).execute(systemConfig);
 					}
 					return true;
@@ -211,7 +214,7 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 			if (SystemUtil.isSoftInputActive()) {	//输入法已展开，则关闭输入法
 				SystemUtil.hideSoftInput(this);
 			}
-			
+			LoginActivity.isThirdAccountRegister = false;
 			new RegistTask(this, mIsActionShare).execute(systemConfig);
 			break;
 		case R.id.tv_login:	//返回登录界面
@@ -235,4 +238,35 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 		isCanRegister = enable ;
 		btnRegist.setEnabled(enable);
 	}
+
+	/**
+	 * 检查账户是否合法
+	 * @param account
+	 * @return
+	 */
+	public boolean isValidAccount(CharSequence account){
+		if(TextUtils.isEmpty(account) || account.length()<6 || account.length()>12) {
+			return false;
+		}
+		if(StringUtils.isChinese(account.toString())){
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 检查密码是否合法
+	 * @param pass
+	 * @return
+	 */
+	public boolean isPassValid(CharSequence pass){
+		if(TextUtils.isEmpty(pass) || pass.length()<6){
+			return false;
+		}
+		if(!StringUtils.isPassValid(pass.toString())||StringUtils.isChinese(pass.toString())){
+			return false;
+		}
+		return true;
+	}
+
 }

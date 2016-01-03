@@ -92,8 +92,11 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 			SystemConfig systemConfig = ChatApplication.getInstance().getSystemConfig();
 			systemConfig.setOnline(true);
 			systemConfig.setFirstLogin(false);
-			if(LoginActivity.isLocalAccountLogin) {
+			if(!LoginActivity.isThirdAccountLogin) {
 				ChatApplication.getInstance().saveSystemConfig();
+			}
+			if(!LoginActivity.isThirdAccountRegister){//如果不是第三方账户注册，去掉这个数据
+				ChatApplication.getInstance().getSystemConfig().setmThirdAvatarUrl(null);
 			}
 			if (mIsActionShare) {
 				mActivity.setResult(Activity.RESULT_OK);

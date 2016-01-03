@@ -31,9 +31,9 @@ public class Constants {
 //	public static final String SERVER_NAME = "home-pc.com";
 	public static final int SERVER_PORT = 5222;
 	
-	public final static String SOFTVERSION = "2015120401";
+	public final static String SOFTVERSION = "2015122901";
 	
-	public static String TENCENTAPPID = "1104396884";//腾讯APP ID
+	public static String TENCENTAPPID = "1104432259";//腾讯APP ID
 	public static String BAIDUAPPID = "0trswTLaGB6hN820M30Brbhx";//百度APP ID
 	
 	public final static String websitePrefix = "http://"+Constants.SERVER_HOST ;
@@ -279,4 +279,9 @@ public class Constants {
 	 * 【25】文件下载失败的消息
 	 */
 	public static final int MSG_DOWNLOAD_FAILED = 0x000019;
+
+	/**
+	 * 【26】第三方头像下载成功的消息
+	 */
+	public static final int RESULT_QQLOGIN_USERAVATAR = 0x00001A;
 }

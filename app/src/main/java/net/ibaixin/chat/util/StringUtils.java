@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 public class StringUtils {
 
@@ -39,23 +40,23 @@ public class StringUtils {
             toAppend = null;
             ch = input[i];
             switch(ch) {
-            case '<':
-                toAppend = LT_ENCODE;
-                break;
-            case '>':
-                toAppend = GT_ENCODE;
-                break;
-            case '&':
-                toAppend = AMP_ENCODE;
-                break;
-            case '"':
-                toAppend = QUOTE_ENCODE;
-                break;
-            case '\'':
-                toAppend = APOS_ENCODE;
-                break;
-            default:
-                break;
+                case '<':
+                    toAppend = LT_ENCODE;
+                    break;
+                case '>':
+                    toAppend = GT_ENCODE;
+                    break;
+                case '&':
+                    toAppend = AMP_ENCODE;
+                    break;
+                case '"':
+                    toAppend = QUOTE_ENCODE;
+                    break;
+                case '\'':
+                    toAppend = APOS_ENCODE;
+                    break;
+                default:
+                    break;
             }
             if (toAppend != null) {
                 if (i > last) {
@@ -223,7 +224,7 @@ public class StringUtils {
      * array index.
      */
     private static char[] numbersAndLetters = ("0123456789abcdefghijklmnopqrstuvwxyz" +
-                    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ").toCharArray();
+            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ").toCharArray();
 
     /**
      * Returns a random String of numbers and letters (lower and upper case)
@@ -285,5 +286,56 @@ public class StringUtils {
         // Remove the trailing whitespace
         res = res.substring(0, res.length() - 1);
         return res;
+    }
+
+    /** 检查密码是否包含数字和字母**/
+    final static String PASS_ZHENGZE = "^(?![a-zA-z]+$)(?!\\d+$)(?![!@#$%^&*]+$)[a-zA-Z\\d!@#$%^&*]+$";
+    static Pattern PASSPATTERN = Pattern.compile(PASS_ZHENGZE, Pattern.CASE_INSENSITIVE);
+
+    /**
+     * 检查密码是否由数字和字母混合组成
+     * @param pass
+     * @return
+     */
+    public static boolean isPassValid(String pass){
+        if(PASSPATTERN.matcher(pass).find()){
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 完整的判断中文汉字和符号
+     * @param strName
+     * @return
+     */
+    public static boolean isChinese(String strName) {
+        char[] ch = strName.toCharArray();
+        for (int i = 0; i < ch.length; i++) {
+            char c = ch[i];
+            if (isChinese(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 根据Unicode编码完美的判断中文汉字和符号
+     * @param c
+     * @return
+     */
+    private static boolean isChinese(char c) {
+        Character.UnicodeBlock ub = Character.UnicodeBlock.of(c);
+        if (ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
+                || ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
+                || ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+                || ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B
+                || ub == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION
+                || ub == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS
+                || ub == Character.UnicodeBlock.GENERAL_PUNCTUATION) {
+            return true;
+        }
+        return false;
     }
 }

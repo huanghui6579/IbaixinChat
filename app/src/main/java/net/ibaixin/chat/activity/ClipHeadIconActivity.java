@@ -1,5 +1,6 @@
 package net.ibaixin.chat.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -174,174 +175,10 @@ public class ClipHeadIconActivity extends BaseActivity {
 			final String username = ChatApplication.getInstance().getCurrentAccount();
 			if (!TextUtils.isEmpty(username)) {
 				pDialog = ProgressDialog.show(mContext, null, getString(R.string.loading), true);
-				SystemUtil.getCachedThreadPool().execute(new Runnable() {
-					
-					@Override
-					public void run() {
-						final Message msg = mHandler.obtainMessage();
-						try {
-							final Personal personal = ChatApplication.getInstance().getCurrentUser();
-							String filePath = personal.getIconPath();
-							Bitmap bitmap = mCropImageView.getCroppedImage(Constants.IMAGE_ORIGINAL_SIZE, Constants.IMAGE_ORIGINAL_SIZE);
-							//保存图片到本地存储
-							File saveFile = null;
-							if (TextUtils.isEmpty(filePath) || !new File(filePath).getParentFile().exists()) {	//之前没有头像，或者头像路径被删除，也就没有头像路径，则需重新生成
-								saveFile = SystemUtil.generateIconFile(username, Constants.FILE_TYPE_ORIGINAL);
-								filePath = saveFile.getAbsolutePath();
-							} else {
-								saveFile = new File(filePath);
-							}
-							//保存到数据库
-							boolean success = ImageUtil.saveBitmap(bitmap, saveFile);
-							if (success) {
-								File[] fileArray = new File[2];
-								fileArray[0] = saveFile;
-								//根据原始图片的全路径获取图片的mime类型
-								String ext = SystemUtil.getFileSubfix(imagePath);
-								//文件hash
-								final String hash = SystemUtil.getFileHash(saveFile);
-								String mimeType = MimeUtils.guessMimeTypeFromExtension(ext);
-								if (TextUtils.isEmpty(mimeType)) {	//如果不存在mime,就设置个默认的图片mime
-									mimeType = Constants.MIME_IMAGE;
-								}
-								personal.setMimeType(mimeType);
-								personal.setIconPath(filePath);
-								personal.setIconHash(hash);
-								if (bitmap.getWidth() <= Constants.IMAGE_THUMB_WIDTH && bitmap.getHeight() <= Constants.IMAGE_THUMB_HEIGHT) {	//原始头像本身就比较小了，此时，不需要再压缩了
-									personal.setThumbPath(null);
-								} else {
-									//再生存缩略图
-									String thumbPath = personal.getThumbPath();
-									if (TextUtils.isEmpty(thumbPath) || !new File(thumbPath).getParentFile().exists()) {	//之前没有缩略图路径，或者头像路径被删除，则重新生成路径
-										thumbPath = SystemUtil.generateIconPath(username, Constants.FILE_TYPE_THUMB);
-									}
-									success = ImageUtil.generateThumbImage(filePath, thumbPath);
-									
-									if (success) {	//生成缩略图成功
-										fileArray[1] = new File(thumbPath);
-										personal.setThumbPath(thumbPath);
-									} else {
-										personal.setThumbPath(null);
-									}
-								}
-								
-								if (bitmap != null) {
-									bitmap.recycle();
-								}
-								
-								//上传头像，更新数据库
-								PersonalEngine personalEngine = new PersonalEngine(mContext);
-								personalEngine.uploadAvatar(application, personal, fileArray, null, new Response.Listener<String>() {
-
-									@Override
-									public void onResponse(String response) {
-										if (!TextUtils.isEmpty(response)) {
-											Gson gson = new Gson();
-											try {
-												ActionResult<AttachDto> result = gson.fromJson(response, new TypeToken<ActionResult<AttachDto>> () {}.getType());
-												if (result != null) {
-													int resultCode = result.getResultCode();
-													switch (resultCode) {
-													case ActionResult.CODE_SUCCESS:	//处理成功
-														//发送消息，通知好友，改变了头像
-														AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
-														if (XmppUtil.checkAuthenticated(connection)) {
-															AttachDto attachDto = result.getData();
-															if (attachDto != null) {
-																VcardX vcardX = new VcardX();
-																vcardX.setMimeType(personal.getMimeType());
-																vcardX.setIconHash(attachDto.getHash());
-																try {
-																	//发送xmpp的IQ消息通知好友
-																	XmppUtil.updateAvatar(connection, vcardX);
-																} catch (NoResponseException | XMPPErrorException
-																		| NotConnectedException e) {
-																	Log.e("---updateAvatar--failed--" + e.getMessage());
-																}
-															}
-														}
-														//清除头像的内存缓存
-														//从缓存中删除该图像的内存缓存
-														ImageUtil.clearMemoryCache(personal.getThumbPath());
-														
-														ImageUtil.clearMemoryCache(personal.getIconPath());
-														
-														//保存头像信息到本地数据库
-														personalManage.updateHeadIcon(personal);
-														
-														msg.what = Constants.MSG_SUCCESS;
-														msg.obj = personal.getIconPath();
-														Log.d("------uploadAvatar---处理成功--resultCode----" + resultCode);
-														break;
-													case ActionResult.CODE_ERROR:	//服务器处理错误
-														msg.what = Constants.MSG_FAILED;
-														Log.w("------uploadAvatar---服务器处理错误--resultCode----" + resultCode);
-														break;
-													case ActionResult.CODE_ERROR_PARAM:	//本地参数错误
-														msg.what = Constants.MSG_FAILED;
-														Log.w("------uploadAvatar---本地参数错误--resultCode----" + resultCode);
-														break;
-													default:
-														break;
-													}
-												}
-											} catch (JsonSyntaxException e) {
-												msg.what = Constants.MSG_FAILED;
-												Log.e(e.getMessage());
-											}
-										} else {
-											msg.what = Constants.MSG_FAILED;
-											Log.e("------uploadAvatar---response---为空---" + response);
-										}
-										mHandler.sendMessage(msg);
-										if (pDialog != null) {
-											pDialog.dismiss();
-										}
-									}
-								}, new Response.ErrorListener() {
-
-									@Override
-									public void onErrorResponse(VolleyError error) {
-										msg.what = Constants.MSG_FAILED;
-										mHandler.sendMessage(msg);
-										if (pDialog != null) {
-											pDialog.dismiss();
-										}
-										Log.e("------uploadAvatar---" + error.getMessage());
-									}
-								});
-								
-//								AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
-								
-								/*//通知好友更新头像
-								if (XmppUtil.checkAuthenticated(connection)) {
-									XmppUtil.updateAvatar(connection, filePath);
-									//保存头像信息到本地数据库
-									personalManage.updateHeadIcon(personal);
-									
-									msg.what = Constants.MSG_SUCCESS;
-									msg.obj = filePath;
-								} else {
-									msg.what = Constants.MSG_FAILED;
-								}*/
-								
-							} else {
-								msg.what = Constants.MSG_FAILED;
-								mHandler.sendMessage(msg);
-								if (pDialog != null) {
-									pDialog.dismiss();
-								}
-							}
-						} catch (IOException e) {
-							msg.what = Constants.MSG_FAILED;
-							mHandler.sendMessage(msg);
-							if (pDialog != null) {
-								pDialog.dismiss();
-							}
-							Log.e(e.getMessage());
-						}
-					}
-				});
+				Bitmap bitmap = mCropImageView.getCroppedImage(Constants.IMAGE_ORIGINAL_SIZE, Constants.IMAGE_ORIGINAL_SIZE);
+				//根据原始图片的全路径获取图片的mime类型
+				String ext = SystemUtil.getFileSubfix(imagePath);
+				setAvatar(mContext,mHandler,bitmap,username,ext,pDialog);
 			} else {
 				SystemUtil.makeShortToast(R.string.not_login);
 			}
@@ -353,4 +190,181 @@ public class ClipHeadIconActivity extends BaseActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
+	/**
+	 * 设置个人图像
+	 * @param context
+	 * @param mHandler
+	 * @param bitmap
+	 * @param username
+	 * @param ext
+	 * @param pDialog
+	 */
+	public static void setAvatar(final Context context, final Handler mHandler,final Bitmap bitmap,final String username,final String ext,final ProgressDialog pDialog){
+		SystemUtil.getCachedThreadPool().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				final Message msg = mHandler.obtainMessage();
+				try {
+					final Personal personal = ChatApplication.getInstance().getCurrentUser();
+					String filePath = personal.getIconPath();
+//					Bitmap bitmap = mCropImageView.getCroppedImage(Constants.IMAGE_ORIGINAL_SIZE, Constants.IMAGE_ORIGINAL_SIZE);
+					//保存图片到本地存储
+					File saveFile = null;
+					if (TextUtils.isEmpty(filePath) || !new File(filePath).getParentFile().exists()) {	//之前没有头像，或者头像路径被删除，也就没有头像路径，则需重新生成
+						saveFile = SystemUtil.generateIconFile(username, Constants.FILE_TYPE_ORIGINAL);
+						filePath = saveFile.getAbsolutePath();
+					} else {
+						saveFile = new File(filePath);
+					}
+					//保存到数据库
+					boolean success = ImageUtil.saveBitmap(bitmap, saveFile);
+					if (success) {
+						File[] fileArray = new File[2];
+						fileArray[0] = saveFile;
+						//文件hash
+						final String hash = SystemUtil.getFileHash(saveFile);
+						String mimeType = MimeUtils.guessMimeTypeFromExtension(ext);
+						if (TextUtils.isEmpty(mimeType)) {	//如果不存在mime,就设置个默认的图片mime
+							mimeType = Constants.MIME_IMAGE;
+						}
+						personal.setMimeType(mimeType);
+						personal.setIconPath(filePath);
+						personal.setIconHash(hash);
+						if (bitmap.getWidth() <= Constants.IMAGE_THUMB_WIDTH && bitmap.getHeight() <= Constants.IMAGE_THUMB_HEIGHT) {	//原始头像本身就比较小了，此时，不需要再压缩了
+							personal.setThumbPath(null);
+						} else {
+							//再生存缩略图
+							String thumbPath = personal.getThumbPath();
+							if (TextUtils.isEmpty(thumbPath) || !new File(thumbPath).getParentFile().exists()) {	//之前没有缩略图路径，或者头像路径被删除，则重新生成路径
+								thumbPath = SystemUtil.generateIconPath(username, Constants.FILE_TYPE_THUMB);
+							}
+							success = ImageUtil.generateThumbImage(filePath, thumbPath);
+
+							if (success) {	//生成缩略图成功
+								fileArray[1] = new File(thumbPath);
+								personal.setThumbPath(thumbPath);
+							} else {
+								personal.setThumbPath(null);
+							}
+						}
+
+						if (bitmap != null) {
+							bitmap.recycle();
+						}
+
+						//上传头像，更新数据库
+						PersonalEngine personalEngine = new PersonalEngine(context);
+						personalEngine.uploadAvatar(ChatApplication.getInstance(), personal, fileArray, null, new Response.Listener<String>() {
+
+							@Override
+							public void onResponse(String response) {
+								if (!TextUtils.isEmpty(response)) {
+									Gson gson = new Gson();
+									try {
+										ActionResult<AttachDto> result = gson.fromJson(response, new TypeToken<ActionResult<AttachDto>> () {}.getType());
+										if (result != null) {
+											int resultCode = result.getResultCode();
+											switch (resultCode) {
+												case ActionResult.CODE_SUCCESS:	//处理成功
+													//发送消息，通知好友，改变了头像
+													AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
+													if (XmppUtil.checkAuthenticated(connection)) {
+														AttachDto attachDto = result.getData();
+														if (attachDto != null) {
+															VcardX vcardX = new VcardX();
+															vcardX.setMimeType(personal.getMimeType());
+															vcardX.setIconHash(attachDto.getHash());
+															try {
+																//发送xmpp的IQ消息通知好友
+																XmppUtil.updateAvatar(connection, vcardX);
+															} catch (NoResponseException | XMPPErrorException
+																	| NotConnectedException e) {
+																Log.e("---updateAvatar--failed--" + e.getMessage());
+															}
+														}
+													}
+													//清除头像的内存缓存
+													//从缓存中删除该图像的内存缓存
+													ImageUtil.clearMemoryCache(personal.getThumbPath());
+
+													ImageUtil.clearMemoryCache(personal.getIconPath());
+
+													//保存头像信息到本地数据库
+													PersonalManage.getInstance().updateHeadIcon(personal);
+
+													msg.what = Constants.MSG_SUCCESS;
+													msg.obj = personal.getIconPath();
+													Log.d("------uploadAvatar---处理成功--resultCode----" + resultCode);
+													break;
+												case ActionResult.CODE_ERROR:	//服务器处理错误
+													msg.what = Constants.MSG_FAILED;
+													Log.w("------uploadAvatar---服务器处理错误--resultCode----" + resultCode);
+													break;
+												case ActionResult.CODE_ERROR_PARAM:	//本地参数错误
+													msg.what = Constants.MSG_FAILED;
+													Log.w("------uploadAvatar---本地参数错误--resultCode----" + resultCode);
+													break;
+												default:
+													break;
+											}
+										}
+									} catch (JsonSyntaxException e) {
+										msg.what = Constants.MSG_FAILED;
+										Log.e(e.getMessage());
+									}
+								} else {
+									msg.what = Constants.MSG_FAILED;
+									Log.e("------uploadAvatar---response---为空---" + response);
+								}
+								mHandler.sendMessage(msg);
+								if (pDialog != null) {
+									pDialog.dismiss();
+								}
+							}
+						}, new Response.ErrorListener() {
+
+							@Override
+							public void onErrorResponse(VolleyError error) {
+								msg.what = Constants.MSG_FAILED;
+								mHandler.sendMessage(msg);
+								if (pDialog != null) {
+									pDialog.dismiss();
+								}
+								Log.e("------uploadAvatar---" + error.getMessage());
+							}
+						});
+
+//								AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
+
+								/*//通知好友更新头像
+								if (XmppUtil.checkAuthenticated(connection)) {
+									XmppUtil.updateAvatar(connection, filePath);
+									//保存头像信息到本地数据库
+									personalManage.updateHeadIcon(personal);
+
+									msg.what = Constants.MSG_SUCCESS;
+									msg.obj = filePath;
+								} else {
+									msg.what = Constants.MSG_FAILED;
+								}*/
+
+					} else {
+						msg.what = Constants.MSG_FAILED;
+						mHandler.sendMessage(msg);
+						if (pDialog != null) {
+							pDialog.dismiss();
+						}
+					}
+				} catch (IOException e) {
+					msg.what = Constants.MSG_FAILED;
+					mHandler.sendMessage(msg);
+					if (pDialog != null) {
+						pDialog.dismiss();
+					}
+					Log.e(e.getMessage());
+				}
+			}
+		});
+	}
 }

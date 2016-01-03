@@ -55,6 +55,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
+
 /**
  * 登录主界面
  * @author huanghui1
@@ -92,10 +93,10 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 	
 	public Tencent mTencent;
 	private UserInfo mInfo;
-	/** 是否是本系统账号登录，如果是QQ、sina等账户登陆的时候该属性为false,否则为true */
-	public static boolean isLocalAccountLogin = true ;
-	/** 是否来自QQ注册*/
-	public static boolean isQQAccountRegister = false ;
+	/** 是否是第三方账户（QQ、百度等)账户注册 */
+	public static boolean isThirdAccountRegister = false ;
+	/** 是否是第三方账户（QQ、百度等)账户登陆 */
+	public static boolean isThirdAccountLogin = false ;
 
 	private static final int RESULT_QQLOGIN_ERROR = 13;
 	private static final int RESULT_QQLOGIN_USERINFO = 14;
@@ -118,55 +119,88 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 				break;*/
 			case RESULT_QQLOGIN_USERINFO:
 				json = (JSONObject)msg.obj;
+				Log.d(TAG,"QQ login result json:"+json.toString());
 				try {
 					String username = mTencent.getOpenId() ;//137E794C1E05DF568C5F03A3E1D98AE3
 					String pass = mTencent.getOpenId() ;
-					String nickname = json.getString("nickname") ;
-					systemConfig.setAccount(username);
+					String nickname = null;
+					if(json.has("nickname")) {
+						nickname = json.getString("nickname") ;
+					}else {
+						String s1  = username;
+						if(username.length()>5){
+							s1 = username.substring(0,5);
+						}
+						nickname = getString(R.string.nicheng_prifix,s1);
+					}
+
+					if(username.length()>10){
+						username = username.substring(0,5) + username.substring((username.length()-5),username.length());
+					}
+					systemConfig.setAccount("qq_"+username);
 					systemConfig.setPassword(pass);
 					systemConfig.setNickname(nickname);
+					if(json.has("figureurl_2")) {
+						systemConfig.setmThirdAvatarUrl(json.getString("figureurl_2"));
+					}else if(json.has("figureurl")) {
+						systemConfig.setmThirdAvatarUrl(json.getString("figureurl"));
+					}
 					systemConfig.setEmail("");
-					isLocalAccountLogin = false ;
+					isThirdAccountLogin = true ;
 					new LoginTask().execute(systemConfig);
 				} catch (JSONException e) {
 					SystemUtil.makeShortToast(R.string.login_failed);
+					Log.d(TAG, "QQ login error:" + e.toString());
 				}
 				break;
 			case RESULT_QQLOGIN_USERAVATAR:
 				
 				break;
 			case TASK_REGISTER:
-				isQQAccountRegister = true ;
+				isThirdAccountRegister = true ;
 				new RegistTask(LoginActivity.this, mIsActionShare).execute(systemConfig);
 				break;
 			case RESULT_QQLOGIN_ERROR:
-				SystemUtil.makeShortToast("抱歉，QQ登录出错啦");
+				SystemUtil.makeShortToast(R.string.qq_login_error);
 				break;
 			case TASK_BAIDU_LOGIN_USERINFO_ERROR:
-				SystemUtil.makeShortToast("抱歉，百度账号登录出错啦");
+				SystemUtil.makeShortToast(R.string.baidu_login_error);
 				break;
 			case TASK_BAIDU_LOGIN_USERINFO_OK:
 				baidu.clearAccessToken();//清除Token，避免下次不提示用户输入账号而直接登录
 				String data = (String) msg.obj ;
+				Log.d(TAG, "Baidu login result json:" + data);
 				try {
 					json = new JSONObject(data);
 					//{"uid":"2198532955","uname":"DDJ\u91d1\u91d1","portrait":"bd8344444ae98791e98791840e"}
 					//根据这个网址即可获取用户头像 http://tb.himg.baidu.com/sys/portrait/item/{$portrait}
-//					String avatar = json.getString("portrait") ;//用户头像
+					if(json.has("portrait")) {
+						String avatarUrl = "http://tb.himg.baidu.com/sys/portrait/item/"+json.getString("portrait");//用户头像
+						systemConfig.setmThirdAvatarUrl(avatarUrl);
+					}
 					String username = json.getString("uid") ;
 					String pass = json.getString("uid") ;
 					String nickname;
-					try {
-						nickname = URLDecoder.decode(json.getString("uname"), "UTF-8");
-					} catch (UnsupportedEncodingException e) {
-						nickname = json.getString("uname");
-						Log.e(TAG, e.toString());
+					if(json.has("uname")){
+						try {
+							nickname = URLDecoder.decode(json.getString("uname"), "UTF-8");
+						} catch (UnsupportedEncodingException e) {
+							nickname = json.getString("uname");
+							Log.e(TAG, e.toString());
+						}
+					}else{
+						String s1  = username;
+						if(username.length()>5){
+							s1 = username.substring(0,5);
+						}
+						nickname = getString(R.string.nicheng_prifix,s1);
 					}
-					systemConfig.setAccount(username);
+
+					systemConfig.setAccount("bd_"+username);
 					systemConfig.setPassword(pass);
 					systemConfig.setNickname(nickname);
 					systemConfig.setEmail("");
-					isLocalAccountLogin = false ;
+					isThirdAccountLogin = true ;
 					new LoginTask().execute(systemConfig);
 				} catch (JSONException e) {
 					SystemUtil.makeShortToast(R.string.login_failed);
@@ -443,9 +477,9 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 				//如果该账号没有对应的数据库，则根据账号创建对应的数据库，并设置当前的账号数据库
 				SystemUtil.initAccountDbDir(sc.getAccount());
 			} else {	//登录失败
-				systemConfig.setPassword("");
+//				systemConfig.setPassword("");
 			}
-			if(isLocalAccountLogin) {
+			if(!isThirdAccountLogin) {
 				application.saveSystemConfig();
 			}
 			return result;
@@ -481,7 +515,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 				SystemUtil.makeShortToast(R.string.request_no_response);
 				break;
 			case Constants.MSG_FAILED:	//登录失败
-				if(isLocalAccountLogin){
+				if(!isThirdAccountLogin){
 					SystemUtil.makeShortToast(R.string.login_failed);
 				} else {
 					mHandler.sendEmptyMessage(TASK_REGISTER);
@@ -652,12 +686,12 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
         protected void doComplete(JSONObject values) {
         	Log.d("SDKQQAgentPref", "AuthorSwitch_SDK:" + SystemClock.elapsedRealtime());
             initOpenidAndToken(values);
-            getQQUserInfo();
         }
     };
 	
     public void initOpenidAndToken(JSONObject jsonObject) {
         try {
+			Log.d(TAG,jsonObject.toString());
             String token = jsonObject.getString(com.tencent.connect.common.Constants.PARAM_ACCESS_TOKEN);
             String expires = jsonObject.getString(com.tencent.connect.common.Constants.PARAM_EXPIRES_IN);
             String openId = jsonObject.getString(com.tencent.connect.common.Constants.PARAM_OPEN_ID);
@@ -666,8 +700,15 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
                 mTencent.setAccessToken(token, expires);
                 mTencent.setOpenId(openId);
             }
-        } catch(Exception e) {
-        }
+//			mHandler.removeMessages(RESULT_QQLOGIN_USERINFO);
+//			Message msg = mHandler.obtainMessage(RESULT_QQLOGIN_USERINFO);
+//			msg.obj = jsonObject;
+//			mHandler.sendMessageDelayed(msg,200);
+			// 如果只是仅仅登录到这里就可以了，可以得到用户的openId，如果要获取其他资料则需要执行下边的getQQUserInfo()方法
+			 getQQUserInfo();
+		} catch(Exception e) {
+			Log.e(TAG,e.toString());
+		}
     }
     
 	/**
@@ -708,26 +749,24 @@ public class LoginActivity extends BaseActivity implements OnClickListener {
 					Message msg = mHandler.obtainMessage(RESULT_QQLOGIN_USERINFO);
 					msg.obj = response;
 					mHandler.sendMessage(msg);
-					/*
 					 //获取用户头像
-					 new Thread(){
-						@Override
-						public void run() {
-							JSONObject json = (JSONObject)response;
-							if(json.has("figureurl")){
-								Bitmap bitmap = null;
-								try {
-									bitmap = QQUtil.getbitmap(json.getString("figureurl_qq_2"));
-								} catch (JSONException e) {
-								}
-								Message msg = new Message();
-								msg.obj = bitmap;
-								msg.what = RESULT_QQLOGIN_USERAVATAR;
-								mHandler.sendMessage(msg);
-							}
-						}
-
-					}.start();*/
+					 /*SystemUtil.getCachedThreadPool().execute(new Runnable() {
+						 @Override
+						 public void run() {
+							 JSONObject json = (JSONObject)response;
+							 if(json.has("figureurl")){
+								 Bitmap bitmap = null;
+								 try {
+									 bitmap = QQUtil.getbitmap(json.getString("figureurl_qq_2"));
+								 } catch (JSONException e) {
+								 }
+								 Message msg = new Message();
+								 msg.obj = bitmap;
+								 msg.what = RESULT_QQLOGIN_USERAVATAR;
+								 mHandler.sendMessage(msg);
+							 }
+						 }
+					 });*/
 				}
 				@Override
 				public void onCancel() {

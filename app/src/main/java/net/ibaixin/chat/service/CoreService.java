@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
@@ -30,6 +31,7 @@ import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.activity.ChatActivity;
+import net.ibaixin.chat.activity.ClipHeadIconActivity;
 import net.ibaixin.chat.activity.LoginActivity;
 import net.ibaixin.chat.activity.MainActivity;
 import net.ibaixin.chat.download.DownloadListener;
@@ -63,6 +65,7 @@ import net.ibaixin.chat.util.JSONUtils;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
 import net.ibaixin.chat.util.Observer;
+import net.ibaixin.chat.util.QQUtil;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.util.XmppUtil;
@@ -263,6 +266,11 @@ public class CoreService extends Service {
 			case Constants.MSG_UPDATE_FAILED:
 				SystemUtil.makeShortToast(R.string.update_failed);
 				break;
+			case Constants.RESULT_QQLOGIN_USERAVATAR:
+				Bitmap b = (Bitmap) msg.obj;
+				String username = ChatApplication.getInstance().getCurrentAccount();
+				ClipHeadIconActivity.setAvatar(mContext,mHandler,b,username,"jpg",null);
+				break;
 			default:
 				break;
 			}
@@ -364,7 +372,23 @@ public class CoreService extends Service {
 //		chatMessageReceiver = new SendChatMessageReceiver();
 //		IntentFilter intentFilter = new IntentFilter(SendChatMessageReceiver.ACTION_SEND_CHAT_MSG);
 //		registerReceiver(chatMessageReceiver, intentFilter);
-		
+
+		final String thirdAvatarUrl = ChatApplication.getInstance().getSystemConfig().getmThirdAvatarUrl();
+		if(LoginActivity.isThirdAccountRegister && !TextUtils.isEmpty(thirdAvatarUrl)){//设置头像
+		 	SystemUtil.getCachedThreadPool().execute(new Runnable() {
+				 @Override
+				 public void run() {
+					 Bitmap bitmap = QQUtil.getbitmap(thirdAvatarUrl);
+					 if(bitmap!=null) {
+						 android.os.Message msg = new android.os.Message();
+						 msg.obj = bitmap;
+						 msg.what = Constants.RESULT_QQLOGIN_USERAVATAR;
+						 mHandler.sendMessage(msg);
+					 }
+				 }
+			 });
+		}
+
 	}
 
 	@Override
@@ -446,8 +470,7 @@ public class CoreService extends Service {
 						personalManage.updatePersonStatus(person);
 					}*/
 					
-					if(!LoginActivity.isLocalAccountLogin
-							&& LoginActivity.isQQAccountRegister
+					if(LoginActivity.isThirdAccountRegister
 							&& ChatApplication.getInstance().getSystemConfig().getNickname()!=null){
 						//如果是QQ注册的话需要更新昵称
 						updateNickOnRegister(ChatApplication.getInstance().getSystemConfig().getNickname());

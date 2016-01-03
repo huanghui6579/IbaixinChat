@@ -285,6 +285,8 @@
     <string name="choose_from">选择来源</string>
     <string name="choose_from1">腾讯视频</string>
     <string name="choose_from2">优酷视频</string>
-
+    <string name="qq_login_error">抱歉，QQ登录出错啦</string>
+    <string name="baidu_login_error">抱歉，百度账号登录出错啦</string>
+    <string name="nicheng_prifix">百信%1$s</string>
 
 </resources>

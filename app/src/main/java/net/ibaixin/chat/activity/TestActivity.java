@@ -1,21 +1,5 @@
 package net.ibaixin.chat.activity;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.json.JSONArray;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.Response.ErrorListener;
-import com.android.volley.Response.Listener;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
-
 import android.annotation.TargetApi;
 import android.content.ContentUris;
 import android.content.Context;
@@ -37,10 +21,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.Response.ErrorListener;
+import com.android.volley.Response.Listener;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.Volley;
+
 import net.ibaixin.chat.R;
-import net.ibaixin.chat.download.DownloadListener;
-import net.ibaixin.chat.download.DownloadManager;
-import net.ibaixin.chat.download.DownloadRequest;
 import net.ibaixin.chat.model.web.AttachDto;
 import net.ibaixin.chat.util.JSONUtils;
 import net.ibaixin.chat.util.Log;
@@ -51,6 +42,13 @@ import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.view.ProgressDialog;
 import net.ibaixin.chat.volley.toolbox.MultiPartStack;
 import net.ibaixin.chat.volley.toolbox.MultiPartStringRequest;
+
+import org.json.JSONArray;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -301,7 +299,7 @@ public class TestActivity extends BaseActivity implements Observer, View.OnClick
 			}));
 */			break;
 		case R.id.btn_download:	//download file
-			DownloadManager downloadManager = new DownloadManager();
+			/*DownloadManager downloadManager = new DownloadManager();
 			builder.appendPath("receiverFile");
 			builder.appendQueryParameter("fileToken", "d2a12961fe4248a257079df27ee1a72b")
 				.appendQueryParameter("fileType", String.valueOf(2));
@@ -344,7 +342,9 @@ public class TestActivity extends BaseActivity implements Observer, View.OnClick
 						}
 					});
 			
-			downloadManager.add(request);
+			downloadManager.add(request);*/
+			setResult(RESULT_OK);
+			finish();
 			break;
 		default:
 			break;
