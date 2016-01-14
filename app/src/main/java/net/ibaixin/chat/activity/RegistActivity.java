@@ -215,7 +215,6 @@ public class RegistActivity extends BaseActivity implements OnClickListener {
 				SystemUtil.hideSoftInput(this);
 			}
 			LoginActivity.isThirdAccountRegister = false;
-			
 			new RegistTask(this, mIsActionShare).execute(systemConfig);
 			break;
 		case R.id.tv_login:	//返回登录界面

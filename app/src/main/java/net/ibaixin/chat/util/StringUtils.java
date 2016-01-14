@@ -44,23 +44,23 @@ public class StringUtils {
             toAppend = null;
             ch = input[i];
             switch(ch) {
-            case '<':
-                toAppend = LT_ENCODE;
-                break;
-            case '>':
-                toAppend = GT_ENCODE;
-                break;
-            case '&':
-                toAppend = AMP_ENCODE;
-                break;
-            case '"':
-                toAppend = QUOTE_ENCODE;
-                break;
-            case '\'':
-                toAppend = APOS_ENCODE;
-                break;
-            default:
-                break;
+                case '<':
+                    toAppend = LT_ENCODE;
+                    break;
+                case '>':
+                    toAppend = GT_ENCODE;
+                    break;
+                case '&':
+                    toAppend = AMP_ENCODE;
+                    break;
+                case '"':
+                    toAppend = QUOTE_ENCODE;
+                    break;
+                case '\'':
+                    toAppend = APOS_ENCODE;
+                    break;
+                default:
+                    break;
             }
             if (toAppend != null) {
                 if (i > last) {
@@ -228,7 +228,7 @@ public class StringUtils {
      * array index.
      */
     private static char[] numbersAndLetters = ("0123456789abcdefghijklmnopqrstuvwxyz" +
-                    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ").toCharArray();
+            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ").toCharArray();
 
     /**
      * Returns a random String of numbers and letters (lower and upper case)

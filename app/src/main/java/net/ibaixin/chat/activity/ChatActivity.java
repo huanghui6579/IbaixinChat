@@ -1146,7 +1146,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				switch (attachItem.getAction()) {
 				case AttachItem.ACTION_IMAGE:	//选择图片
 					requestCode = AlbumActivity.REQ_PARENT_MAKE_IMG_MSG;
-					intent = new Intent(mContext, AlbumActivity.class);
+//					intent = new Intent(mContext, AlbumActivity.class);
+					intent = new Intent(mContext, TestActivity.class);
 					msgInfo.setMsgType(Type.IMAGE);
 					intent.putExtra(ARG_MSG_INFO, msgInfo);
 					intent.putExtra(AlbumActivity.ARG_REQ_CODE, requestCode);
