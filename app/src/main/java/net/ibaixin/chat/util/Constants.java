@@ -31,15 +31,18 @@ public class Constants {
 //	public static final String SERVER_NAME = "home-pc.com";
 	public static final int SERVER_PORT = 5222;
 	
-	public final static String SOFTVERSION = "2015120401";
+	public final static String SOFTVERSION = "2015122901";
 	
-	public static String TENCENTAPPID = "1104396884";//腾讯APP ID
+	public static String TENCENTAPPID = "1104432259";//腾讯APP ID
 	public static String BAIDUAPPID = "0trswTLaGB6hN820M30Brbhx";//百度APP ID
 	
 	public final static String websitePrefix = "http://"+Constants.SERVER_HOST ;
 //	public static String loginUrl = "http://192.168.42.28:8080/ibaixin/user/login/" ;
-	public final static String loginUrl = websitePrefix+"/ibaixin/user/login" ;
-	public final static String registerUrl = websitePrefix+"/ibaixin/user/register" ;
+	public final static String loginUrl = websitePrefix+"/ibaixin/user/appLogin" ;
+	public final static String registerUrl = websitePrefix+"/ibaixin/user/appRegister" ;
+	public final static String registerRkCloudUrl = websitePrefix+"/ibaixin/user/editRkCloudAccount" ;
+	public final static String syncRkCloudAccountsUrl = websitePrefix+"/ibaixin/user/getRkCloudAccountList" ;
+	public final static String syncRkCloudAccountUrl = websitePrefix+"/ibaixin/user/getRkCloudAccount" ;
 	public final static String addjokeUrl = websitePrefix+"/ibaixin/jokemobile/addJoke" ;
 //	public final static String addvideoUrl = "http://192.168.42.28/ibaixin/videomobile/addVideo" ;
 	public final static String addvideoUrl = websitePrefix+"/ibaixin/videomobile/addVideo" ;
@@ -59,6 +62,7 @@ public class Constants {
 	
 	public static final String SETTTING_LOGIN = "settting_login";
 	public static final String USER_ACCOUNT = "user_account";
+	public static final String RKCLOUDACCOUNT = "rkcloud_account";
 	public static final String USER_PASSWORD = "user_password";
 	public static final String USER_ISFIRST = "user_isfirst";
 	public static final String USER_RESOURCE = "user_resource";
@@ -276,7 +280,8 @@ public class Constants {
 	 */
 	public static final int MSG_DOWNLOAD_SUCCESS = 0x000018;
 	/**
-	 * 【25】文件下载失败的消息
+	 *  第三方头像下载成功的消息
 	 */
 	public static final int MSG_DOWNLOAD_FAILED = 0x000019;
+	public static final int RESULT_QQLOGIN_USERAVATAR = 0x00001a;
 }

@@ -242,7 +242,11 @@ public class MainActivity extends BaseActivity {
 //		}
 		service.putExtra(CoreService.FLAG_SYNC, syncFlag);
 		startService(service);
-		
+
+		//初始化云视互动SDK
+		service.putExtra(CoreService.FLAG_SYNC,CoreService.FLAG_INIT_RKCLOUD_SDK);
+		startService(service);
+
 		if (initPosition) {
 			coreService.clearNotify(CoreService.NOTIFY_ID_CHAT_MSG);
 			mPageIndicator.setViewPager(mViewPager, 0);

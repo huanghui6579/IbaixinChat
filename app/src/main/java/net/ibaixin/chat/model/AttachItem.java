@@ -32,7 +32,15 @@ public class AttachItem {
 	 * 文件
 	 */
 	public static final int ACTION_FILE = 6;
-	
+	/**
+	 * 语音通话
+	 */
+	public static final int ACTION_CALL_AUDIO = 7;
+	/**
+	 * 视频通话
+	 */
+	public static final int ACTION_CALL_VIDEO = 8;
+
 	/**
 	 * 图像资源id
 	 */

@@ -94,6 +94,9 @@ import net.ibaixin.chat.model.UserVcard;
 import net.ibaixin.chat.model.emoji.Emojicon;
 import net.ibaixin.chat.provider.Provider;
 import net.ibaixin.chat.record.AudioRecorder;
+import net.ibaixin.chat.rkcloud.AccountManager;
+import net.ibaixin.chat.rkcloud.SDKManager;
+import net.ibaixin.chat.rkcloud.av.RKCloudAVDemoManager;
 import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.service.CoreService.CoreReceiver;
 import net.ibaixin.chat.service.CoreService.MainBinder;
@@ -103,6 +106,7 @@ import net.ibaixin.chat.util.ImageUtil;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
 import net.ibaixin.chat.util.Observable;
+import net.ibaixin.chat.util.StreamTool;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.view.ProgressDialog;
@@ -114,6 +118,8 @@ import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smackx.chatstates.ChatState;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.jxmpp.util.XmppStringUtils;
 
 import java.io.File;
@@ -122,6 +128,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -217,7 +224,9 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		R.drawable.att_item_video,
 		R.drawable.att_item_location,
 		R.drawable.att_item_vcard,
-		R.drawable.att_item_file
+		R.drawable.att_item_file,
+		R.drawable.rkcloud_chat_attachope_audiocall,
+		R.drawable.rkcloud_chat_attachope_videocall
 	};
 	
 	private static String[] attachItemNames;
@@ -398,6 +407,11 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 	 * 是否是批量模式
 	 */
 	private boolean mIsBatchMode;
+
+	/**
+	 * 对方音视频通话账户
+	 */
+	private String mOtherSideRkAccount;
 
 	private Handler mHandler = new Handler() {
 
@@ -974,6 +988,11 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		protected void onPostExecute(List<MsgInfo> result) {
 			if (otherSide != null) {
 				setTitle(otherSide.getName());
+                //add by dudejin 2016/01/14
+                mOtherSideRkAccount = AccountManager.getUsersRkAccountMap().get(otherSide.getUsername());
+                if(TextUtils.isEmpty(mOtherSideRkAccount)){
+                    SystemUtil.getCachedThreadPool().execute(new SyncFriendRkCloudAccount(otherSide));
+                }
 			}
 			mMsgInfos.clear();
 			if (!SystemUtil.isEmpty(result)) {
@@ -1154,6 +1173,30 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 					intent = new Intent(mContext, LocationShareActivity.class);
 					msgInfo.setMsgType(Type.LOCATION);
 					requestCode = REQ_LOCATION;
+					break;
+				case AttachItem.ACTION_CALL_AUDIO:	//语音通话
+					if(SDKManager.isSdkInitStatus()) {
+						if(TextUtils.isEmpty(mOtherSideRkAccount)){
+							SystemUtil.makeShortToast(R.string.app_notsupport_av_call);
+						}else {
+                            String showName = getTitle().toString();
+							RKCloudAVDemoManager.getInstance(mContext).dial(mContext, mOtherSideRkAccount,showName, false);
+						}
+					}else{
+						SystemUtil.makeShortToast(R.string.av_call_adk_init_error);
+					}
+					break;
+				case AttachItem.ACTION_CALL_VIDEO:	//视频通话
+					if(SDKManager.isSdkInitStatus()) {
+						if(TextUtils.isEmpty(mOtherSideRkAccount)){
+							SystemUtil.makeShortToast(R.string.app_notsupport_av_call);
+						}else {
+                            String showName = getTitle().toString();
+							RKCloudAVDemoManager.getInstance(mContext).dial(mContext, mOtherSideRkAccount,showName, true);
+						}
+					}else{
+						SystemUtil.makeShortToast(R.string.av_call_adk_init_error);
+					}
 					break;
 				default:
 					break;
@@ -3626,4 +3669,35 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 		return list;
 	}
 
+	class SyncFriendRkCloudAccount implements Runnable{
+		User user ;
+		public SyncFriendRkCloudAccount(User user){
+			this.user = user;
+		}
+		@Override
+		public void run() {
+			StringBuilder sb = new StringBuilder(Constants.syncRkCloudAccountUrl).append("?name=").append(user.getUsername());
+			String urlstr = sb.toString();
+			Log.d(TAG,"SyncFriendRkCloudAccount Url:"+urlstr);
+			JSONObject jsonObject = null;
+			try {
+				String json = StreamTool.connectServer(urlstr);
+				Log.d(TAG,"SyncFriendRkCloudAccount result:"+json);
+				jsonObject = new JSONObject(json);
+				if(jsonObject!=null && jsonObject.has("code")){
+					int code = jsonObject.getInt("code");
+					if(code==0){
+						String account = jsonObject.getString("account");
+						if(!TextUtils.isEmpty(account)){
+							mOtherSideRkAccount = account;
+							AccountManager.getUsersRkAccountMap().put(user.getUsername(),account);
+                            AccountManager.getRkAccountUserMap().put(account,user.getUsername());
+						}
+					}
+				}
+			} catch (Exception e) {
+				Log.e(TAG,e.toString());
+			}
+		}
+	}
 }

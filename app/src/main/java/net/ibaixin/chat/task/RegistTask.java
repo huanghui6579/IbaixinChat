@@ -1,14 +1,16 @@
 package net.ibaixin.chat.task;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.AsyncTask;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.activity.LoginActivity;
 import net.ibaixin.chat.activity.MainActivity;
 import net.ibaixin.chat.model.SystemConfig;
+import net.ibaixin.chat.rkcloud.AccountManager;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.StreamTool;
@@ -32,11 +34,12 @@ import org.jivesoftware.smack.packet.Bind;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smackx.iqregister.packet.Registration;
+import org.json.JSONObject;
 
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
+import android.content.Context;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.app.Activity;
 /**
  * 注册的后台任务
  * @author Administrator
@@ -92,9 +95,12 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 			SystemConfig systemConfig = ChatApplication.getInstance().getSystemConfig();
 			systemConfig.setOnline(true);
 			systemConfig.setFirstLogin(false);
-			if(LoginActivity.isLocalAccountLogin) {
-				ChatApplication.getInstance().saveSystemConfig();
+			ChatApplication.getInstance().saveSystemConfig();
+
+			if(!LoginActivity.isThirdAccountRegister){//如果不是第三方账户注册，去掉这个数据
+				ChatApplication.getInstance().getSystemConfig().setmThirdAvatarUrl(null);
 			}
+
 			if (mIsActionShare) {
 				mActivity.setResult(Activity.RESULT_OK);
 			} else {
@@ -139,7 +145,7 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 					}
 				}
 			}, new AndFilter(new StanzaTypeFilter(Bind.class), new FlexibleStanzaTypeFilter<IQ>() {
-
+				
 				@Override
 				protected boolean acceptSpecific(IQ iq) {
 					// TODO Auto-generated method stub
@@ -164,9 +170,23 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 				Log.d("regist failed");
 				return REGIST_RESULT_FAIL;
 			} else if (IQ.Type.result == result.getType()) {
-				if(!registerIbaixinJoke(nickName,username,password)){//注册web服务器 add by dudejin 2015-03-06
+				String jsonStr = registerIbaixinJoke(nickName,username,password);//注册web服务器 add by dudejin 2015-03-06
+				int code = 0;
+				String rkCloudAccount = null;
+				try {
+					JSONObject jsonObject = new JSONObject(jsonStr);
+					Log.d(TAG,jsonObject.toString());
+					code = jsonObject.getInt("code");
+					AccountManager.mNeedRegistRkCloud = jsonObject.getInt("regist_rkcloud");
+					rkCloudAccount = jsonObject.getString("rkCloudAccount");
+				} catch (Exception e) {
+					e.printStackTrace();
 					return REGIST_RESULT_FAIL;
 				}
+				if(code!=0) {
+					return REGIST_RESULT_FAIL;
+				}
+				ChatApplication.getInstance().getSystemConfig().setmRkCloudAccount(rkCloudAccount);
 				//如果该账号没有对应的数据库，则根据账号创建对应的数据库，并设置当前的账号数据库
 				SystemUtil.initAccountDbDir(username);
 				if(!connection.isConnected()) {
@@ -195,18 +215,16 @@ public class RegistTask extends AsyncTask<SystemConfig, Void, Integer> {
 	 * 	add by dudejin 2015-03-06
 	 * @return
 	 */
-	public static boolean registerIbaixinJoke(String nickname,String account,String pass) {
+	public static String registerIbaixinJoke(String nickname,String account,String pass) {
 		try {
 			String urlstr = Constants.registerUrl+"?loginName="
 					+account +"&loginPassword="+pass
 					+"&realName="+URLEncoder.encode(nickname,"utf-8") ;
 			String json = StreamTool.connectServer(urlstr);;
-			if("Y".equals(json)){
-					return true ;
-			}
+			return json ;
 		} catch (Exception e) {
 			Log.e(TAG, e.toString());
 		}
-		return false;
+		return null;
 	}
 }

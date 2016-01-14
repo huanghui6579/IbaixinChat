@@ -13,6 +13,8 @@
         <item>位置</item>
         <item>名片</item>
         <item>文件</item>
+        <item>语音通话</item>
+        <item>视频通话</item>
     </string-array>
     
     <string-array name="emoji_type_desc">

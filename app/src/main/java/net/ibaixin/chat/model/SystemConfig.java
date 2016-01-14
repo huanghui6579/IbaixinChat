@@ -1,5 +1,7 @@
 package net.ibaixin.chat.model;
 
+import android.graphics.Bitmap;
+
 /**
  * 系统常用配置实体
  * 
@@ -15,14 +17,38 @@ public class SystemConfig {
 	private String nickname;
 	private String email;
 	private String sessionId;	//会话id
-//	/**
+	//	/**
 //	 * 用户使用的是哪种终端登录，如果Android手机、iPhone、web等等
 //	 */
 //	private String resource;
 	private boolean isOnline;	//是否连接成功
 	private boolean isFirstLogin;	//是否是首次登录
 
-	/*public String getHost() {
+	/***
+	 * 使用第三方登录发现系统不存在该用户，就会发起注册流程，
+	 * 如果是使用第三方账号注册则第三方的头像网络url保存保存到这里
+	 * Add by dudejin 2015/12/29
+	 */
+	private String mThirdAvatarUrl ;
+
+	private String mRkCloudAccount ;
+
+	public String getmThirdAvatarUrl() {
+		return mThirdAvatarUrl;
+	}
+
+	public void setmThirdAvatarUrl(String mThirdAvatarUrl) {
+		this.mThirdAvatarUrl = mThirdAvatarUrl;
+	}
+
+	public String getmRkCloudAccount() {
+		return mRkCloudAccount;
+	}
+
+	public void setmRkCloudAccount(String mRkCloudAccount) {
+		this.mRkCloudAccount = mRkCloudAccount;
+	}
+/*public String getHost() {
 		return host;
 	}
 

@@ -24,6 +24,8 @@ import net.ibaixin.chat.model.Emoji;
 import net.ibaixin.chat.model.EmojiType;
 import net.ibaixin.chat.model.Personal;
 import net.ibaixin.chat.model.SystemConfig;
+import net.ibaixin.chat.rkcloud.AccountManager;
+import net.ibaixin.chat.rkcloud.RKCloudDemo;
 import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.util.Constants;
 import net.ibaixin.chat.util.Log;
@@ -145,6 +147,9 @@ public class ChatApplication extends Application {
 		crashHandler.init(getApplicationContext());
 
 //		makeWebViewCacheDir() ;
+
+		//创建融科音视频对象
+		RKCloudDemo.create(this);
 		
 	}
 	
@@ -425,6 +430,7 @@ public class ChatApplication extends Application {
 		SharedPreferences preferences = getSharedPreferences(Constants.SETTTING_LOGIN, Context.MODE_PRIVATE);
 		systemConfig.setAccount(preferences.getString(Constants.USER_ACCOUNT, null));
 		systemConfig.setPassword(preferences.getString(Constants.USER_PASSWORD, null));
+		systemConfig.setmRkCloudAccount(preferences.getString(Constants.RKCLOUDACCOUNT, null));
 		systemConfig.setFirstLogin(preferences.getBoolean(Constants.USER_ISFIRST, true));
 //		systemConfig.setResource(preferences.getString(Constants.USER_RESOURCE, SystemUtil.getPhoneModel()));
 //		systemConfig.setHost(preferences.getString(Constants.NAME_SERVER_HOST, Constants.SERVER_HOST));
@@ -441,6 +447,7 @@ public class ChatApplication extends Application {
 		Editor editor = preferences.edit();
 		editor.putString(Constants.USER_ACCOUNT, systemConfig.getAccount());
 		editor.putString(Constants.USER_PASSWORD, systemConfig.getPassword());
+		editor.putString(Constants.RKCLOUDACCOUNT, systemConfig.getmRkCloudAccount());
 		editor.putBoolean(Constants.USER_ISFIRST, systemConfig.isFirstLogin());
 //		editor.putString(Constants.USER_RESOURCE, systemConfig.getResource());
 //		editor.putString(Constants.NAME_SERVER_HOST, systemConfig.getHost());
@@ -560,6 +567,7 @@ public class ChatApplication extends Application {
 		SharedPreferences preferences = getSharedPreferences(Constants.SETTTING_LOGIN, Context.MODE_PRIVATE);
 		Editor editor = preferences.edit();
 		editor.putString(Constants.USER_PASSWORD, "");
+		editor.putString(Constants.RKCLOUDACCOUNT, "");
 		editor.putBoolean(Constants.USER_ISFIRST, true);
 //		editor.putString(Constants.USER_RESOURCE, systemConfig.getResource());
 //		editor.putString(Constants.NAME_SERVER_HOST, systemConfig.getHost());

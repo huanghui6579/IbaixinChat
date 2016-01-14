@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
@@ -30,6 +31,7 @@ import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.activity.ChatActivity;
+import net.ibaixin.chat.activity.ClipHeadIconActivity;
 import net.ibaixin.chat.activity.LoginActivity;
 import net.ibaixin.chat.activity.MainActivity;
 import net.ibaixin.chat.download.DownloadListener;
@@ -56,6 +58,12 @@ import net.ibaixin.chat.model.UserVcard;
 import net.ibaixin.chat.model.web.AttachDto;
 import net.ibaixin.chat.provider.Provider;
 import net.ibaixin.chat.receiver.BasePersonalInfoReceiver;
+import net.ibaixin.chat.rkcloud.AccountManager;
+import net.ibaixin.chat.rkcloud.AccountUiMessage;
+import net.ibaixin.chat.rkcloud.Config;
+import net.ibaixin.chat.rkcloud.RKCloudDemo;
+import net.ibaixin.chat.rkcloud.SDKManager;
+import net.ibaixin.chat.rkcloud.http.HttpResponseCode;
 import net.ibaixin.chat.smack.extension.MessageTypeExtension;
 import net.ibaixin.chat.task.ReConnectTask;
 import net.ibaixin.chat.util.Constants;
@@ -63,6 +71,8 @@ import net.ibaixin.chat.util.JSONUtils;
 import net.ibaixin.chat.util.Log;
 import net.ibaixin.chat.util.MimeUtils;
 import net.ibaixin.chat.util.Observer;
+import net.ibaixin.chat.util.QQUtil;
+import net.ibaixin.chat.util.StreamTool;
 import net.ibaixin.chat.util.SystemUtil;
 import net.ibaixin.chat.util.XmppConnectionManager;
 import net.ibaixin.chat.util.XmppUtil;
@@ -107,6 +117,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -117,6 +128,9 @@ import java.util.Timer;
  * @author coolpad
  */
 public class CoreService extends Service {
+
+	private final String TAG = "CoreService";
+
 	public static final String FLAG_SYNC = "flag_sync";
 	public static final String FLAG_RECEIVE_OFFINE_MSG = "flag_receive_offine_msg";
 	public static final String FLAG_INIT_CURRENT_USER = "flag_init_current_user"; 
@@ -147,7 +161,11 @@ public class CoreService extends Service {
 	 * 初始化个人信息
 	 */
 	public static final int FLAG_INIT_PERSONAL_INFO = 6;
-	
+	/**
+	 * 初始化云视互动SDK
+	 */
+	public static final int FLAG_INIT_RKCLOUD_SDK = 7;
+
 	private IBinder mBinder = new MainBinder();
 	
 	private UserManager userManager = UserManager.getInstance();
@@ -194,6 +212,11 @@ public class CoreService extends Service {
 	 * 本地广播管理器
 	 */
 	private LocalBroadcastManager mLocalBroadcastManager;
+
+	/**
+	 * 融科通信账户管理对象，用于音视频通话用户注册登录
+	 */
+	private AccountManager mRkAccountManager;
 	
 //	SendChatMessageReceiver chatMessageReceiver;
 	
@@ -263,6 +286,51 @@ public class CoreService extends Service {
 			case Constants.MSG_UPDATE_FAILED:
 				SystemUtil.makeShortToast(R.string.update_failed);
 				break;
+			case Constants.RESULT_QQLOGIN_USERAVATAR:
+				Bitmap b = (Bitmap) msg.obj;
+				String username = ChatApplication.getInstance().getCurrentAccount();
+				ClipHeadIconActivity.setAvatar(mContext,mHandler,b,username,"jpg",null);
+				break;
+			case AccountUiMessage.RESPONSE_LOGIN:
+				if(HttpResponseCode.OK == msg.arg1){
+					mRkAccountManager.setmAccountIsLogin(true);
+					SDKManager.getInstance().bindUiHandler(mHandler);
+					SDKManager.getInstance().initSDK();
+				}else if((HttpResponseCode.BANNED_USER == msg.arg1) || (HttpResponseCode.ACCOUNT_PWD_ERROR == msg.arg1) ||HttpResponseCode.ACCOUNT_NOT_EXISTS == msg.arg1){
+					Log.e(TAG, "mRkAccountManager msg.arg1 ：BANNED_USER||ACCOUNT_PWD_ERROR || ACCOUNT_NOT_EXISTS");
+					String uname = ChatApplication.getInstance().getSystemConfig().getAccount();
+					String pwd = ChatApplication.getInstance().getSystemConfig().getPassword();
+					String rkAccount = ChatApplication.getInstance().getSystemConfig().getmRkCloudAccount();
+					mRkAccountManager.register(rkAccount, rkAccount);
+				}else if(HttpResponseCode.NO_NETWORK == msg.arg1){
+					Log.e(TAG, "mRkAccountManager HttpResponseCode.NO_NETWORK == msg.arg1");
+
+				}else{
+					Log.e(TAG, "mRkAccountManager login_result_failed");
+				}
+				break;
+				case AccountUiMessage.RESPONSE_REGISTER:
+					if(msg.arg1 == HttpResponseCode.OK){
+						String uname = ChatApplication.getInstance().getSystemConfig().getAccount();
+						String pwd = ChatApplication.getInstance().getSystemConfig().getPassword();
+						String rkCloudAccount = ChatApplication.getInstance().getSystemConfig().getmRkCloudAccount();
+						mRkAccountManager.login(uname, pwd);
+						if(!mRkAccountManager.updateIbaixinRkCloudAccount(uname,pwd,rkCloudAccount)){
+							Log.e(TAG,"mRkAccountManager.updateIbaixinRkCloudAccount(uname,pwd,rkCloudAccount) Error!");
+						}
+					}else if(msg.arg1 == HttpResponseCode.NO_NETWORK){
+						Log.e(TAG,"mRkAccountManager rg msg.arg1 == HttpResponseCode.NO_NETWORK");
+					}else if(msg.arg1 == HttpResponseCode.ACCOUNT_EXIST){
+						Log.e(TAG, "mRkAccountManager rg msg.arg1 == HttpResponseCode.ACCOUNT_EXIST");
+					}else{
+						Log.e(TAG, "mRkAccountManager rg operation_failed");
+					}
+					break;
+				case AccountUiMessage.SDK_INIT_FINISHED:
+					if(msg.arg1 != HttpResponseCode.OK){
+						SystemUtil.makeShortToast(R.string.av_call_adk_init_error);
+					}
+					break;
 			default:
 				break;
 			}
@@ -364,7 +432,24 @@ public class CoreService extends Service {
 //		chatMessageReceiver = new SendChatMessageReceiver();
 //		IntentFilter intentFilter = new IntentFilter(SendChatMessageReceiver.ACTION_SEND_CHAT_MSG);
 //		registerReceiver(chatMessageReceiver, intentFilter);
-		
+		final String thirdAvatarUrl = ChatApplication.getInstance().getSystemConfig().getmThirdAvatarUrl();
+		if(LoginActivity.isThirdAccountRegister && !TextUtils.isEmpty(thirdAvatarUrl)){//设置头像
+			SystemUtil.getCachedThreadPool().execute(new Runnable() {
+				 @Override
+				 public void run() {
+					 Bitmap bitmap = QQUtil.getbitmap(thirdAvatarUrl);
+					 if(bitmap!=null) {
+						 android.os.Message msg = new android.os.Message();
+						 msg.obj = bitmap;
+						 msg.what = Constants.RESULT_QQLOGIN_USERAVATAR;
+						 mHandler.sendMessage(msg);
+					 }
+				 }
+			 });
+		}
+		mRkAccountManager = AccountManager.getInstance();
+		mRkAccountManager.bindUiHandler(mHandler);
+
 	}
 
 	@Override
@@ -372,7 +457,7 @@ public class CoreService extends Service {
 		// TODO Auto-generated method stub
 		return mBinder;
 	}
-	
+
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (intent != null) {
@@ -392,24 +477,41 @@ public class CoreService extends Service {
 			Log.d("----onStartCommand--syncFlag--" + syncFlag);
 			//同步好友列表
 			switch (syncFlag) {
-			case FLAG_SYNC_FRENDS:	//从服务器上同步所有的好友列表到本地
-//				new Thread(new SyncFriendsTask()).start();
-				mHandler.post(new SyncFriendsTask());
-				break;
-			case FLAG_RELOGIN_OK://重新登录成功
-				initCurrentUser(ChatApplication.getInstance().getCurrentUser());//同步自己的信息
-//				mHandler.post(new SyncFriendsTask());//从服务器上同步所有的好友列表到本地
-				SystemUtil.getCachedThreadPool().execute(new HandleOffineMsgTask());//接受离线消息
-				//发送未发送成功的消息
-				
-				break;
-			case FLAG_LOGIN:	//后台登陆
-				SystemUtil.getCachedThreadPool().execute(new LoginTask());
-				break;
-			default:
-				break;
+				case FLAG_SYNC_FRENDS:	//从服务器上同步所有的好友列表到本地
+	//				new Thread(new SyncFriendsTask()).start();
+					mHandler.post(new SyncFriendsTask());
+					break;
+				case FLAG_RELOGIN_OK://重新登录成功
+					initCurrentUser(ChatApplication.getInstance().getCurrentUser());//同步自己的信息
+	//				mHandler.post(new SyncFriendsTask());//从服务器上同步所有的好友列表到本地
+					SystemUtil.getCachedThreadPool().execute(new HandleOffineMsgTask());//接受离线消息
+					//发送未发送成功的消息
+
+					break;
+				case FLAG_LOGIN:	//后台登陆
+					SystemUtil.getCachedThreadPool().execute(new LoginTask());
+					break;
+				case FLAG_INIT_RKCLOUD_SDK:	//初始化云视互动SDK
+					String rkCloudAccount = ChatApplication.getInstance().getSystemConfig().getmRkCloudAccount();
+					String rkcloudPwd = RKCloudDemo.config.getString(Config.LOGIN_RKCLOUD_PWD, null);
+					String login_name = RKCloudDemo.config.getString(Config.LOGIN_NAME, null);
+					if(TextUtils.isEmpty(rkcloudPwd) || !rkCloudAccount.equals(login_name)) {
+						if (AccountManager.mNeedRegistRkCloud == 1) {//注册融科音视频服务账户
+							mRkAccountManager.register(rkCloudAccount, rkCloudAccount);
+						} else {//登录融科音视频服务账户
+							mRkAccountManager.login(rkCloudAccount, rkCloudAccount);
+						}
+					}else {
+						mRkAccountManager.setmAccountIsLogin(true);
+						SDKManager.getInstance().bindUiHandler(mHandler);
+						SDKManager.getInstance().initSDK();
+					}
+					break;
+				default:
+					break;
 			}
 			Log.d("-------connection.isSmEnabled()------" + connection.isSmEnabled() + "----connection.isSmAvailable()----" + connection.isSmAvailable() + "-----connection.isSmResumptionPossible()-----" + connection.isSmResumptionPossible());
+
 		}
 		
 		return Service.START_REDELIVER_INTENT;
@@ -446,8 +548,7 @@ public class CoreService extends Service {
 						personalManage.updatePersonStatus(person);
 					}*/
 					
-					if(!LoginActivity.isLocalAccountLogin
-							&& LoginActivity.isQQAccountRegister
+					if(LoginActivity.isThirdAccountRegister
 							&& ChatApplication.getInstance().getSystemConfig().getNickname()!=null){
 						//如果是QQ注册的话需要更新昵称
 						updateNickOnRegister(ChatApplication.getInstance().getSystemConfig().getNickname());
@@ -1375,6 +1476,8 @@ public class CoreService extends Service {
 
 							//同步好友的电子名片信息
 							SystemUtil.getCachedThreadPool().execute(new SyncFriendVcardTask(userList));
+							//同步好友的音视频通话账户
+							SystemUtil.getCachedThreadPool().execute(new SyncFriendsRkCloudAccount(userList));
 						}
 					}
 				});
@@ -1990,5 +2093,48 @@ public class CoreService extends Service {
 				}
 			}
 		});
+	}
+
+	class SyncFriendsRkCloudAccount implements Runnable{
+		List<User> userList ;
+		public SyncFriendsRkCloudAccount(List<User> userList){
+			this.userList = userList;
+		}
+		@Override
+		public void run() {
+			StringBuilder sb = new StringBuilder(Constants.syncRkCloudAccountsUrl).append("?");
+			for (User u:userList) {
+				sb.append("name=").append(u.getUsername()).append("&");
+			}
+			String urlstr = sb.deleteCharAt(sb.length()-1).toString();
+			Log.d(TAG,"SyncFriendsRkCloudAccount Url:"+urlstr);
+			JSONObject jsonObject = null;
+			try {
+				String json = StreamTool.connectServer(urlstr);
+				Log.d(TAG,"SyncFriendsRkCloudAccount result:"+json);
+				jsonObject = new JSONObject(json);
+				if(jsonObject!=null && jsonObject.has("code")){
+					int code = jsonObject.getInt("code");
+					if(code==0){
+						Map<String,String> map = new HashMap<String,String>();
+						Map<String,String> map2 = new HashMap<String,String>();
+						Iterator it = jsonObject.keys();
+						while (it.hasNext()) {
+							String key = it.next().toString();
+							if(!"code".equals(key) && !"msg".equals(key) && !"count".equals(key)){
+								map.put(key,jsonObject.getString(key));
+								map2.put(jsonObject.getString(key),key);
+							}
+						}
+						if(map.size()>0){
+							AccountManager.setUsersRkAccountMap(map);
+							AccountManager.setRkAccountUserMap(map2);
+						}
+					}
+				}
+			} catch (Exception e) {
+				Log.e(TAG,e.toString());
+			}
+		}
 	}
 }

@@ -77,7 +77,20 @@ public class User implements Parcelable, Comparator<User> {
 	 * 名字拼音的首字母，大写的
 	 */
 	private String sortLetter;
-	
+
+	/**
+	 * 对应的融科音视频通话账号
+	 */
+	private String rkCloudAccount;
+
+	public String getRkCloudAccount() {
+		return rkCloudAccount;
+	}
+
+	public void setRkCloudAccount(String rkCloudAccount) {
+		this.rkCloudAccount = rkCloudAccount;
+	}
+
 	public int getId() {
 		return id;
 	}

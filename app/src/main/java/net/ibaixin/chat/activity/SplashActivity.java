@@ -8,9 +8,9 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-
 import net.ibaixin.chat.R;
 import net.ibaixin.chat.model.SystemConfig;
+import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.update.UpdateManager;
 import net.ibaixin.chat.update.UpdateService;
 import net.ibaixin.chat.util.SystemUtil;
