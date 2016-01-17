@@ -134,7 +134,8 @@ public class CoreService extends Service {
 	public static final String FLAG_SYNC = "flag_sync";
 	public static final String FLAG_RECEIVE_OFFINE_MSG = "flag_receive_offine_msg";
 	public static final String FLAG_INIT_CURRENT_USER = "flag_init_current_user"; 
-	
+	public static final String FLAG_INIT_RKCLOUD_SDK = "flag_init_rkcloud_sdk";
+
 	/**
 	 * 聊天新消息的通知id
 	 */
@@ -162,9 +163,9 @@ public class CoreService extends Service {
 	 */
 	public static final int FLAG_INIT_PERSONAL_INFO = 6;
 	/**
-	 * 初始化云视互动SDK
+	 * 初始化音视频SDK
 	 */
-	public static final int FLAG_INIT_RKCLOUD_SDK = 7;
+	public static final int FLAG_INIT_AV_SDK = 7;
 
 	private IBinder mBinder = new MainBinder();
 	
@@ -296,15 +297,16 @@ public class CoreService extends Service {
 					mRkAccountManager.setmAccountIsLogin(true);
 					SDKManager.getInstance().bindUiHandler(mHandler);
 					SDKManager.getInstance().initSDK();
-				}else if((HttpResponseCode.BANNED_USER == msg.arg1) || (HttpResponseCode.ACCOUNT_PWD_ERROR == msg.arg1) ||HttpResponseCode.ACCOUNT_NOT_EXISTS == msg.arg1){
-					Log.e(TAG, "mRkAccountManager msg.arg1 ：BANNED_USER||ACCOUNT_PWD_ERROR || ACCOUNT_NOT_EXISTS");
-					String uname = ChatApplication.getInstance().getSystemConfig().getAccount();
-					String pwd = ChatApplication.getInstance().getSystemConfig().getPassword();
+				}else if((HttpResponseCode.BANNED_USER == msg.arg1) || (HttpResponseCode.ACCOUNT_PWD_ERROR == msg.arg1)){
+					Log.e(TAG, "mRkAccountManager msg.arg1 ：BANNED_USER||ACCOUNT_PWD_ERROR");
+					SystemUtil.makeShortToast(R.string.av_call_account_error);
+				}else if(HttpResponseCode.ACCOUNT_NOT_EXISTS == msg.arg1){
+					Log.e(TAG, "mRkAccountManager msg.arg1 ：ACCOUNT_NOT_EXISTS");
 					String rkAccount = ChatApplication.getInstance().getSystemConfig().getmRkCloudAccount();
 					mRkAccountManager.register(rkAccount, rkAccount);
 				}else if(HttpResponseCode.NO_NETWORK == msg.arg1){
 					Log.e(TAG, "mRkAccountManager HttpResponseCode.NO_NETWORK == msg.arg1");
-
+					SystemUtil.makeShortToast(R.string.av_call_net_error);
 				}else{
 					Log.e(TAG, "mRkAccountManager login_result_failed");
 				}
@@ -314,14 +316,17 @@ public class CoreService extends Service {
 						String uname = ChatApplication.getInstance().getSystemConfig().getAccount();
 						String pwd = ChatApplication.getInstance().getSystemConfig().getPassword();
 						String rkCloudAccount = ChatApplication.getInstance().getSystemConfig().getmRkCloudAccount();
-						mRkAccountManager.login(uname, pwd);
+						mRkAccountManager.login(rkCloudAccount, rkCloudAccount);
 						if(!mRkAccountManager.updateIbaixinRkCloudAccount(uname,pwd,rkCloudAccount)){
 							Log.e(TAG,"mRkAccountManager.updateIbaixinRkCloudAccount(uname,pwd,rkCloudAccount) Error!");
 						}
 					}else if(msg.arg1 == HttpResponseCode.NO_NETWORK){
 						Log.e(TAG,"mRkAccountManager rg msg.arg1 == HttpResponseCode.NO_NETWORK");
+						SystemUtil.makeShortToast(R.string.av_call_net_error);
 					}else if(msg.arg1 == HttpResponseCode.ACCOUNT_EXIST){
 						Log.e(TAG, "mRkAccountManager rg msg.arg1 == HttpResponseCode.ACCOUNT_EXIST");
+						String rkCloudAccount = ChatApplication.getInstance().getSystemConfig().getmRkCloudAccount();
+						mRkAccountManager.login(rkCloudAccount, rkCloudAccount);
 					}else{
 						Log.e(TAG, "mRkAccountManager rg operation_failed");
 					}
@@ -474,6 +479,23 @@ public class CoreService extends Service {
 				//接收离线消息
 				receiveOffineMsg();
 			}
+			int iniRkSdk = intent.getIntExtra(FLAG_INIT_RKCLOUD_SDK, 0);
+			if (iniRkSdk == FLAG_INIT_AV_SDK) {//初始化云视互动SDK
+				String rkCloudAccount = ChatApplication.getInstance().getSystemConfig().getmRkCloudAccount();
+				String rkcloudPwd = RKCloudDemo.config.getString(Config.LOGIN_RKCLOUD_PWD, null);
+				String login_name = RKCloudDemo.config.getString(Config.LOGIN_NAME, null);
+				if(TextUtils.isEmpty(rkcloudPwd) || !rkCloudAccount.equals(login_name)) {
+					if (AccountManager.mNeedRegistRkCloud == 1) {//注册融科音视频服务账户
+						mRkAccountManager.register(rkCloudAccount, rkCloudAccount);
+					} else {//登录融科音视频服务账户
+						mRkAccountManager.login(rkCloudAccount, rkCloudAccount);
+					}
+				}else {
+					mRkAccountManager.setmAccountIsLogin(true);
+					SDKManager.getInstance().bindUiHandler(mHandler);
+					SDKManager.getInstance().initSDK();
+				}
+			}
 			Log.d("----onStartCommand--syncFlag--" + syncFlag);
 			//同步好友列表
 			switch (syncFlag) {
@@ -490,22 +512,6 @@ public class CoreService extends Service {
 					break;
 				case FLAG_LOGIN:	//后台登陆
 					SystemUtil.getCachedThreadPool().execute(new LoginTask());
-					break;
-				case FLAG_INIT_RKCLOUD_SDK:	//初始化云视互动SDK
-					String rkCloudAccount = ChatApplication.getInstance().getSystemConfig().getmRkCloudAccount();
-					String rkcloudPwd = RKCloudDemo.config.getString(Config.LOGIN_RKCLOUD_PWD, null);
-					String login_name = RKCloudDemo.config.getString(Config.LOGIN_NAME, null);
-					if(TextUtils.isEmpty(rkcloudPwd) || !rkCloudAccount.equals(login_name)) {
-						if (AccountManager.mNeedRegistRkCloud == 1) {//注册融科音视频服务账户
-							mRkAccountManager.register(rkCloudAccount, rkCloudAccount);
-						} else {//登录融科音视频服务账户
-							mRkAccountManager.login(rkCloudAccount, rkCloudAccount);
-						}
-					}else {
-						mRkAccountManager.setmAccountIsLogin(true);
-						SDKManager.getInstance().bindUiHandler(mHandler);
-						SDKManager.getInstance().initSDK();
-					}
 					break;
 				default:
 					break;
@@ -626,6 +632,7 @@ public class CoreService extends Service {
 
 		@Override
 		public void onLoginSuccessful() {
+			Log.d("-----onLoginSuccessful---initCurrentUser-------");
 			initCurrentUser(ChatApplication.getInstance().getCurrentUser());//同步自己的信息
 			SystemUtil.getCachedThreadPool().execute(new HandleOffineMsgTask());//接受离线消息
 			SystemUtil.getCachedThreadPool().execute(new SyncFriendsTask());//从服务器上同步所有的好友列表到本地

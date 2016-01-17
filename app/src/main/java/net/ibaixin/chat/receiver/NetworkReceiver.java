@@ -7,6 +7,8 @@ import java.util.Timer;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 
 import net.ibaixin.chat.ChatApplication;
+import net.ibaixin.chat.rkcloud.SDKManager;
+import net.ibaixin.chat.rkcloud.av.RKCloudAVDemoManager;
 import net.ibaixin.chat.service.CoreService;
 import net.ibaixin.chat.task.ReConnectTask;
 import net.ibaixin.chat.util.Log;
@@ -42,7 +44,7 @@ public class NetworkReceiver extends BroadcastReceiver implements ReConnectTask.
 		case ConnectivityManager.CONNECTIVITY_ACTION:	//网络改变
 			isNetOk = checkNetwork(context);
 			AbstractXMPPConnection connection = XmppConnectionManager.getInstance().getConnection();
-		if (connection != null && (!XmppUtil.checkConnected(connection) || !XmppUtil.checkAuthenticated(connection))) {	//当前用户没有登录
+			if (connection != null && (!XmppUtil.checkConnected(connection) || !XmppUtil.checkAuthenticated(connection))) {	//当前用户没有登录
 				Timer timer = new Timer();
 				ReConnectTask connectTask = new ReConnectTask(this);
 				if(!isNetOk) {	//网络不可用
@@ -50,6 +52,7 @@ public class NetworkReceiver extends BroadcastReceiver implements ReConnectTask.
 					timer.purge();
 				} else {
 					timer.schedule(connectTask, timeDelay);
+					SDKManager.startInitSDKService(context);
 				}
 			}
 			break;

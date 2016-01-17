@@ -309,8 +309,10 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 		LOCATION,
 		VCARD,
 		FILE,
-		VOICE;
-		
+		VOICE,
+		CALL_AUDIO,
+		CALL_VIDEO;
+
 		/**
 		 * 将数字转换成Type
 		 * @update 2014年10月28日 下午10:14:57
@@ -335,6 +337,10 @@ public class MsgInfo implements Comparator<MsgInfo>, Parcelable, Cloneable {
 				return FILE;
 			case 7:
 				return VOICE;
+			case 8:
+				return CALL_AUDIO;
+			case 9:
+				return CALL_VIDEO;
 			default:
 				return FILE;
 			}

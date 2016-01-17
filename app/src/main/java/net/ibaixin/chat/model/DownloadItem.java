@@ -1,5 +1,8 @@
 package net.ibaixin.chat.model;
 
+import net.ibaixin.chat.util.Log;
+import net.ibaixin.chat.util.SystemUtil;
+
 import java.io.File;
 
 /**
@@ -15,11 +18,11 @@ public abstract class DownloadItem {
     /**
      * 文件名
      */
-    private String fileName;
+    protected String fileName;
     /**
      * 文件的mime
      */
-    private String mime;
+    protected String mime;
     /**
      * 文件的全路径
      */
@@ -138,6 +141,35 @@ public abstract class DownloadItem {
 
     public void setMime(String mime) {
         this.mime = mime;
+    }
+    
+    /**
+     * 删除该项
+     * @author tiger
+     * @update 2016/1/17 15:05
+     * @version 1.0.0
+     * @return 是否删除成功
+     */
+    public boolean deleteItem() {
+        if (filePath != null) {
+            try {
+                File file = new File(filePath);
+                return file.delete();
+            } catch (Exception e) {
+                Log.e(e.getMessage());
+            } finally {
+                try {
+                    if (fileType == FileItem.FileType.IMAGE || fileType == FileItem.FileType.VIDEO) {
+                        SystemUtil.removeImageCache(filePath);
+                    }
+                } catch (Exception e) {
+                    Log.e(e.getMessage());
+                }
+            }
+            return false;
+        } else {
+            return false;
+        }
     }
 
     @Override

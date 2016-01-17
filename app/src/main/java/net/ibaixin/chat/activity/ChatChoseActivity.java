@@ -64,9 +64,16 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     public static final String ARG_MSG_INFOS= "arg_msg_infos";
     public static final String ARG_FORWARD_FLAG = "arg_forward_flag";
     
-    public static final String ARG_FINISH = "arg_finish";
+    public static final String ARG_SEND_OPT = "arg_send_opt";
 
     public static final String ARG_SEND_TYPE = "arg_send_type";
+
+    //跳转到chat界面，一般用于聊天界面的转发
+    public static final int OPT_FORWARD = 0;
+    //直接销毁该界面
+    public static final int OPT_FINISH = 1;
+    //让用户选择，一般用于外界分享
+    public static final int OPT_CHOOSE = 2;
 
     /**
      * 转发类型
@@ -106,9 +113,9 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     private ProgressDialog pDialog;
 
     /**
-     * 转发后是否销毁该界面
+     * 默认消息发送成功后跳转到聊天界面
      */
-    private boolean mFinish = true;
+    private int mSendOpt = OPT_FORWARD;
 
     private CoreService mCoreService;
 
@@ -121,16 +128,24 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case Constants.MSG_SUCCESS:
-                    if (mFinish) {
-                        MsgThread msgThread = (MsgThread) msg.obj;
-                        Intent intent = new Intent(mContext, ChatActivity.class);
-                        intent.putExtra(ARG_FORWARD_FLAG, true);
-                        intent.putExtra(ChatActivity.ARG_THREAD, msgThread);
-                        intent.putParcelableArrayListExtra(ARG_MSG_INFOS, mMsgInfos);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        SystemUtil.makeShortToast(R.string.chat_forward_msg_success);
+                    switch (mSendOpt) {
+                        case OPT_FORWARD:   //跳转到chat界面
+                            MsgThread msgThread = (MsgThread) msg.obj;
+                            Intent intent = new Intent(mContext, ChatActivity.class);
+                            intent.putExtra(ARG_FORWARD_FLAG, true);
+                            intent.putExtra(ChatActivity.ARG_THREAD, msgThread);
+                            intent.putParcelableArrayListExtra(ARG_MSG_INFOS, mMsgInfos);
+                            startActivity(intent);
+                            finish();
+                            break;
+                        case OPT_FINISH:
+                            SystemUtil.makeShortToast(R.string.chat_forward_msg_success);
+                            finish();
+                            break;
+                        case OPT_CHOOSE:    //让用户自己选择
+                            SystemUtil.makeShortToast(R.string.chat_forward_msg_success);
+                            handleSendOk();
+                            break;
                     }
                     break;
                 case Constants.MSG_FAILED:
@@ -139,6 +154,36 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
             }
         }
     };
+    
+    /**
+     * 处理消息发送成功后的界面跳转
+     * @author tiger
+     * @update 2016/1/16 15:09
+     * @version 1.0.0
+     */
+    private void handleSendOk() {
+        View view = getLayoutInflater().inflate(R.layout.layout_send_ok_dialog, null);
+        MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
+        builder.customView(view, false)
+                .positiveText(R.string.share_send_opt_finish)
+                .negativeText(R.string.share_send_opt_remain)
+                .forceStacking(true)
+                .callback(new MaterialDialog.ButtonCallback() {
+                    @Override
+                    public void onPositive(MaterialDialog dialog) {
+                        finish();
+                    }
+
+                    @Override
+                    public void onNegative(MaterialDialog dialog) {
+                        Intent intent = new Intent(mContext, MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
+                    }
+                })
+                .show();
+    }
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
 
@@ -180,7 +225,7 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
         if (intent != null) {
             mMsgInfos = intent.getParcelableArrayListExtra(ARG_MSG_INFOS);
             mSendType = intent.getIntExtra(ARG_SEND_TYPE, SEND_TYPE_FORWARD);
-            mFinish = intent.getBooleanExtra(ARG_FINISH, true);
+            mSendOpt = intent.getIntExtra(ARG_SEND_OPT, OPT_FORWARD);
         }
         
     }
@@ -286,7 +331,7 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
                                                                 }
                                                             }
 
-                                                            if (mFinish) {
+                                                            if (mSendOpt != OPT_FORWARD) {  //不是聊天界面的消息转发，则不用立即跳转到chat界面
                                                                 sendMsg(msgInfo, msgThread);
                                                             }
 
@@ -319,7 +364,7 @@ public class ChatChoseActivity extends BaseActivity implements LoaderManager.Loa
     @Override
     protected void onDestroy() {
         getSupportLoaderManager().destroyLoader(0);
-        mFinish = true;
+        mSendOpt = OPT_FORWARD;
 
         try {
             if (mServiceConnection != null) {

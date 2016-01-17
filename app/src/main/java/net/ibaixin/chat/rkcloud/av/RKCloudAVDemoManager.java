@@ -1,7 +1,10 @@
 package net.ibaixin.chat.rkcloud.av;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
 import com.rongkecloud.av.RKCloudAV;
 import com.rongkecloud.av.RKCloudAVCallInfo;
 import com.rongkecloud.av.RKCloudAVCallLog;
@@ -36,7 +39,22 @@ import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
+import net.ibaixin.chat.manager.MsgManager;
+import net.ibaixin.chat.manager.UserManager;
+import net.ibaixin.chat.model.MsgInfo;
+import net.ibaixin.chat.model.MsgThread;
+import net.ibaixin.chat.model.Personal;
+import net.ibaixin.chat.model.User;
+import net.ibaixin.chat.rkcloud.AccountManager;
+import net.ibaixin.chat.util.Constants;
+import net.ibaixin.chat.util.Log;
+import net.ibaixin.chat.util.StreamTool;
+import net.ibaixin.chat.util.SystemUtil;
+
+import org.json.JSONObject;
 
 public class RKCloudAVDemoManager implements RKCloudAVNewCallCallBack {
     private static final String TAG = RKCloudAVDemoManager.class.getSimpleName();
@@ -76,6 +94,10 @@ public class RKCloudAVDemoManager implements RKCloudAVNewCallCallBack {
     private int mLastX = 0, mLastY = 0;
     private int mStartX = 0, mStartY = 0;
     private boolean mFloatWinClickToEnterCallUi = false;// 是否允许点击悬浮窗跳转到通话页面，true:允许
+
+    private Notification mInCallNotification = null;
+
+    private Notification mOutCallNotification = null;
 
     private RKCloudAVDemoManager(Context context) {
         mContext = context;
@@ -132,6 +154,7 @@ public class RKCloudAVDemoManager implements RKCloudAVNewCallCallBack {
         showMissedCallNotification(callerAccount);
 
         // TODO 向即时通信消息聊天页面添加记录
+        SystemUtil.getCachedThreadPool().execute(new AddCallMsgTask(callerAccount,mContext.getString(R.string.rkcloud_av_msg_callmissed),isVideo,true,callTime));
         // LocalMessage msgObj = LocalMessage.buildReceivedMsg(callerAccount,
         // mContext.getString(R.string.rkcloud_av_msg_callmissed),
         // callerAccount);
@@ -202,6 +225,7 @@ public class RKCloudAVDemoManager implements RKCloudAVNewCallCallBack {
                     }
                     if (null != mmsContent) {
                         // TODO 向即时通信消息表中插入记录
+                        SystemUtil.getCachedThreadPool().execute(new AddCallMsgTask(callerAccount,mmsContent,isVideo,true,0));
                         // update by dudejin
                         // LocalMessage msgObj =
                         // LocalMessage.buildReceivedMsg(callerAccount,
@@ -374,6 +398,7 @@ public class RKCloudAVDemoManager implements RKCloudAVNewCallCallBack {
                         // LocalMessage.buildSendMsg(calleeAccount, mmsContent,
                         // RKCloud.getUserName());
                         // addCallMsg(msgObj, isVideo, false);
+                        SystemUtil.getCachedThreadPool().execute(new AddCallMsgTask(calleeAccount,mmsContent,isVideo,false,0));
                     }
                     showToastText(content);
 
@@ -835,9 +860,9 @@ public class RKCloudAVDemoManager implements RKCloudAVNewCallCallBack {
         // 通知栏中点击后的响应处理
         builder.setContentIntent(pendingIntent);
         // 构建通知对象
-        Notification notification = builder.build();
-        notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
-        mNotificationManager.notify(NOTIFICATION_ID_OUT, notification);
+        mOutCallNotification = builder.build();
+        mOutCallNotification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
+        mNotificationManager.notify(NOTIFICATION_ID_OUT, mOutCallNotification);
     }
 
     /*
@@ -871,9 +896,22 @@ public class RKCloudAVDemoManager implements RKCloudAVNewCallCallBack {
         // 通知栏中点击后的响应处理
         builder.setContentIntent(pendingIntent);
         // 构建通知对象
-        Notification notification = builder.build();
-        notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
-        mNotificationManager.notify(NOTIFICATION_ID_IN, notification);
+        mInCallNotification = builder.build();
+        mInCallNotification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
+        mNotificationManager.notify(NOTIFICATION_ID_IN, mInCallNotification);
+    }
+
+    public void reShowCallNotification() {
+        if(mInCallNotification!=null){
+            mNotificationManager.notify(NOTIFICATION_ID_IN, mInCallNotification);
+        }else if(mOutCallNotification!=null){
+            mNotificationManager.notify(NOTIFICATION_ID_OUT, mOutCallNotification);
+        }
+    }
+
+    public void hideCallNotification() {
+        hideInCallNotification();
+        hideOutCallNotification();
     }
 
     /*
@@ -930,5 +968,101 @@ public class RKCloudAVDemoManager implements RKCloudAVNewCallCallBack {
      */
     public void hideMissedCallNotification() {
         mNotificationManager.cancel(NOTIFICATION_ID_MISSED);
+    }
+
+    /**
+     * 添加通话的消息记录
+     */
+    class AddCallMsgTask implements Runnable{
+        private String otherSideRkAccount;
+        private String content;
+        private boolean isVideo;
+        private boolean isIncall;
+        private long time;
+        private MsgManager msgManager = MsgManager.getInstance();
+        private UserManager userManager = UserManager.getInstance();
+
+        /**
+         * @param otherSideRkAccount
+         * @param content
+         * @param isVideo
+         * @param isIncall
+         */
+        public AddCallMsgTask(String otherSideRkAccount,String content,boolean isVideo,boolean isIncall,long time){
+            this.otherSideRkAccount = otherSideRkAccount;
+            this.content = content;
+            this.isVideo = isVideo;
+            this.isIncall = isIncall;
+            this.time = time;
+        }
+
+        @Override
+        public void run() {
+            String ibaixinName = AccountManager.getRkAccountUserMap().get(otherSideRkAccount);
+            User otherSide = null;
+            if(TextUtils.isEmpty(ibaixinName)) {
+                ibaixinName = getIbaixinNameByRkAccount(otherSideRkAccount);
+            }
+            if(TextUtils.isEmpty(ibaixinName)) {
+                Log.d(TAG,"AddCallMsgTask ibaixinName isEmpty");
+                return;
+            }
+            otherSide = userManager.getUserByUsername(ibaixinName);
+            Personal mine = ChatApplication.getInstance().getCurrentUser();
+            MsgThread mt = msgManager.getThreadByMember(otherSide);
+            if (mt == null) {//没有改会话，就创建一个
+                mt = new MsgThread();
+                mt.setMembers(Arrays.asList(otherSide));
+                mt.setMsgThreadName(otherSide.getName());
+                mt = msgManager.createMsgThread(mt);
+            }
+            MsgInfo msgInfo = new MsgInfo();
+            msgInfo.setContent(mContext.getString((isVideo?R.string.av_call:R.string.au_call),content));
+            msgInfo.setMsgType(isVideo ? MsgInfo.Type.CALL_VIDEO : MsgInfo.Type.CALL_AUDIO);
+            msgInfo.setComming(isIncall);
+            if(isIncall){//呼入的电话
+                msgInfo.setFromUser(otherSide.getFullJid());
+                msgInfo.setToUser(mine.getFullJID());
+            }else {//呼出的电话
+                msgInfo.setFromUser(mine.getFullJID());
+                msgInfo.setToUser(otherSide.getFullJid());
+            }
+            msgInfo.setRead(true);
+            msgInfo.setSendState(MsgInfo.SendState.SUCCESS);
+            msgInfo.setThreadID(mt.getId());
+            msgInfo.setCreationDate(time==0?System.currentTimeMillis():time);
+            msgManager.addMsgInfo(msgInfo,true);
+        }
+    }
+
+    /**
+     * 通过融科账户获取百信用户登录名称
+     * @param rkAccount
+     * @return
+     */
+    public static String getIbaixinNameByRkAccount(String rkAccount){
+        StringBuilder sb = new StringBuilder(Constants.syncUsernameByRkCloudAccountUrl).append("?rkAccount=").append(rkAccount);
+        String urlstr = sb.toString();
+        String userName = null;
+        Log.d(TAG, "getIbaixinNameByRkAccount Url:" + urlstr);
+        JSONObject jsonObject = null;
+        try {
+            String json = StreamTool.connectServer(urlstr);
+            Log.d(TAG,"getIbaixinNameByRkAccount result:"+json);
+            jsonObject = new JSONObject(json);
+            if(jsonObject!=null && jsonObject.has("code")){
+                int code = jsonObject.getInt("code");
+                if(code==0){
+                    userName = jsonObject.getString("userName");
+                    if(!TextUtils.isEmpty(userName)){
+                        AccountManager.getUsersRkAccountMap().put(userName,rkAccount);
+                        AccountManager.getRkAccountUserMap().put(rkAccount,userName);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG,e.toString());
+        }
+        return userName;
     }
 }

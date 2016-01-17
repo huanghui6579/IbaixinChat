@@ -1146,8 +1146,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 				switch (attachItem.getAction()) {
 				case AttachItem.ACTION_IMAGE:	//选择图片
 					requestCode = AlbumActivity.REQ_PARENT_MAKE_IMG_MSG;
-//					intent = new Intent(mContext, AlbumActivity.class);
-					intent = new Intent(mContext, TestActivity.class);
+					intent = new Intent(mContext, AlbumActivity.class);
 					msgInfo.setMsgType(Type.IMAGE);
 					intent.putExtra(ARG_MSG_INFO, msgInfo);
 					intent.putExtra(AlbumActivity.ARG_REQ_CODE, requestCode);
@@ -1184,7 +1183,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 							RKCloudAVDemoManager.getInstance(mContext).dial(mContext, mOtherSideRkAccount,showName, false);
 						}
 					}else{
-						SystemUtil.makeShortToast(R.string.av_call_adk_init_error);
+						SDKManager.startInitSDKService(mContext);
+						SystemUtil.makeShortToast(R.string.av_call_adk_reinit);
 					}
 					break;
 				case AttachItem.ACTION_CALL_VIDEO:	//视频通话
@@ -1196,7 +1196,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 							RKCloudAVDemoManager.getInstance(mContext).dial(mContext, mOtherSideRkAccount,showName, true);
 						}
 					}else{
-						SystemUtil.makeShortToast(R.string.av_call_adk_init_error);
+						SDKManager.startInitSDKService(mContext);
+						SystemUtil.makeShortToast(R.string.av_call_adk_reinit);
 					}
 					break;
 				default:
@@ -2348,6 +2349,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 			holder.tvContent.setCompoundDrawablePadding(0);
 			switch (msgType) {
 			case TEXT:	//文本消息
+			case CALL_VIDEO:	//视频通话消息
+			case CALL_AUDIO:	//语音通话消息
 				SpannableString spannableString = SystemUtil.getExpressionString(mContext, msgInfo.getContent());
 				if (spannableString != null) {
 					if (spannableString.length() <= context.getResources().getInteger(R.integer.msg_content_min_center_length)) {	//字符太短，居中显示
@@ -3090,7 +3093,31 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 							intent.putExtra(MsgShowActivity.ARG_MSG_CONTENT, msgInfo.getContent());
 							ActivityOptionsCompatICS options = ActivityOptionsCompatICS.makeScaleUpAnimation(v, 0, 0, v.getWidth(), v.getHeight());
 							ActivityCompatICS.startActivity(ChatActivity.this, intent, options.toBundle());
-						} else {
+						}else if(msgType == Type.CALL_AUDIO){//语音通话
+							if(SDKManager.isSdkInitStatus()) {
+								if(TextUtils.isEmpty(mOtherSideRkAccount)){
+									SystemUtil.makeShortToast(R.string.app_notsupport_av_call);
+								}else {
+									String showName = getTitle().toString();
+									RKCloudAVDemoManager.getInstance(mContext).dial(mContext, mOtherSideRkAccount,showName, false);
+								}
+							}else{
+								SDKManager.startInitSDKService(mContext);
+								SystemUtil.makeShortToast(R.string.av_call_adk_reinit);
+							}
+						}else if(msgType == Type.CALL_VIDEO){//视频通话
+							if(SDKManager.isSdkInitStatus()) {
+								if(TextUtils.isEmpty(mOtherSideRkAccount)){
+									SystemUtil.makeShortToast(R.string.app_notsupport_av_call);
+								}else {
+									String showName = getTitle().toString();
+									RKCloudAVDemoManager.getInstance(mContext).dial(mContext, mOtherSideRkAccount,showName, true);
+								}
+							}else{
+								SDKManager.startInitSDKService(mContext);
+								SystemUtil.makeShortToast(R.string.av_call_adk_reinit);
+							}
+						}else {
 							MsgPart msgPart = msgInfo.getMsgPart();
 							if (msgPart != null) {
 								String showPath = msgPart.getShowPath();
@@ -3692,7 +3719,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener/*, OnI
 						if(!TextUtils.isEmpty(account)){
 							mOtherSideRkAccount = account;
 							AccountManager.getUsersRkAccountMap().put(user.getUsername(),account);
-                            AccountManager.getRkAccountUserMap().put(account,user.getUsername());
+							AccountManager.getRkAccountUserMap().put(account,user.getUsername());
 						}
 					}
 				}

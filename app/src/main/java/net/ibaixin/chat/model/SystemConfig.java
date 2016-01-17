@@ -1,7 +1,5 @@
 package net.ibaixin.chat.model;
 
-import android.graphics.Bitmap;
-
 /**
  * 系统常用配置实体
  * 

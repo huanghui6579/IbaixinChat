@@ -4,6 +4,13 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
 
+import net.ibaixin.chat.update.FileUtil;
+import net.ibaixin.chat.util.Log;
+import net.ibaixin.chat.util.MimeUtils;
+import net.ibaixin.chat.util.SystemUtil;
+
+import java.io.File;
+
 /**
  * 相片实体
  * @author huanghui1
@@ -84,7 +91,7 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 		return "PhotoItem{" +
 				"thumbPath='" + thumbPath + '\'' +
 				", bucketId='" + bucketId + '\'' +
-				'}';
+				"} " + super.toString();
 	}
 
 	public PhotoItem() {
@@ -97,7 +104,68 @@ public class PhotoItem extends DownloadItem implements Parcelable {
 	public boolean isEmpty() {
 		return TextUtils.isEmpty(filePath) && TextUtils.isEmpty(thumbPath);
 	}
-	
+
+	@Override
+	public boolean deleteItem() {
+		if (SystemUtil.isFileExists(filePath)) {
+			return super.deleteItem();
+		} else {
+			if (thumbPath != null) {
+				try {
+					File file = new File(thumbPath);
+					return file.delete();
+				} catch (Exception e) {
+					Log.e(e.getMessage());
+				} finally {
+					if (fileType == FileItem.FileType.IMAGE || fileType == FileItem.FileType.VIDEO) {
+						SystemUtil.removeImageCache(thumbPath);
+					}
+				}
+				return false;
+			} else {
+				return false;
+			}
+		}
+	}
+
+	/**
+	 * 保存图片到本地
+	 * @author tiger
+	 * @update 2016/1/17 10:36
+	 * @version 1.0.0
+	 * @return 下载文件的路径
+	 */
+	public String downloadItem() {
+		String destPath = null;
+		if (fileType == FileItem.FileType.IMAGE) {	//图片才有下载
+			File destFile = null;
+			String srcPath = null;
+			if (SystemUtil.isFileExists(filePath)) {	//保存原始图片
+				srcPath = filePath;
+				destFile = SystemUtil.generateDownloadFile(srcPath);
+			} else if (SystemUtil.isFileExists(thumbPath)) {
+				srcPath = thumbPath;
+				String subFix = "jpg";
+				if (MimeUtils.MIME_TYPE_IMAGE_JPG.equalsIgnoreCase(mime)) {
+					subFix = "jpg";
+				} else if (MimeUtils.MIME_TYPE_IMAGE_JPG.equalsIgnoreCase(mime)) {
+					subFix = "png";
+				}
+				destFile = SystemUtil.generateDownloadFile(srcPath, subFix);
+			}
+			if (destFile != null) {
+				destPath = destFile.getAbsolutePath();
+				boolean success = FileUtil.copyFile(srcPath, destPath);
+				if (!success) {
+					destPath = null;
+				}
+			}
+		} else {
+			Log.d("---downloadItem---is--not----image----" + this);
+		}
+		return destPath;
+	}
+
 	public PhotoItem(Parcel in) {
 		filePath = in.readString();
 		thumbPath = in.readString();

@@ -1,6 +1,9 @@
 package net.ibaixin.chat.update;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import android.os.Environment;
@@ -52,5 +55,54 @@ public class FileUtil {
         } else {
             isCreateFileSucess = false;
         }
+    }
+
+    /**
+     * 复制文件
+     * @param srcPath 原始文件的路径
+     * @param destPath 目标文件的路径
+     * @author tiger
+     * @update 2016/1/17 10:51
+     * @version 1.0.0
+     * @return 是否复制成功
+     */
+    public static boolean copyFile(String srcPath, String destPath) {
+        boolean success = false;
+        if (srcPath != null && destPath != null) {
+            File srcFile = new File(srcPath);
+            if (srcFile.exists()) { //原始文件存在
+                FileInputStream fis = null;
+                FileOutputStream fos = null;
+                try {
+                    fis = new FileInputStream(srcFile);
+                    fos = new FileOutputStream(destPath);
+                    int len = -1;
+                    byte[] buf = new byte[8192];
+                    while ((len = fis.read(buf)) != -1) {
+                        fos.write(buf, 0, len);
+                    }
+                    fos.flush();
+                    success = true;
+                } catch (IOException e) {
+                    Log.d(e.getMessage());
+                } finally {
+                    if (fis != null) {
+                        try {
+                            fis.close();
+                        } catch (IOException e) {
+                            Log.e(e.getMessage());
+                        }
+                    }
+                    if (fos != null) {
+                        try {
+                            fos.close();
+                        } catch (IOException e) {
+                            Log.e(e.getMessage());
+                        }
+                    }
+                }
+            }
+        }
+        return success;
     }
 }

@@ -15,12 +15,12 @@
  */
 package net.ibaixin.chat.util;
 
+import android.text.TextUtils;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
-
-import android.text.TextUtils;
 
 /**
  * Wrapper API for sending log output <BR />
@@ -122,7 +122,7 @@ public class Log {
 	/**
 	 * The TAG of the Application
 	 */
-	public static String TAG = "SNOWDREAM";
+	public static String TAG = "IBAIXIN";
 	/**
 	 * Whether to enable the log
 	 */
@@ -130,7 +130,7 @@ public class Log {
 	/**
 	 * The log dir path
 	 */
-	protected static String logDirPath = "/mnt/sdcard/snowdream/android/log";
+	protected static String logDirPath = "/mnt/sdcard/ibaixin/android/log";
 	/**
 	 * The log file base name
 	 */
@@ -162,7 +162,7 @@ public class Log {
 	 */
 	public static void d(String tag, String msg) {
 		if (isEnable) {
-			if (tag == null || tag == "") {
+			if (tag == null || tag .equals("")) {
 				d(msg);
 			} else {
 				android.util.Log.d(TAG,

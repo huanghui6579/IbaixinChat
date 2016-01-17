@@ -634,34 +634,22 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 							@Override
 							public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
 								switch (which) {
-									case 0:	//转发
-										MsgInfo msgInfo = new MsgInfo();
-
-										FileItem.FileType fileType = photoItem.getFileType();
-										if (fileType == FileItem.FileType.IMAGE) {	//图片
-											msgInfo.setMsgType(MsgInfo.Type.IMAGE);
-										} else if (fileType == FileItem.FileType.VIDEO) {	//视频
-											msgInfo.setMsgType(MsgInfo.Type.VIDEO);
-										} else {
-											msgInfo.setMsgType(MsgInfo.Type.FILE);
-										}
-										MsgPart msgPart = new MsgPart();
-										msgPart.setFilePath(photoItem.getFilePath());
-										msgPart.setFileName(photoItem.getFileName());
-										msgPart.setThumbPath(photoItem.getThumbPath());
-										msgPart.setMimeType(photoItem.getMime());
-										msgPart.setSize(photoItem.getSize());
-										
-										msgInfo.setMsgPart(msgPart);
-										
-										ArrayList<MsgInfo> argMsgs = new ArrayList<>(1);
-										argMsgs.add(msgInfo);
-										Intent intent = new Intent(mContext, ChatChoseActivity.class);
-										intent.putParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS, argMsgs);
-										intent.putExtra(ChatChoseActivity.ARG_FINISH, false);
-										startActivity(intent);
+									case 0:    //转发
+										forwardMsg(photoItem);
 										break;
-									case 1:	//保存图片到本地
+									case 1:    //保存图片到本地
+										mHandler.post(new Runnable() {
+											@Override
+											public void run() {
+												String downloadPath = photoItem.downloadItem();
+												if (SystemUtil.isFileExists(downloadPath)) {    //保存成功
+													SystemUtil.scanFileAsync(mContext, downloadPath);    //添加到多媒体扫描里
+													SystemUtil.makeLongToast(getString(R.string.album_save_photo_success, downloadPath));
+												} else {
+													SystemUtil.makeShortToast(R.string.album_save_photo_failed);
+												}
+											}
+										});
 										break;
 								}
 							}
@@ -670,6 +658,41 @@ public class PhotoPreviewActivity extends BaseActivity implements PhotoFragment.
 		}
 	}
 
+	/**
+	 * 转发消息
+	 * @param photoItem 图片
+	 * @author tiger
+	 * @update 2016/1/17 10:35
+	 * @version 1.0.0
+	 */
+	private void forwardMsg(PhotoItem photoItem) {
+		MsgInfo msgInfo = new MsgInfo();
+
+		FileItem.FileType fileType = photoItem.getFileType();
+		if (fileType == FileItem.FileType.IMAGE) {	//图片
+			msgInfo.setMsgType(MsgInfo.Type.IMAGE);
+		} else if (fileType == FileItem.FileType.VIDEO) {	//视频
+			msgInfo.setMsgType(MsgInfo.Type.VIDEO);
+		} else {
+			msgInfo.setMsgType(MsgInfo.Type.FILE);
+		}
+		MsgPart msgPart = new MsgPart();
+		msgPart.setFilePath(photoItem.getFilePath());
+		msgPart.setFileName(photoItem.getFileName());
+		msgPart.setThumbPath(photoItem.getThumbPath());
+		msgPart.setMimeType(photoItem.getMime());
+		msgPart.setSize(photoItem.getSize());
+
+		msgInfo.setMsgPart(msgPart);
+
+		ArrayList<MsgInfo> argMsgs = new ArrayList<>(1);
+		argMsgs.add(msgInfo);
+		Intent intent = new Intent(mContext, ChatChoseActivity.class);
+		intent.putParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS, argMsgs);
+		intent.putExtra(ChatChoseActivity.ARG_SEND_OPT, ChatChoseActivity.OPT_FINISH);
+		startActivity(intent);
+	}
+	
 	/**
 	 * 相片预览适配器
 	 * @author huanghui1

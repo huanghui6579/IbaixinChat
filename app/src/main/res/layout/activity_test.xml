@@ -76,6 +76,12 @@
 		        android:id="@id/lv_data"
 		        style="@style/CommonListViewStyle"
 		        android:layout_above="@id/et_content" /> -->
+
+			<Button
+				android:id="@+id/btn_dialog"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="弹出窗"/>
 		    
 		</LinearLayout>
     </ScrollView>

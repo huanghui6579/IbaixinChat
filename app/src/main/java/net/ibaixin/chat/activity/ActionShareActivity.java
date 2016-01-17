@@ -190,6 +190,7 @@ public class ActionShareActivity extends BaseActivity {
                             intent = new Intent(mContext, ChatChoseActivity.class);
                             intent.putExtra(ChatChoseActivity.ARG_SEND_TYPE, ChatChoseActivity.SEND_TYPE_SHARE);
                             intent.putParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS, msgInfos);
+                            intent.putExtra(ChatChoseActivity.ARG_SEND_OPT, ChatChoseActivity.OPT_CHOOSE);
                             startActivity(intent);
                             finish();
                         } else {

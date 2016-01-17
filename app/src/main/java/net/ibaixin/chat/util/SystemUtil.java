@@ -54,6 +54,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
+import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
 
 import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.R;
@@ -225,7 +226,7 @@ public class SystemUtil {
 	 */
 	private static Toast setToastStyle(Toast toast) {
 		View view = toast.getView();
-		view.setBackgroundResource(R.drawable.toast_frame_holo);
+		view.setBackgroundResource(R.drawable.toast_frame);
 		TextView textView = (TextView) view.findViewById(android.R.id.message);
 		textView.setTextColor(Color.WHITE);
 		return toast;
@@ -656,7 +657,7 @@ public class SystemUtil {
 	}
 	
 	/**
-	 * 获取该应用程序默认存储在sd卡中的文件夹名称，默认路径为/mnt/sdcard/ChatApp
+	 * 获取该应用程序默认存储在sd卡中的文件夹名称，默认路径为/mnt/sdcard/IbaiXinChat
 	 * @author tiger
 	 * @update 2015年3月13日 上午12:00:33
 	 * @return
@@ -667,6 +668,21 @@ public class SystemUtil {
 			root.mkdirs();
 		}
 		return root;
+	}
+	
+	/**
+	 * 获取默认的下载目录,默认路径为/mnt/sdcard/IbaiXinChat/Download
+	 * @author tiger
+	 * @update 2016/1/17 11:10
+	 * @version 1.0.0
+	 * @return 返回下载目录，默认路径为/mnt/sdcard/IbaiXinChat/Download
+	 */
+	public static File getDefaultAppDownloadFile() {
+		File download = new File(getDefaultAppFile(), Constants.DEAULT_APP_DOWNLOAD_FOLDER_NAME);
+		if (!download.exists()) {
+			download.mkdirs();
+		}
+		return download;
 	}
 	
 	/**
@@ -3071,6 +3087,50 @@ public class SystemUtil {
 			return true;
 		} else {
 			return false;
+		}
+	}
+	
+	/**
+	 * 生成下载文件的保存路径
+	 * @param filePath 图片的路径或者名称
+	 * @author tiger
+	 * @update 2016/1/17 11:02
+	 * @version 1.0.0
+	 * @return 返回下载文件的文件
+	 */
+	public static File generateDownloadFile(String filePath) {
+		String subFix = getFileSubfix(filePath);
+		return generateDownloadFile(filePath, subFix);
+	}
+
+	/**
+	 * 生成下载文件的保存路径
+	 * @param filePath 图片的路径或者名称
+	 * @param subFix 指定的文件后缀名
+	 * @author tiger
+	 * @update 2016/1/17 11:02
+	 * @version 1.0.0
+	 * @return 返回下载文件的文件
+	 */
+	public static File generateDownloadFile(String filePath, String subFix) {
+		File downloadDir = getDefaultAppDownloadFile();
+		String filename = generateFilename(subFix);
+		return new File(downloadDir, filename);
+	}
+
+	/**
+	 * 清除该文件的本地磁盘缓存和内存缓存
+	 * @param filePath 要清除缓存的文件路径
+	 * @author tiger
+	 * @update 2016/1/17 15:23
+	 * @version 1.0.0
+	 */
+	public static void removeImageCache(String filePath) {
+		if (filePath != null) {
+			ImageLoader imageLoader = ImageLoader.getInstance();
+			String uri = Scheme.FILE.wrap(filePath);
+			DiskCacheUtils.removeFromCache(uri, imageLoader.getDiskCache());
+			MemoryCacheUtils.removeFromCache(uri, imageLoader.getMemoryCache());
 		}
 	}
 }

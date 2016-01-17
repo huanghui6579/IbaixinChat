@@ -852,14 +852,16 @@ public class ContactFragment extends BaseFragment implements LazyLoadCallBack {
         	if (relativePosition >= 0) {
         		//得到要更新的item的view  
         		View view = lvContact.getChildAt(relativePosition);
-        		//从view中取得holder  
-        		Object tag = view.getTag();
-        		if (tag != null && tag instanceof ViewHolder) {
-        			ViewHolder holder = (ViewHolder) tag;
-        			holder.tvName.setText(user.getName());
-        			UserVcard userVcard = user.getUserVcard();
-        			mAdapter.showIcon(userVcard, holder.ivIcon);
-        		}
+        		//从view中取得holder
+				if (view != null) {
+					Object tag = view.getTag();
+					if (tag != null && tag instanceof ViewHolder) {
+						ViewHolder holder = (ViewHolder) tag;
+						holder.tvName.setText(user.getName());
+						UserVcard userVcard = user.getUserVcard();
+						mAdapter.showIcon(userVcard, holder.ivIcon);
+					}
+				}
         	}
         }
 	}

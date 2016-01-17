@@ -22,6 +22,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -73,6 +74,7 @@ public class TestActivity extends BaseActivity implements Observer, View.OnClick
 	private TextView tvProgress;
 	
 	private Button btnDownload;
+	private Button btnDialog;
 	private TextView tvPath;
 	
 	ProgressDialog pDialog;
@@ -96,6 +98,7 @@ public class TestActivity extends BaseActivity implements Observer, View.OnClick
 		tvProgress = (TextView) findViewById(R.id.tv_progress);
 		
 		btnDownload = (Button) findViewById(R.id.btn_download);
+		btnDialog = (Button) findViewById(R.id.btn_dialog);
 		tvPath = (TextView) findViewById(R.id.tv_path);
 	}
 	
@@ -346,6 +349,16 @@ public class TestActivity extends BaseActivity implements Observer, View.OnClick
 			setResult(RESULT_OK);
 			finish();
 			break;
+			case R.id.btn_dialog:	//弹出对话框
+				View view = getLayoutInflater().inflate(R.layout.layout_send_ok_dialog, null);
+				MaterialDialog.Builder builder1 = new MaterialDialog.Builder(mContext);
+				MaterialDialog dialog = builder1.customView(view, false)
+						.negativeText("离开微信")
+						.positiveText("留在主界面")
+						.forceStacking(true)
+						.build();
+				dialog.show();
+				break;
 		default:
 			break;
 		}
@@ -362,6 +375,7 @@ public class TestActivity extends BaseActivity implements Observer, View.OnClick
 		btnUpload.setOnClickListener(this);
 		btnRequest.setOnClickListener(this);
 		btnDownload.setOnClickListener(this);
+		btnDialog.setOnClickListener(this);
 	}
 	
 	@Override

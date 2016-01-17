@@ -20,8 +20,8 @@
         android:id="@+id/empty_stub"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        layout="@layout/layout_empty"
+        android:layout="@layout/layout_empty"
         android:layout_centerInParent="true"
-        android:visibility="visible"/>
+        android:visibility="gone"/>
 
 </RelativeLayout>

@@ -35,6 +35,7 @@ import net.ibaixin.chat.R;
 import net.ibaixin.chat.manager.UserManager;
 import net.ibaixin.chat.model.User;
 import net.ibaixin.chat.rkcloud.AccountManager;
+import net.ibaixin.chat.rkcloud.RKCloudDemo;
 
 public class RKCloudAVDemoActivity extends Activity implements OnClickListener, SensorEventListener {
     private static final String TAG = RKCloudAVDemoActivity.class.getSimpleName();
@@ -153,6 +154,7 @@ public class RKCloudAVDemoActivity extends Activity implements OnClickListener, 
         super.onPause();
         mSensorManager.unregisterListener(this);
         lightScreen();
+        mAVManager.reShowCallNotification();
     };
 
     @Override
@@ -190,6 +192,7 @@ public class RKCloudAVDemoActivity extends Activity implements OnClickListener, 
 
         case R.id.hideui_invideo:
         case R.id.hideui_inaudio:
+            mAVManager.reShowCallNotification();
             onBackPressed();
             break;
 
@@ -218,6 +221,7 @@ public class RKCloudAVDemoActivity extends Activity implements OnClickListener, 
 
         case R.id.hangup:
             mAVManager.hangup();
+            mAVManager.hideCallNotification();
             break;
 
         case R.id.answer:
@@ -525,7 +529,7 @@ public class RKCloudAVDemoActivity extends Activity implements OnClickListener, 
 
         } else if (RKCloudAVUiHandlerMessage.HANDLER_MSG_WHAT_UPDATETIME == msg.what) {
             updateCallTime();
-
+            mAVManager.reShowCallNotification();
         } else if (RKCloudAVUiHandlerMessage.HANDLER_MSG_WHAT_AV == msg.what) {
             int state = msg.arg1;
             switch (state) {

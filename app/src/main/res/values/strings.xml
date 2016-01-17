@@ -180,6 +180,9 @@
     <string name="album_no_data">没有更多记录</string>
     <string name="album_video_size">视频大小：%1$s</string>
     <string name="album_download_original_image_size">查看原图(%1$s)</string>
+    <string name="album_save_photo_success">文件成功保存到：%1$s</string>
+    <string name="album_save_photo_failed">文件保存失败</string>
+    <string name="album_forward_msg_size">一次只能转发%1$d条消息</string>
 
     <string name="album_image_msg">聊天图片</string>
 
@@ -240,6 +243,10 @@
 
     <string name="prompt_account">账号：%1$s</string>
 
+    <string name="share_send_ok">已发送</string>
+    <string name="share_send_opt_finish">返回第三方工具</string>
+    <string name="share_send_opt_remain">留在百信</string>
+
     <string name="item_setting">系统设置</string>
     <string name="item_readjokestext">趣味阅读</string>
     <string name="item_readjokesvideo">趣味视频</string>
@@ -290,6 +297,10 @@
     <string name="nicheng_prifix">百信%1$s</string>
     <string name="app_notsupport_av_call">对方版本不支持音视频通话功能，快发信息喊TA升级吧</string>
     <string name="av_call_adk_init_error">SDK初始化失败，您可以尝试重新登录</string>
+    <string name="av_call_adk_reinit">正在重新初始化SDK，请稍后...</string>
+    <string name="av_call_account_error">账户音视频通话异常，请联系管理员</string>
+    <string name="av_call_net_error">连接音视频通话服务器异常</string>
+    <string name="av_call">视频%1$s</string>
+    <string name="au_call">语音%1$s</string>
 
-    
 </resources>

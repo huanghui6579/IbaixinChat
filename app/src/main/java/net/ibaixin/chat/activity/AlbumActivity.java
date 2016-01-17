@@ -44,6 +44,7 @@ import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.download.ImageDownloader.Scheme;
@@ -601,18 +602,60 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 					public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
 						switch (item.getItemId()) {
 							case R.id.action_forward:	//转发
-								if (mPhotoAdapter != null) {
+								if (mPhotoAdapter != null && mPhotoAdapter.getSelectSize() <= Constants.ALBUM_SELECT_SIZE) {
 									SystemUtil.getCachedThreadPool().execute(new Runnable() {
 										@Override
 										public void run() {
 											ArrayList<MsgInfo> msgInfos = mPhotoAdapter.getSelectMsgInfos();
 											if (SystemUtil.isNotEmpty(msgInfos)) {
-
+												forwardMsgs(msgInfos);
 											} else {
 												Log.d("---not select photoitem---");
 											}
 										}
 									});
+									finishActionMode(mActionMode);
+								} else {
+									SystemUtil.makeShortToast(getString(R.string.album_forward_msg_size, Constants.ALBUM_SELECT_SIZE));
+								}
+								break;
+							case R.id.action_delete:	//删除选择的图片
+								//TODO 添加删除进度条
+								if (mPhotoAdapter != null && mPhotoAdapter.getSelectSize() > 0) {
+									MaterialDialog.Builder builder = new MaterialDialog.Builder(mContext);
+									builder.title(R.string.prompt)
+											.content(R.string.chat_delte_msg_prompt)
+											.positiveText(android.R.string.ok)
+											.negativeColor(android.R.string.cancel)
+											.callback(new MaterialDialog.ButtonCallback() {
+												@Override
+												public void onPositive(MaterialDialog dialog) {
+													SystemUtil.getCachedThreadPool().execute(new Runnable() {
+														@Override
+														public void run() {
+															final List<PhotoItem> selectItems = mPhotoAdapter.getSelectList();
+															for (PhotoItem photoItem : selectItems) {
+																photoItem.deleteItem();
+															}
+														}
+													});
+													SystemUtil.makeShortToast(R.string.delete_success);
+													finishActionMode(mActionMode);
+												}
+
+											});
+								}
+								break;
+							case R.id.action_download:	//保存图片
+								if (mPhotoAdapter != null && mPhotoAdapter.getSelectSize() > 0) {
+									SystemUtil.getCachedThreadPool().execute(new Runnable() {
+										@Override
+										public void run() {
+											final List<PhotoItem> selectItems = mPhotoAdapter.getSelectList();
+											savePhotoItems(selectItems);
+										}
+									});
+									SystemUtil.makeLongToast(getString(R.string.album_save_photo_success, SystemUtil.getDefaultAppDownloadFile().getAbsoluteFile()));
 								}
 								break;
 						}
@@ -660,8 +703,36 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+
+	/**
+	 * 转发消息
+	 * @param msgInfos 要转发的消息
+	 * @author tiger
+	 * @update 2016/1/17 14:44
+	 * @version 1.0.0
+	 */
+	private void forwardMsgs(ArrayList<MsgInfo> msgInfos) {
+		Intent intent = new Intent(mContext, ChatChoseActivity.class);
+		intent.putParcelableArrayListExtra(ChatChoseActivity.ARG_MSG_INFOS, msgInfos);
+		intent.putExtra(ChatChoseActivity.ARG_SEND_OPT, ChatChoseActivity.OPT_FINISH);
+		startActivity(intent);
+	}
 	
-	
+	/**
+	 * 保存选择的图片到本地
+	 * @author tiger
+	 * @update 2016/1/17 15:39
+	 * @version 1.0.0
+	 */
+	private void savePhotoItems(List<PhotoItem> photoItems) {
+		if (SystemUtil.isNotEmpty(photoItems)) {
+			for (PhotoItem photoItem : photoItems) {
+				photoItem.downloadItem();
+			}
+			Log.d("-----savePhotoItems----photoItems---success----" + photoItems);
+		}
+	}
+
 	/**
 	 * 获取手机状态栏高度
 	 * @update 2014年11月14日 下午4:08:56
@@ -1058,7 +1129,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		DisplayImageOptions videoOptions = SystemUtil.getAlbumVideoOptions();
 		
 		private SparseBooleanArray selectArray = new SparseBooleanArray();
-		int selectSize = 0;
+		private int selectSize = 0;
 		
 		public PhotoAdapter(List<PhotoItem> list, Context context) {
 			super(list, context);
@@ -1070,6 +1141,17 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 		 */
 		public void clearSelect() {
 			clearSelect(true);
+		}
+		
+		/**
+		 * 返回选择的图片的数量
+		 * @author tiger
+		 * @update 2016/1/17 14:51
+		 * @version 1.0.0
+		 * @return 选择的图片的数量
+		 */
+		public int getSelectSize() {
+			return selectSize;
 		}
 		
 		/**
@@ -1155,7 +1237,7 @@ public class AlbumActivity extends BaseActivity implements OnClickListener {
 			}
 			return null;
 		}
-		
+
 		@Override
 		public Object getItem(int position) {
 			if (list == null) {

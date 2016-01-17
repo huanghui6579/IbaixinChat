@@ -31,7 +31,7 @@ public class Constants {
 //	public static final String SERVER_NAME = "home-pc.com";
 	public static final int SERVER_PORT = 5222;
 	
-	public final static String SOFTVERSION = "2015122901";
+	public final static String SOFTVERSION = "2016011501";
 	
 	public static String TENCENTAPPID = "1104432259";//腾讯APP ID
 	public static String BAIDUAPPID = "0trswTLaGB6hN820M30Brbhx";//百度APP ID
@@ -43,6 +43,7 @@ public class Constants {
 	public final static String registerRkCloudUrl = websitePrefix+"/ibaixin/user/editRkCloudAccount" ;
 	public final static String syncRkCloudAccountsUrl = websitePrefix+"/ibaixin/user/getRkCloudAccountList" ;
 	public final static String syncRkCloudAccountUrl = websitePrefix+"/ibaixin/user/getRkCloudAccount" ;
+	public final static String syncUsernameByRkCloudAccountUrl = websitePrefix+"/ibaixin/user/getUserByRkAccount" ;
 	public final static String addjokeUrl = websitePrefix+"/ibaixin/jokemobile/addJoke" ;
 //	public final static String addvideoUrl = "http://192.168.42.28/ibaixin/videomobile/addVideo" ;
 	public final static String addvideoUrl = websitePrefix+"/ibaixin/videomobile/addVideo" ;
@@ -58,8 +59,9 @@ public class Constants {
 	public static final String CLIENT_RESOURCE = SystemUtil.getPhoneModel();
 	
 	public static final String DEAULT_APP_FOLDER_NAME = "IbaiXinChat";
+	public static final String DEAULT_APP_DOWNLOAD_FOLDER_NAME = "Download";
 	public static final String DATA_MSG_ATT_FOLDER_NAME = "attachment";
-	
+
 	public static final String SETTTING_LOGIN = "settting_login";
 	public static final String USER_ACCOUNT = "user_account";
 	public static final String RKCLOUDACCOUNT = "rkcloud_account";

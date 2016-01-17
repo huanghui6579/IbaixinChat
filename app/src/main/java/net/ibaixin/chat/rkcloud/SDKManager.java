@@ -7,6 +7,8 @@ import com.rongkecloud.sdkbase.RKCloudModelType;
 import com.rongkecloud.sdkbase.interfaces.InitCallBack;
 import com.rongkecloud.sdkbase.interfaces.RKCloudFatalExceptionCallBack;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
@@ -15,6 +17,7 @@ import net.ibaixin.chat.ChatApplication;
 import net.ibaixin.chat.model.SystemConfig;
 import net.ibaixin.chat.rkcloud.av.RKCloudAVDemoManager;
 import net.ibaixin.chat.rkcloud.http.HttpFatalExceptionCallBack;
+import net.ibaixin.chat.service.CoreService;
 
 public class SDKManager implements RKCloudFatalExceptionCallBack, HttpFatalExceptionCallBack {
     private static final String TAG = SDKManager.class.getSimpleName();
@@ -32,6 +35,18 @@ public class SDKManager implements RKCloudFatalExceptionCallBack, HttpFatalExcep
 
     public static boolean isSdkInitStatus() {
         return sdkInitStatus;
+    }
+
+    public static boolean isSdkInitProcess() {
+        return sdkInitProcess;
+    }
+
+    public static void startInitSDKService(Context context){
+        if(!SDKManager.isSdkInitStatus() && !SDKManager.isSdkInitProcess()){//初始化云视互动SDK标识
+            Intent service = new Intent(context, CoreService.class);
+            service.putExtra(CoreService.FLAG_INIT_RKCLOUD_SDK, CoreService.FLAG_INIT_AV_SDK);
+            context.startService(service);
+        }
     }
 
     private SDKManager() {

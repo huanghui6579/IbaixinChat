@@ -241,10 +241,8 @@ public class MainActivity extends BaseActivity {
 //			sendBroadcast(data);
 //		}
 		service.putExtra(CoreService.FLAG_SYNC, syncFlag);
-		startService(service);
-
-		//初始化云视互动SDK
-		service.putExtra(CoreService.FLAG_SYNC,CoreService.FLAG_INIT_RKCLOUD_SDK);
+		//初始化云视互动SDK标识
+		service.putExtra(CoreService.FLAG_INIT_RKCLOUD_SDK, CoreService.FLAG_INIT_AV_SDK);
 		startService(service);
 
 		if (initPosition) {

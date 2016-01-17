@@ -49,13 +49,13 @@
     
     <string name="rkcloud_av_hangup">通话结束。</string>
     <!-- 向即时通信聊天页面添加消息 -->
-    <string name="rkcloud_av_msg_caller_callcanel">已取消</string>
+    <string name="rkcloud_av_msg_caller_callcanel">通话已取消</string>
     <string name="rkcloud_av_msg_caller_calleeunline">对方不在线</string>
     <string name="rkcloud_av_msg_caller_calleenoanswer">无人应答</string>
     <string name="rkcloud_av_msg_caller_calleecalling">对方通话中</string>
     <string name="rkcloud_av_msg_caller_calleereject">对方已拒接</string>
     <string name="rkcloud_av_msg_caller_callfailed">呼叫失败</string>
-    <string name="rkcloud_av_msg_callee_calleereject">已拒接</string>
+    <string name="rkcloud_av_msg_callee_calleereject">通话已拒接</string>
     <string name="rkcloud_av_msg_callduration">通话时长 <xliff:g id="duration">%s</xliff:g></string>
     <string name="rkcloud_av_msg_callmissed">未接来电</string>
     <string name="rkcloud_av_floatwin_click_frequently">点击过于频繁了，请稍候再试。</string>
